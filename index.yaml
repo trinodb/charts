@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  trino:
+  - apiVersion: v2
+    appVersion: "351"
+    created: "2021-01-11T20:27:21.149567-05:00"
+    description: Fast distributed SQL query engine for big data analytics
+    digest: 6e846e1b138b806b7e56ca261b765e8d7c93b926681514f0ce0d13390b3ed3a8
+    name: trino
+    type: application
+    urls:
+    - trino-0.1.0.tgz
+    version: 0.1.0
+generated: "2021-01-11T20:27:21.146957-05:00"
