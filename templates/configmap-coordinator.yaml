@@ -37,6 +37,9 @@ data:
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
     discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
+{{- if .Values.oauth.enabled }}
+{{- .Values.oauth.config | nindent 4 }}
+{{- end }}
 
   log.properties: |
     io.trinosql={{ .Values.server.log.trino.level }}

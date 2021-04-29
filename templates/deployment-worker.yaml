@@ -27,6 +27,9 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.worker" . }}
+        - name: catalog-volume
+          configMap:
+            name: {{ template "trino.catalog" . }}             
       containers:
         - name: {{ .Chart.Name }}-worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -34,6 +37,8 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
+            - mountPath: {{ .Values.server.config.path }}/catalog
+              name: catalog-volume               
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

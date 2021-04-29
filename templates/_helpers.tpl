@@ -38,3 +38,7 @@ Create chart name and version as used by the chart label.
 {{- define "trino.worker" -}}
 {{ template "trino.fullname" . }}-worker
 {{- end -}}
+
+{{- define "trino.catalog" -}}
+{{ template "trino.fullname" . }}-catalog
+{{- end -}}

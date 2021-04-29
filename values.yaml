@@ -31,13 +31,54 @@ server:
       g1:
         heapRegionSize: "32M"
 
-securityContext:
-  runAsUser: 1000
-  runAsGroup: 1000
+  catalogs:
+    datalake.properties: |
+      connector.name=hive-hadoop2
+      hive.metastore=file
+      hive.s3-file-system-type=TRINO
+      hive.metastore.catalog.dir=s3:///
+      hive.s3.aws-access-key=
+      hive.s3.aws-secret-key=secretKey
+      hive.s3.endpoint=
+      hive.s3.path-style-access=true
+      hive.s3select-pushdown.enabled=true
+      hive.s3.ssl.enabled=false
+
+oauth:
+  enabled: false
+  config: |
+    http-server.authentication.type=oauth2
+    http-server.authentication.oauth2.auth-url=
+    http-server.authentication.oauth2.token-url=
+    http-server.authentication.oauth2.jwks-url=
+    http-server.authentication.oauth2.client-id=
+    http-server.authentication.oauth2.client-secret=
+    http-server.authentication.oauth2.scopes=
+    web-ui.authentication.type=oauth2
+
+ingress:
+  ## Set to true to enable ingress record generation
+  enabled: true
+  annotations: {}
+  #  kubernetes.io/ingress.class: nginx
+  #  kubernetes.io/tls-acme: "true"
+  labels: {}
+  path: /
+  pathType: Prefix  
+  hosts:
+    - host.example.com
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
 
 service:
   type: ClusterIP
   port: 8080
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
