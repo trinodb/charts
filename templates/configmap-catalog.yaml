@@ -12,5 +12,3 @@ data:
 {{- range $key, $val := .Values.server.catalogs }}
   {{ $key }}: | {{ $val | nindent 4 }}
 {{- end }}
-
----
