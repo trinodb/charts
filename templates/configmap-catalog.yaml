@@ -1,3 +1,4 @@
+{{-if .Values.server.catalogs.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,6 +10,7 @@ metadata:
     heritage: {{ .Release.Service }}
     component: catalog
 data:
-{{- range $key, $val := .Values.server.catalogs }}
+{{- range $key, $val := .Values.server.catalogs.configs }}
   {{ $key }}: | {{ $val | nindent 4 }}
+{{- end }}
 {{- end }}

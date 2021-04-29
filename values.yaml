@@ -32,17 +32,19 @@ server:
         heapRegionSize: "32M"
 
   catalogs:
-    datalake.properties: |
-      connector.name=hive-hadoop2
-      hive.metastore=file
-      hive.s3-file-system-type=TRINO
-      hive.metastore.catalog.dir=s3:///
-      hive.s3.aws-access-key=
-      hive.s3.aws-secret-key=secretKey
-      hive.s3.endpoint=
-      hive.s3.path-style-access=true
-      hive.s3select-pushdown.enabled=true
-      hive.s3.ssl.enabled=false
+    enabled: false
+    configs:
+      datalake.properties: |
+        connector.name=hive-hadoop2
+        hive.metastore=file
+        hive.s3-file-system-type=TRINO
+        hive.metastore.catalog.dir=s3:///
+        hive.s3.aws-access-key=
+        hive.s3.aws-secret-key=secretKey
+        hive.s3.endpoint=
+        hive.s3.path-style-access=true
+        hive.s3select-pushdown.enabled=true
+        hive.s3.ssl.enabled=false
 
 oauth:
   enabled: false
