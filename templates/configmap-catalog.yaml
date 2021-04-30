@@ -1,4 +1,4 @@
-{{-if .Values.server.catalogs.enabled }}
+{{- if .Values.server.catalogs.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
