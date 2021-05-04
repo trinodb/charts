@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 image:
-  repository: trinodb/trino 
+  repository: trinodb/trino
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart version.
   tag: latest
@@ -24,12 +24,25 @@ server:
     query:
       maxMemory: "4GB"
       maxMemoryPerNode: "1GB"
+      maxTotalMemoryPerNode: "2GB"
+    memory:
+      heapHeadroomPerNode: "1GB"
   jvm:
     maxHeapSize: "8G"
     gcMethod:
       type: "UseG1GC"
       g1:
         heapRegionSize: "32M"
+
+additionalNodeProperties: {}
+
+additionalJVMConfig: {}
+
+additionalConfigProperties: {}
+
+additionalLogProperties: {}
+
+additionalCatalogs: {}
 
 securityContext:
   runAsUser: 1000

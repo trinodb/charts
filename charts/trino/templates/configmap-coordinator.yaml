@@ -13,6 +13,9 @@ data:
     node.environment={{ .Values.server.node.environment }}
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
+  {{- range $configValue := .Values.additionalNodeProperties }}
+    {{ $configValue }}
+  {{- end }}
 
   jvm.config: |
     -server
@@ -24,6 +27,14 @@ data:
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:+ExitOnOutOfMemoryError
     -Djdk.attach.allowAttachSelf=true
+    -XX:-UseBiasedLocking
+    -XX:ReservedCodeCacheSize=512M
+    -XX:PerMethodRecompilationCutoff=10000
+    -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.nio.maxCachedBufferSize=2000000
+  {{- range $configValue := .Values.additionalJVMConfig }}
+    {{ $configValue }}
+  {{- end }}
 
   config.properties: |
     coordinator=true
@@ -35,10 +46,18 @@ data:
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
+    query.max-total-memory-per-node={{ .Values.server.config.query.maxTotalMemoryPerNode }}
+    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
     discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
+  {{- range $configValue := .Values.additionalConfigProperties }}
+    {{ $configValue }}
+  {{- end }}
 
   log.properties: |
-    io.trinosql={{ .Values.server.log.trino.level }}
+    io.trino={{ .Values.server.log.trino.level }}
+  {{- range $configValue := .Values.additionalLogProperties }}
+    {{ $configValue }}
+  {{- end }}
 
 ---
