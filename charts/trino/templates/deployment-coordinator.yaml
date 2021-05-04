@@ -1,39 +1,49 @@
-{{- if gt (int .Values.server.workers) 0 }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "trino.worker" . }}
+  name: {{ template "trino.coordinator" . }}
   labels:
     app: {{ template "trino.name" . }}
     chart: {{ template "trino.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
-    component: worker
+    component: coordinator
 spec:
-  replicas: {{ .Values.server.workers }}
   selector:
     matchLabels:
       app: {{ template "trino.name" . }}
       release: {{ .Release.Name }}
-      component: worker
+      component: coordinator
   template:
     metadata:
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
-        component: worker
+        component: coordinator
     spec:
+      {{- with .Values.securityContext }}
+      securityContext:
+        runAsUser: {{ .runAsUser }}
+        runAsGroup: {{ .runAsGroup }}
+      {{- end }}
       volumes:
         - name: config-volume
           configMap:
-            name: {{ template "trino.worker" . }}
+            name: {{ template "trino.coordinator" . }}
+        - name: catalog-volume
+          configMap:
+            name: {{ template "trino.catalog" . }}
+      imagePullSecrets:
+        - name: registry-credentials
       containers:
-        - name: {{ .Chart.Name }}-worker
+        - name: {{ .Chart.Name }}-coordinator
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
+            - mountPath: {{ .Values.server.config.path }}/catalog
+              name: catalog-volume
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -60,4 +70,3 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-{{- end }}

@@ -32,9 +32,32 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{- define "trino.coordinator" -}}
-{{ template "trino.fullname" . }}-coordinator
-{{- end -}}
+{{- if .Values.coordinatorNameOverride }}
+{{- .Values.coordinatorNameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}-coordinator
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-coordinator
+{{- end }}
+{{- end }}
+{{- end }}
 
 {{- define "trino.worker" -}}
-{{ template "trino.fullname" . }}-worker
+{{- if .Values.workerNameOverride }}
+{{- .Values.workerNameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}-worker
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-worker
+{{- end }}
+{{- end }}
+{{- end }}
+
+
+{{- define "trino.catalog" -}}
+{{ template "trino.fullname" . }}-catalog
 {{- end -}}
