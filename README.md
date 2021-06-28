@@ -22,6 +22,11 @@ Fast distributed SQL query engine for big data analytics
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | accessControl | object | `{}` |  |
+| additionalCatalogs | object | `{}` |  |
+| additionalConfigProperties | object | `{}` |  |
+| additionalJVMConfig | object | `{}` |  |
+| additionalLogProperties | object | `{}` |  |
+| additionalNodeProperties | object | `{}` |  |
 | affinity | object | `{}` |  |
 | auth | object | `{}` |  |
 | connectors | object | `{}` |  |
