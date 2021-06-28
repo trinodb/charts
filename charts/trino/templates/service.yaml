@@ -3,18 +3,14 @@ kind: Service
 metadata:
   name: {{ template "trino.fullname" . }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "trino.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.server.config.http.port }}
+      targetPort: http-coord
       protocol: TCP
-      name: http
+      name: http-coord
   selector:
-    app: {{ template "trino.name" . }}
-    release: {{ .Release.Name }}
-    component: coordinator
+    {{- include "trino.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator

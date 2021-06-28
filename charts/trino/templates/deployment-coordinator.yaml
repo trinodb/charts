@@ -3,25 +3,22 @@ kind: Deployment
 metadata:
   name: {{ template "trino.coordinator" . }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: coordinator
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
 spec:
   selector:
     matchLabels:
-      app: {{ template "trino.name" . }}
-      release: {{ .Release.Name }}
-      component: coordinator
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: coordinator
   template:
     metadata:
       labels:
-        app: {{ template "trino.name" . }}
-        release: {{ .Release.Name }}
-        component: coordinator
+        {{- include "trino.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: coordinator
+      annotations:
+        checksum/config: {{ printf "%s%s" .Values.server .Values.connectors | sha256sum }}
     spec:
-      {{- with .Values.securityContext }}
+      {{- with .Values.image.securityContext }}
       securityContext:
         runAsUser: {{ .runAsUser }}
         runAsGroup: {{ .runAsGroup }}
@@ -31,42 +28,72 @@ spec:
           configMap:
             name: {{ template "trino.coordinator" . }}
         - name: catalog-volume
+          secret:
+            secretName: trino-connectors
+        - name: schemas-volume
           configMap:
-            name: {{ template "trino.catalog" . }}
-      imagePullSecrets:
-        - name: registry-credentials
+            name: schemas-volume-coordinator
+        {{- if .Values.server.config.authenticationType }}{{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+        - name: password-volume
+          secret:
+            secretName: trino-password-authentication
+        {{- end }}{{- end }}
+        {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+        - name: access-control-volume
+          configMap:
+            name: trino-access-control-volume-coordinator
+        {{- end }}{{- end }}
+        {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "pvc" }}
+        - name: access-control-pvc-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.accessControl.pvcName }}
+        {{- end }}{{- end }}
       containers:
         - name: {{ .Chart.Name }}-coordinator
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
-            - mountPath: {{ .Values.server.config.path }}
+            - mountPath: {{ .Values.server.config.path }}/
               name: config-volume
+            - mountPath: /etc/trino/schemas
+              name: schemas-volume
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
+            {{- if .Values.server.config.authenticationType }}{{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+            - mountPath: {{ .Values.server.config.path }}/auth
+              name: password-volume
+            {{- end }}{{- end }}
+            {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+            - mountPath: {{ .Values.server.config.path }}/access-control
+              name: access-control-volume
+            {{- end }}{{- end }}
+            {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "pvc" }}
+            - mountPath: {{ .Values.server.config.path }}/access-control
+              name: access-control-pvc-volume
+            {{- end }}{{- end }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
+            - name: http-coord
+              containerPort: {{ .Values.server.config.http.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /v1/info
-              port: http
+              path: /v1/status
+              port: http-coord
           readinessProbe:
             httpGet:
-              path: /v1/info
-              port: http
+              path: /v1/status
+              port: http-coord
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+{{ toYaml . | indent 8 }}
+    {{- end }}

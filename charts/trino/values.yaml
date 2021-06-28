@@ -4,12 +4,14 @@
 
 image:
   repository: trinodb/trino
+  tag: 358
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart version.
-  tag: latest
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
 
 server:
-  workers: 2
+  workers: 3
   node:
     environment: production
     dataDir: /data/trino
@@ -21,9 +23,14 @@ server:
     path: /etc/trino
     http:
       port: 8080
+    processForwarded: false
+    # Trino supports multiple authentication types: PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS
+    # For more info: https://trino.io/docs/current/security/authentication-types.html
+    # authenticationType: "PASSWORD"
     query:
       maxMemory: "4GB"
       maxMemoryPerNode: "1GB"
+      maxTotalMemory: "6GB"
       maxTotalMemoryPerNode: "2GB"
     memory:
       heapHeadroomPerNode: "1GB"
@@ -34,19 +41,118 @@ server:
       g1:
         heapRegionSize: "32M"
 
-additionalNodeProperties: {}
+auth: {}
+  # Set username and password
+  # https://trino.io/docs/current/security/password-file.html#file-format
+  # passwordAuth: "username:encrypted-password-with-htpasswd"
 
-additionalJVMConfig: {}
+accessControl: {}
+  # # Supported types: pvc or configmap
+  # type: pvc
+  # refreshPeriod: 1s
+  # # Rules file is mounted to /etc/trino/access-control
+  # configFile: "/access-control/rules.json"
+  # # If you use pvc as the type, you have to specify the pvcName field:
+  # pvcName:
+  # # If you use configmap as the type, you have to specify the rules field:
+  # rules:
+  #   rules.json: |-
+  #     {
+  #       "catalogs": [
+  #         {
+  #           "user": "admin",
+  #           "catalog": "(mysql|system)",
+  #           "allow": "all"
+  #         },
+  #         {
+  #           "group": "finance|human_resources",
+  #           "catalog": "postgres",
+  #           "allow": true
+  #         },
+  #         {
+  #           "catalog": "hive",
+  #           "allow": "all"
+  #         },
+  #         {
+  #           "user": "alice",
+  #           "catalog": "postgresql",
+  #           "allow": "read-only"
+  #         },
+  #         {
+  #           "catalog": "system",
+  #           "allow": "none"
+  #         }
+  #       ],
+  #       "schemas": [
+  #         {
+  #           "user": "admin",
+  #           "schema": ".*",
+  #           "owner": true
+  #         },
+  #         {
+  #           "user": "guest",
+  #           "owner": false
+  #         },
+  #         {
+  #           "catalog": "default",
+  #           "schema": "default",
+  #           "owner": true
+  #         }
+  #       ]
+  #     }
 
-additionalConfigProperties: {}
+connectors: {}
+  # Connectors configuration usually contains sensitive data (like passwords, usernames, ...)
+  # so data is stored in a secret
+  # mysql.properties: |-
+  #   connector.name=mysql
+  #   connection-url=jdbc:mysql://mysqlserver:3306
+  #   connection-user=mysqluser
+  #   connection-password=mysqlpassword
+  # elk.properties: |-
+  #   connector.name=elasticsearch
+  #   elasticsearch.host=elasticsearchserver
+  #   elasticsearch.port=9200
+  #   elasticsearch.default-schema-name=default
+  #   elasticsearch.security=PASSWORD
+  #   elasticsearch.auth.user=elastiuser
+  #   elasticsearch.auth.password=elasticpassword
+  #   elasticsearch.tls.enabled=true
 
-additionalLogProperties: {}
-
-additionalCatalogs: {}
-
-securityContext:
-  runAsUser: 1000
-  runAsGroup: 1000
+schemas: {}
+  # Custom schemas that will be mounted in /etc/trino/schemas
+  # testschema.json: |-
+  #   {
+  #     "tableName": "testtable",
+  #     "schemaName": "testschema",
+  #     "topicName": "testtopic",
+  #     "key": {
+  #         "dataFormat": "json",
+  #         "fields": [
+  #             {
+  #                 "name": "_key",
+  #                 "dataFormat": "VARCHAR",
+  #                 "type": "VARCHAR",
+  #                 "hidden": "false"
+  #             }
+  #         ]
+  #     },
+  #     "message": {
+  #         "dataFormat": "json",
+  #         "fields": [
+  #             {
+  #                 "name": "id",
+  #                 "mapping": "id",
+  #                 "type": "BIGINT"
+  #             },
+  #             {
+  #                 "name": "test_field",
+  #                 "mapping": "test_field",
+  #                 "type": "VARCHAR"
+  #             }
+  #         ]
+  #     }
+  #   }
 
 service:
   type: ClusterIP
@@ -58,11 +164,11 @@ resources: {}
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
+  #  cpu: 100m
+  #  memory: 128Mi
   # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  #  cpu: 100m
+  #  memory: 128Mi
 
 nodeSelector: {}
 

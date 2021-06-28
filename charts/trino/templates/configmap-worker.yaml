@@ -4,11 +4,8 @@ kind: ConfigMap
 metadata:
   name: {{ template "trino.worker" . }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: worker
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
 data:
   node.properties: |
     node.environment={{ .Values.server.node.environment }}
@@ -39,20 +36,40 @@ data:
 
   config.properties: |
     coordinator=false
-    http-server.http.port={{ .Values.service.port }}
+    http-server.http.port={{ .Values.server.config.http.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
+    query.max-memory={{ .Values.server.config.query.maxTotalMemory }}
     query.max-total-memory-per-node={{ .Values.server.config.query.maxTotalMemoryPerNode }}
-    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
-    discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
-  {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
-  {{- end }}
+    discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.server.config.http.port }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
-  {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+  
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.worker" . }}-health-check
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+data:
+  health_check.sh: |
+    #!/bin/bash
+    curl -H 'X-trino-User: healthCheck' -m 3 --silent {{ template "trino.fullname" . }}:{{ .Values.server.config.http.port }}/v1/info/state | grep --silent 'ACTIVE'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schemas-volume-worker
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+data:
+  {{- range $key, $val := .Values.schemas }}
+  {{ $key }}: {{ $val | quote }}
   {{- end }}
 
+---
 {{- end }}

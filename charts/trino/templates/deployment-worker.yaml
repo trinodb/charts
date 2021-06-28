@@ -27,18 +27,27 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.worker" . }}
-        - name: catalog-volume
+        - name: health-check-volume
           configMap:
-            name: {{ template "trino.catalog" . }}
-      imagePullSecrets:
-        - name: registry-credentials
+            name: {{ template "trino.worker" . }}-health-check
+            defaultMode: 0777
+        - name: catalog-volume
+          secret:
+            secretName: trino-connectors
+        - name: schemas-volume
+          configMap:
+            name: schemas-volume-worker
       containers:
         - name: {{ .Chart.Name }}-worker
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
+            - mountPath: /etc/trino/schemas
+              name: schemas-volume
+            - mountPath: /startup/
+              name: health-check-volume
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
           ports:
@@ -46,25 +55,30 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /v1/info
-              port: http
+            exec:
+              command:
+                - /startup/health_check.sh
+            initialDelaySeconds: 10
+            periodSeconds: 25
           readinessProbe:
-            httpGet:
-              path: /v1/info
-              port: http
+            exec:
+              command:
+                - /startup/health_check.sh
+            initialDelaySeconds: 5
+            periodSeconds: 10
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+{{ toYaml . | indent 8 }}
+    {{- end }}
+
 {{- end }}
