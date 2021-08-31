@@ -38,7 +38,7 @@ additionalNodeProperties: {}
 
 additionalJVMConfig: {}
 
-additionalConfigProperties: {}
+additionalConfigProperties: []
 
 additionalLogProperties: {}
 
@@ -70,4 +70,8 @@ tolerations: []
 
 affinity: {}
 
-podLabels: {}
+# -- Labels for coordinator pods
+coordinatorPodLabels: {}
+
+# -- Labels for worker pods
+workerPodLabels: {}

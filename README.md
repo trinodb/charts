@@ -30,10 +30,10 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
 | `additionalNodeProperties` |  | `{}` |
 | `additionalJVMConfig` |  | `{}` |
-| `additionalConfigProperties` |  | `{}` |
+| `additionalConfigProperties` |  | `[]` |
 | `additionalLogProperties` |  | `{}` |
 | `additionalCatalogs` |  | `{}` |
-| `podLabels` |  | `{}` |
+| `coordinatorPodLabels` |  | `{}` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
 | `service.type` |  | `"ClusterIP"` |
@@ -41,6 +41,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `resources` |  | `{}` |
 | `nodeSelector` |  | `{}` |
 | `tolerations` |  | `[]` |
+| `workerPodLabels` |  | `{}` |
 | `affinity` |  | `{}` |
 
 ---
