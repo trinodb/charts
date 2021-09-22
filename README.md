@@ -33,6 +33,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `additionalConfigProperties` |  | `{}` |
 | `additionalLogProperties` |  | `{}` |
 | `additionalCatalogs` |  | `{}` |
+| `envVars` | Common Environment Variables applied to all Coordinator and Worker Pods | `[]` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
 | `service.type` |  | `"ClusterIP"` |
