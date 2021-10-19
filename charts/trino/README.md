@@ -2,7 +2,7 @@
 Trino
 ===========
 
-Fast distributed SQL query engine for big data analytics
+Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
 
 ## Configuration
