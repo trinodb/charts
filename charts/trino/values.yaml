@@ -72,3 +72,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+secretMounts: []
+  # - name: password-db
+  #   secretName: password-db
+  #   path: /etc/
