@@ -25,6 +25,7 @@ Fast distributed SQL query engine for big data analytics
 | affinity | object | `{}` |  |
 | auth | object | `{}` |  |
 | connectors | object | `{}` |  |
+| env | list | `[]` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"trinodb/trino"` |  |
 | image.securityContext.runAsGroup | int | `1000` |  |
