@@ -6,6 +6,9 @@ image:
     runAsUser: 1000
     runAsGroup: 1000
 
+env: []
+# Both worker & coordinator can use environment variables to expose information about itself to Containers running in the Pod
+
 ingress:
   enabled: false
   annotations: {}

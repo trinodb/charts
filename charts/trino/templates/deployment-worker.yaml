@@ -42,6 +42,10 @@ spec:
         - name: {{ .Chart.Name }}-worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.env }}
+          env:
+          {{-  tpl (toYaml .Values.env) . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
