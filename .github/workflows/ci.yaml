@@ -1,5 +1,5 @@
 name: Lint and Test Chart
-on: push
+on: [push, pull_request]
 
 jobs:
   lint-test:
@@ -23,6 +23,6 @@ jobs:
       - name: Run chart-testing (lint)
         run: ct lint --charts=charts/trino --validate-maintainers=false
       - name: Create kind cluster
-        uses: helm/kind-action@v1.0.0
+        uses: helm/kind-action@v1.2.0
       - name: Run chart-testing (install)
         run: ct install --charts=charts/trino
