@@ -4,24 +4,21 @@ kind: Deployment
 metadata:
   name: {{ template "trino.worker" . }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: worker
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
 spec:
   replicas: {{ .Values.server.workers }}
   selector:
     matchLabels:
-      app: {{ template "trino.name" . }}
-      release: {{ .Release.Name }}
-      component: worker
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
   template:
     metadata:
       labels:
-        app: {{ template "trino.name" . }}
-        release: {{ .Release.Name }}
-        component: worker
+        {{- include "trino.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
+      annotations:
+        checksum/config: {{ printf "%s%s" (include (print $.Template.BasePath "/configmap-worker.yaml") .) (include (print $.Template.BasePath "/secret.yaml") .) | sha256sum }}
     spec:
       volumes:
         - name: config-volume
@@ -33,10 +30,14 @@ spec:
             defaultMode: 0777
         - name: catalog-volume
           secret:
-            secretName: trino-connectors
+            secretName: {{ .Values.connectorsSecret | default "trino-connectors" }}
         - name: schemas-volume
           configMap:
             name: schemas-volume-worker
+      {{- if .Values.initContainers.worker }}
+      initContainers:
+      {{-  tpl (toYaml .Values.initContainers.worker) . | nindent 6 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}-worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -50,10 +51,6 @@ spec:
               name: health-check-volume
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
           livenessProbe:
             exec:
               command:

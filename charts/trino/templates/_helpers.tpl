@@ -58,8 +58,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "trino.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-
-{{- define "trino.catalog" -}}
-{{ template "trino.fullname" . }}-catalog
-{{- end -}}

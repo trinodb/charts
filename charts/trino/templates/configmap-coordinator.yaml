@@ -3,19 +3,13 @@ kind: ConfigMap
 metadata:
   name: {{ template "trino.coordinator" . }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: coordinator
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
 data:
   node.properties: |
     node.environment={{ .Values.server.node.environment }}
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
-  {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
-  {{- end }}
 
   jvm.config: |
     -server
@@ -27,14 +21,6 @@ data:
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:+ExitOnOutOfMemoryError
     -Djdk.attach.allowAttachSelf=true
-    -XX:-UseBiasedLocking
-    -XX:ReservedCodeCacheSize=512M
-    -XX:PerMethodRecompilationCutoff=10000
-    -XX:PerBytecodeRecompilationCutoff=10000
-    -Djdk.nio.maxCachedBufferSize=2000000
-  {{- range $configValue := .Values.additionalJVMConfig }}
-    {{ $configValue }}
-  {{- end }}
 
   config.properties: |
     coordinator=true
@@ -43,23 +29,30 @@ data:
 {{- else }}
     node-scheduler.include-coordinator=true
 {{- end }}
-    http-server.http.port={{ .Values.service.port }}
+    http-server.http.port={{ .Values.server.config.http.port }}
+{{- if .Values.server.config.processForwarded }}
+    http-server.process-forwarded={{ .Values.server.config.processForwarded }}
+{{- end }}
+{{- if .Values.server.config.authenticationType }}
+    http-server.authentication.type={{ .Values.server.config.authenticationType }}
+{{- end }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
-    query.max-memory={{ .Values.server.config.query.maxTotalMemory }}
+    query.max-total-memory={{ .Values.server.config.query.maxTotalMemory }}
     query.max-total-memory-per-node={{ .Values.server.config.query.maxTotalMemoryPerNode }}
-    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
     discovery-server.enabled=true
-    discovery.uri=http://localhost:{{ .Values.service.port }}
-  {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
-  {{- end }}
+    discovery.uri=http://localhost:{{ .Values.server.config.http.port }}
+{{- if .Values.server.config.prestoCompatibleHeader }}
+    protocol.v1.alternate-header-name=Presto
+{{- end }}
+{{- if .Values.server.config.httpsServer.enabled }}
+    http-server.https.enabled=true
+    http-server.https.port={{ .Values.server.config.httpsServer.port }}
+    http-server.https.keystore.path={{ .Values.server.config.httpsServer.keystore.path }}
+{{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
-  {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
-  {{- end }}
 
 {{- if .Values.server.config.authenticationType }}{{- if eq .Values.server.config.authenticationType "PASSWORD" }}
   password-authenticator.properties: |

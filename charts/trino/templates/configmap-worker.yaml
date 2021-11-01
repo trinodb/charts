@@ -11,9 +11,6 @@ data:
     node.environment={{ .Values.server.node.environment }}
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
-  {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
-  {{- end }}
 
   jvm.config: |
     -server
@@ -25,23 +22,18 @@ data:
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:+ExitOnOutOfMemoryError
     -Djdk.attach.allowAttachSelf=true
-    -XX:-UseBiasedLocking
-    -XX:ReservedCodeCacheSize=512M
-    -XX:PerMethodRecompilationCutoff=10000
-    -XX:PerBytecodeRecompilationCutoff=10000
-    -Djdk.nio.maxCachedBufferSize=2000000
-  {{- range $configValue := .Values.additionalJVMConfig }}
-    {{ $configValue }}
-  {{- end }}
 
   config.properties: |
     coordinator=false
     http-server.http.port={{ .Values.server.config.http.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
-    query.max-memory={{ .Values.server.config.query.maxTotalMemory }}
+    query.max-total-memory={{ .Values.server.config.query.maxTotalMemory }}
     query.max-total-memory-per-node={{ .Values.server.config.query.maxTotalMemoryPerNode }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.server.config.http.port }}
+{{- if .Values.server.config.prestoCompatibleHeader }}
+    protocol.v1.alternate-header-name=Presto
+{{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}

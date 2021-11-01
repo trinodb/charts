@@ -16,7 +16,7 @@ spec:
         {{- include "trino.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: coordinator
       annotations:
-        checksum/config: {{ printf "%s%s" .Values.server .Values.connectors | sha256sum }}
+        checksum/config: {{ printf "%s%s" (include (print $.Template.BasePath "/configmap-coordinator.yaml") .) (include (print $.Template.BasePath "/secret.yaml") .) | sha256sum }}
     spec:
       {{- with .Values.image.securityContext }}
       securityContext:
@@ -29,7 +29,7 @@ spec:
             name: {{ template "trino.coordinator" . }}
         - name: catalog-volume
           secret:
-            secretName: trino-connectors
+            secretName: {{ .Values.connectorsSecret | default "trino-connectors" }}
         - name: schemas-volume
           configMap:
             name: schemas-volume-coordinator
@@ -44,10 +44,19 @@ spec:
             name: trino-access-control-volume-coordinator
         {{- end }}{{- end }}
         {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "pvc" }}
-        - name: access-control-pvc-volume
+        - name: {{ .Values.accessControl.pvcVolumeName | default "access-control-pvc-volume" }}
           persistentVolumeClaim:
             claimName: {{ .Values.accessControl.pvcName }}
         {{- end }}{{- end }}
+        {{- range .Values.secretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ .secretName }}
+        {{- end }}
+      {{- if .Values.initContainers.coordinator }}
+      initContainers:
+      {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}-coordinator
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -69,8 +78,12 @@ spec:
             {{- end }}{{- end }}
             {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "pvc" }}
             - mountPath: {{ .Values.server.config.path }}/access-control
-              name: access-control-pvc-volume
+              name: {{ .Values.accessControl.pvcVolumeName | default "access-control-pvc-volume" }}
             {{- end }}{{- end }}
+            {{- range .Values.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
           ports:
             - name: http-coord
               containerPort: {{ .Values.server.config.http.port }}
