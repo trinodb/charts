@@ -24,7 +24,6 @@ server:
     query:
       maxMemory: "4GB"
       maxMemoryPerNode: "1GB"
-      maxTotalMemoryPerNode: "2GB"
     memory:
       heapHeadroomPerNode: "1GB"
   jvm:

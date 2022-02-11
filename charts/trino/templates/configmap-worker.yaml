@@ -42,7 +42,6 @@ data:
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
-    query.max-total-memory-per-node={{ .Values.server.config.query.maxTotalMemoryPerNode }}
     memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
   {{- range $configValue := .Values.additionalConfigProperties }}
