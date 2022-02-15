@@ -28,6 +28,9 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.jvm.maxHeapSize` |  | `"8G"` |
 | `server.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `server.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
+| `server.autoscaling.enabled` |  | `false` |
+| `server.autoscaling.maxReplicas` |  | `5` |
+| `server.autoscaling.targetCPUUtilizationPercentage` |  | `50` |
 | `additionalNodeProperties` |  | `{}` |
 | `additionalJVMConfig` |  | `{}` |
 | `additionalConfigProperties` |  | `{}` |
