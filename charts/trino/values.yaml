@@ -32,6 +32,10 @@ server:
       type: "UseG1GC"
       g1:
         heapRegionSize: "32M"
+  autoscaling:
+    enabled: false
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 50
 
 additionalNodeProperties: {}
 
