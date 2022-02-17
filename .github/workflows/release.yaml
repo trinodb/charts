@@ -9,6 +9,8 @@ on:
 
 jobs:
   release:
+    env:
+      CHANGELOG_PATH: '${{ runner.temp }}/CHANGELOG.md'
     runs-on: ubuntu-latest
     steps:
       - name: Cleanup node
@@ -21,11 +23,16 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-      - name: Install Helm
-        uses: azure/setup-helm@v1
+      - name: Release Changelog Builder
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v2.9.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: v3.5.2
+          configuration: '.github/changelog-config.json'
+          outputFile: ${{ env.CHANGELOG_PATH }}
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.0.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_RELEASE-NOTES-FILE: ${{ env.CHANGELOG_PATH }}
