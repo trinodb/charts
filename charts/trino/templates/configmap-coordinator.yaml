@@ -52,6 +52,7 @@ data:
   {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
   {{- end }}
+  {{ .Values.server.coordinatorExtraConfig | indent 4 }}
 
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
