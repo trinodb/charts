@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'charts/trino/**'
+  workflow_dispatch: # manual to test
 
 jobs:
   release:
@@ -31,8 +32,5 @@ jobs:
         with:
           configuration: '.github/changelog-config.json'
           outputFile: ${{ env.CHANGELOG_PATH }}
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.0.0
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE-NOTES-FILE: ${{ env.CHANGELOG_PATH }}
+      - name: Inspect
+        run: cat $CHANGELOG_PATH
