@@ -29,6 +29,8 @@ server:
   exchangeManager:
     name: "filesystem"
     baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  workerExtraConfig: ""
+  coordinatorExtraConfig: ""
   jvm:
     maxHeapSize: "8G"
     gcMethod:
