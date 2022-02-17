@@ -1,5 +1,9 @@
 name: Lint and Test Chart
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   lint-test:
