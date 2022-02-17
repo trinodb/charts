@@ -44,6 +44,9 @@ The following table lists the configurable parameters of the Trino chart and the
 | `nodeSelector` |  | `{}` |
 | `tolerations` |  | `[]` |
 | `affinity` |  | `{}` |
+| `serviceAccount.create` |  | `false` |
+| `serviceAccount.name` |  | `""` |
+| `serviceAccount.annotations` |  | `{}` |
 
 
 
