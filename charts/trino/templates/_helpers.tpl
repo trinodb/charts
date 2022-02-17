@@ -61,3 +61,34 @@ Create chart name and version as used by the chart label.
 {{- define "trino.catalog" -}}
 {{ template "trino.fullname" . }}-catalog
 {{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "trino.labels" -}}
+helm.sh/chart: {{ include "trino.chart" . }}
+{{ include "trino.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "trino.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "trino.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "trino.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "trino.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}

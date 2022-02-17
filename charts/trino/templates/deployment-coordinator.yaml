@@ -21,6 +21,7 @@ spec:
         release: {{ .Release.Name }}
         component: coordinator
     spec:
+      serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:
         runAsUser: {{ .runAsUser }}
