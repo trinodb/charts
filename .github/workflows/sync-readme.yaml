@@ -6,25 +6,30 @@ on:
       - main
     paths:
       - '**/README.md'
+  workflow_dispatch: # manually for testing
 
 jobs:
   sync-readme:
     runs-on: ubuntu-latest
+    env:
+      STAGING_DIR: '${{ runner.temp }}/gh-pages'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: copy README.md
+      - name: Copy all README files preserving directory structure
         run: |
-          cp -f README.md ${{ runner.temp }}/README.md
+          mkdir -pv "$STAGING_DIR"
+          find . -name 'README.md' -exec cp --parents '{}' "$STAGING_DIR/" ';'
       - name: Checkout gh-pages
         uses: actions/checkout@v2
         with:
           ref: gh-pages
-      - name: commit
+      - name: Commit
         run: |
-          cp -f ${{ runner.temp }}/README.md .
+          find "$STAGING_DIR" -name 'README.md' -exec cp --parents '{}' ./ ';'
           git config user.name trino_community
           git config user.email "trino_community@users.noreply.github.com"
-          git add README.md
-          git commit --signoff -m "Sync README from main"
-          git push
+          find . -name 'README.md' -exec git add '{}' ';'
+          git commit --signoff -m "Sync READMEs from main"
+          git show -p
+          git push --dry-run
