@@ -1,6 +1,6 @@
 apiVersion: v2
 name: trino
-description: Fast distributed SQL query engine for big data analytics
+description: Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
 # A chart can be either an 'application' or a 'library' chart.
 #
