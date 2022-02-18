@@ -33,6 +33,10 @@ spec:
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
+      {{- if .Values.initContainers.coordinator }}
+      initContainers:
+      {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
+      {{- end }}
       imagePullSecrets:
         - name: registry-credentials
       containers:
