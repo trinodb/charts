@@ -21,6 +21,11 @@ server:
     path: /etc/trino
     http:
       port: 8080
+    https:
+      enabled: false
+      port: 8443
+      keystore:
+        path: ""
     query:
       maxMemory: "4GB"
       maxMemoryPerNode: "1GB"
