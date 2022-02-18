@@ -1,3 +1,6 @@
+# This workflow releases a new chart version when PRs are merged to main branch if:
+# - there are any changes under charts/trino directory
+# - no existing release for the chart version exists
 name: Release Trino Chart
 
 on:
@@ -21,11 +24,18 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-      - name: Install Helm
-        uses: azure/setup-helm@v1
+      - name: Release Changelog Builder
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v2.9.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: v3.5.2
+          configuration: '.github/changelog-config.json'
+          outputFile: ${{ runner.temp }}/CHANGELOG.md
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.0.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_RELEASE_NOTES_FILE: ${{ runner.temp }}/CHANGELOG.md
+          # If we didn't bump the chart version then we can skip the release
+          CR_SKIP_EXISTING: true
