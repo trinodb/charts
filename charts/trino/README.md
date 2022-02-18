@@ -36,6 +36,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `additionalLogProperties` |  | `{}` |
 | `additionalCatalogs` |  | `{}` |
 | `env` |  | `[]` |
+| `initContainers` |  | `{}` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
 | `service.type` |  | `"ClusterIP"` |
