@@ -33,7 +33,7 @@ jobs:
           configuration: '.github/changelog-config.json'
           outputFile: ${{ runner.temp }}/CHANGELOG.md
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.0.0
+        uses: helm/chart-releaser-action@v1.3.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           CR_RELEASE_NOTES_FILE: ${{ runner.temp }}/CHANGELOG.md
