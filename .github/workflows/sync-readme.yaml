@@ -11,20 +11,25 @@ jobs:
   sync-readme:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v2
-      - name: copy README.md
-        run: |
-          cp -f README.md ${{ runner.temp }}/README.md
+        with:
+          path: main
       - name: Checkout gh-pages
         uses: actions/checkout@v2
         with:
           ref: gh-pages
-      - name: commit
+          path: gh-pages
+      - name: Copy all README files from main to gh-pages
         run: |
-          cp -f ${{ runner.temp }}/README.md .
+          cd main
+          # cp --parents preserves directory structure
+          find . -name 'README.md' -exec cp --parents '{}' "../gh-pages/" ';'
+      - name: Commit changes to gh-pages and push
+        run: |
+          cd gh-pages
           git config user.name trino_community
           git config user.email "trino_community@users.noreply.github.com"
-          git add README.md
-          git commit --signoff -m "Sync README from main"
+          git add .
+          git commit --signoff -m "Sync READMEs from main"
           git push
