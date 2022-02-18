@@ -1,0 +1,15 @@
+{
+  "categories": [
+    {
+      "title": "## Changes",
+      "labels": [ "release-note" ]
+    }
+  ],
+  "ignore_labels": [
+    "release-note-none"
+  ],
+  "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
+  "base_branches": [
+    "master"
+  ]
+}
