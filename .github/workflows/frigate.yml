@@ -19,7 +19,7 @@ jobs:
       - name: Check if chart README is in-sync
         run: |
           frigate gen charts/trino > charts/trino/README.md
-          if ! git diff-index --quiet HEAD; then
+          if ! git diff --exit-code --quiet; then
             cat << 'EOF'
           charts/trino/README.md is not in sync with chart
           Please update charts/trino/README.md by running:
