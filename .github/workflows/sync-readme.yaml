@@ -15,10 +15,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: main
-      - name: Configure git user and email
-        run: |
-          git config user.name "GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Checkout gh-pages
         uses: actions/checkout@v2
         with:
@@ -33,5 +29,7 @@ jobs:
         run: |
           cd gh-pages
           git add .
+          git config user.name "GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git commit --signoff -m "Sync READMEs from main"
           git push
