@@ -56,6 +56,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `serviceAccount.create` |  | `false` |
 | `serviceAccount.name` |  | `""` |
 | `serviceAccount.annotations` |  | `{}` |
+| `secretMounts` |  | `[]` |
 
 
 

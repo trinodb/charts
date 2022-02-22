@@ -38,6 +38,11 @@ spec:
       initContainers:
       {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
       {{- end }}
+        {{- range .Values.secretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ .secretName }}
+        {{- end }}
       imagePullSecrets:
         - name: registry-credentials
       containers:
@@ -51,6 +56,10 @@ spec:
               name: config-volume
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
+            {{- range .Values.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
