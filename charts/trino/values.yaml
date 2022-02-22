@@ -107,3 +107,5 @@ serviceAccount:
   name: ""
   # Annotations to add to the service account
   annotations: {}
+
+secretMounts: []
