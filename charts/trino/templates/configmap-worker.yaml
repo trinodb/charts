@@ -48,6 +48,13 @@ data:
     {{ $configValue }}
   {{- end }}
 
+  exchange-manager.properties: |
+    exchange-manager.name={{ .Values.server.exchangeManager.name }}
+    exchange.encryption-enabled={{ .Values.server.exchangeManager.encryptionEnabled }}
+  {{- range $configValue := .Values.additionalExchangeManagerProperties }}
+    {{ $configValue }}
+  {{- end }}
+
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}

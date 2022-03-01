@@ -24,6 +24,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.config.query.maxMemory` |  | `"4GB"` |
 | `server.config.query.maxMemoryPerNode` |  | `"1GB"` |
 | `server.config.memory.heapHeadroomPerNode` |  | `"1GB"` |
+| `server.exchangeManager.name` |  | `"filesystem"` |
+| `server.exchangeManager.baseDir` |  | `"/tmp/trino-local-file-system-exchange-manager"` |
 | `server.jvm.maxHeapSize` |  | `"8G"` |
 | `server.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `server.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
@@ -34,6 +36,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `additionalJVMConfig` |  | `{}` |
 | `additionalConfigProperties` |  | `{}` |
 | `additionalLogProperties` |  | `{}` |
+| `additionalExchangeManagerProperties` |  | `{}` |
 | `additionalCatalogs` |  | `{}` |
 | `env` |  | `[]` |
 | `securityContext.runAsUser` |  | `1000` |

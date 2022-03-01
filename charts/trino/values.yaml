@@ -26,6 +26,9 @@ server:
       maxMemoryPerNode: "1GB"
     memory:
       heapHeadroomPerNode: "1GB"
+  exchangeManager:
+    name: "filesystem"
+    baseDir: "/tmp/trino-local-file-system-exchange-manager"
   jvm:
     maxHeapSize: "8G"
     gcMethod:
@@ -44,6 +47,8 @@ additionalJVMConfig: {}
 additionalConfigProperties: {}
 
 additionalLogProperties: {}
+
+additionalExchangeManagerProperties: {}
 
 additionalCatalogs: {}
 
