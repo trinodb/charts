@@ -1,17 +1,43 @@
-# This workflow releases a new chart version when PRs are merged to main branch if:
-# - there are any changes under charts/trino directory
-# - no existing release for the chart version exists
+# This workflow syncs README to gh-pages branch and releases a new chart version
+# when PRs are merged to main branch if no existing release for the chart
+# version exists
 name: Release Trino Chart
 
 on:
   push:
     branches:
       - main
-    paths:
-      - 'charts/trino/**'
 
 jobs:
+  sync-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v2
+        with:
+          path: main
+      - name: Checkout gh-pages
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Copy all README files from main to gh-pages
+        run: |
+          cd main
+          # cp --parents preserves directory structure
+          find . -name 'README.md' -exec cp --parents '{}' "../gh-pages/" ';'
+      - name: Commit changes to gh-pages and push
+        run: |
+          cd gh-pages
+          git add .
+          git config user.name "GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          # Commit only if changes exist to avoid failure in this step
+          git diff-index --quiet HEAD || git commit --signoff -m "Sync READMEs from main"
+          git push
+
   release:
+    needs: [sync-readme]
     runs-on: ubuntu-latest
     steps:
       - name: Cleanup node
