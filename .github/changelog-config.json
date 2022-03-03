@@ -10,6 +10,6 @@
   ],
   "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
   "base_branches": [
-    "master"
+    "main"
   ]
 }
