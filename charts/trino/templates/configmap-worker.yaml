@@ -50,7 +50,7 @@ data:
 
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.encryption-enabled={{ .Values.server.exchangeManager.encryptionEnabled }}
+    exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
