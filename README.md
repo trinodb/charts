@@ -24,3 +24,7 @@ Then you can install chart using:
 ```console
 helm install my-trino trino/trino --version 0.2.0
 ```
+
+## Documentation
+
+You can find documentation about the chart [here](./charts/trino/README.md).
