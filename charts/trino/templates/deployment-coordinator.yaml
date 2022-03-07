@@ -34,6 +34,10 @@ spec:
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
+        {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+        - mountPath: {{ .Values.server.config.path }}/auth
+          name: password-volume
+        {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
       {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
@@ -60,6 +64,10 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
+            {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+            - mountPath: {{ .Values.server.config.path }}/auth
+              name: password-volume
+            {{- end }}   
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

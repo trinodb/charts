@@ -49,6 +49,9 @@ data:
     memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
     discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
+{{- if .Values.server.config.authenticationType }}
+    http-server.authentication.type={{ .Values.server.config.authenticationType }}
+{{- end }}
   {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
   {{- end }}
@@ -70,6 +73,12 @@ data:
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
     {{ $configValue }}
+  {{- end }}
+
+  {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+  password-authenticator.properties: |
+    password-authenticator.name=file
+    file.password-file={{ .Values.server.config.path }}/auth/password.db
   {{- end }}
 
 ---
