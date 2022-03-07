@@ -26,6 +26,9 @@ server:
       port: 8443
       keystore:
         path: ""
+    # Trino supports multiple authentication types: PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS
+    # For more info: https://trino.io/docs/current/security/authentication-types.html
+    authenticationType: ""
     query:
       maxMemory: "4GB"
       maxMemoryPerNode: "1GB"
@@ -98,6 +101,11 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+auth: {}
+  # Set username and password
+  # https://trino.io/docs/current/security/password-file.html#file-format
+  # passwordAuth: "username:encrypted-password-with-htpasswd"
 
 serviceAccount:
   # Specifies whether a service account should be created

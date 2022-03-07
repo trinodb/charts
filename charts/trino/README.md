@@ -24,6 +24,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.config.https.enabled` |  | `false` |
 | `server.config.https.port` |  | `8443` |
 | `server.config.https.keystore.path` |  | `""` |
+| `server.config.authenticationType` |  | `""` |
 | `server.config.query.maxMemory` |  | `"4GB"` |
 | `server.config.query.maxMemoryPerNode` |  | `"1GB"` |
 | `server.config.memory.heapHeadroomPerNode` |  | `"1GB"` |
@@ -53,6 +54,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `nodeSelector` |  | `{}` |
 | `tolerations` |  | `[]` |
 | `affinity` |  | `{}` |
+| `auth` |  | `{}` |
 | `serviceAccount.create` |  | `false` |
 | `serviceAccount.name` |  | `""` |
 | `serviceAccount.annotations` |  | `{}` |
