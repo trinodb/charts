@@ -14,6 +14,10 @@ The following table lists the configurable parameters of the Trino chart and the
 | `image.repository` |  | `"trinodb/trino"` |
 | `image.pullPolicy` |  | `"IfNotPresent"` |
 | `image.tag` |  | `"latest"` |
+| `ingress.enabled` |  | `false` |
+| `ingress.annotations` |  | `{}` |
+| `ingress.host` |  | `""` |
+| `ingress.tls.secretName` |  | `""` |
 | `server.workers` |  | `2` |
 | `server.node.environment` |  | `"production"` |
 | `server.node.dataDir` |  | `"/data/trino"` |

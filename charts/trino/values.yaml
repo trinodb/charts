@@ -8,6 +8,13 @@ image:
   # Overrides the image tag whose default is the chart version.
   tag: latest
 
+ingress:
+  enabled: false
+  annotations: {}
+  host: ""
+  tls:
+    secretName: ""
+
 server:
   workers: 2
   node:
