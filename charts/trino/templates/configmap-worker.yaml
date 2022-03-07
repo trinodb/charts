@@ -20,9 +20,9 @@ data:
 
   jvm.config: |
     -server
-    -Xmx{{ .Values.server.jvm.maxHeapSize }}
-    -XX:+{{ .Values.server.jvm.gcMethod.type }}
-    -XX:G1HeapRegionSize={{ .Values.server.jvm.gcMethod.g1.heapRegionSize }}
+    -Xmx{{ .Values.worker.jvm.maxHeapSize }}
+    -XX:+{{ .Values.worker.jvm.gcMethod.type }}
+    -XX:G1HeapRegionSize={{ .Values.worker.jvm.gcMethod.g1.heapRegionSize }}
     -XX:+UseGCOverheadLimit
     -XX:+ExplicitGCInvokesConcurrent
     -XX:+HeapDumpOnOutOfMemoryError
@@ -33,7 +33,7 @@ data:
     -XX:PerMethodRecompilationCutoff=10000
     -XX:PerBytecodeRecompilationCutoff=10000
     -Djdk.nio.maxCachedBufferSize=2000000
-  {{- range $configValue := .Values.additionalJVMConfig }}
+  {{- range $configValue := .Values.worker.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
 
