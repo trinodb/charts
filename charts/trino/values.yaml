@@ -6,7 +6,7 @@ image:
   repository: trinodb/trino
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart version.
-  tag: latest
+  tag: ~
 
 server:
   workers: 2
