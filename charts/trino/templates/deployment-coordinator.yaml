@@ -20,6 +20,9 @@ spec:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
         component: coordinator
+      annotations:
+        checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
+        checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
