@@ -1,14 +1,15 @@
 {
   "categories": [
     {
-      "title": "## Changes",
-      "labels": [ "release-note" ]
+      "title": "## Breaking Changes",
+      "labels": [ "breaking-change" ]
     }
   ],
   "ignore_labels": [
     "release-note-none"
   ],
-  "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
+  "template": "## Changes\n\n${{UNCATEGORIZED}}\n\n${{CHANGELOG}}",
+  "pr_template": "- ${{TITLE}}. (#${{NUMBER}})",
   "base_branches": [
     "main"
   ]
