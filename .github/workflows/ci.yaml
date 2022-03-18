@@ -1,3 +1,8 @@
+# This workflow:
+#   - lints the chart, runs tests and verifies documentation is up to date
+# Additionally if the event isn't a pull-request (and hence a merge/push to main):
+#   - sync README to gh-pages branch
+#   - release a new chart version if the version isn't already released
 name: CI
 
 on:
@@ -67,3 +72,61 @@ jobs:
           else
             echo "charts/trino/README.md is in-sync with chart"
           fi
+
+  # Everything above is CI, everything here and below is for releases and runs only on non-pull-request events
+  sync-readme:
+    needs: [lint, test, docs]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v2
+        with:
+          path: main
+      - name: Checkout gh-pages
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Copy all README files from main to gh-pages
+        run: |
+          cd main
+          # cp --parents preserves directory structure
+          find . -name 'README.md' -exec cp --parents '{}' "../gh-pages/" ';'
+      - name: Commit changes to gh-pages and push
+        run: |
+          cd gh-pages
+          git add .
+          git config user.name "GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          # Commit only if changes exist to avoid failure in this step
+          git diff-index --quiet HEAD || git commit --signoff -m "Sync READMEs from main"
+          git push
+
+  release:
+    needs: [lint, test, docs, sync-readme]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Build release changelog
+        id: github_release
+        uses: mikepenz/release-changelog-builder-action@v2.9.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          configuration: '.github/changelog-config.json'
+          outputFile: ${{ runner.temp }}/CHANGELOG.md
+      - name: Inspect changelog
+        run: cat ${{ runner.temp }}/CHANGELOG.md
+      - name: Release charts
+        uses: helm/chart-releaser-action@v1.3.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_RELEASE_NOTES_FILE: ${{ runner.temp }}/CHANGELOG.md
+          # If we didn't bump the chart version then we can skip the release
+          CR_SKIP_EXISTING: true
