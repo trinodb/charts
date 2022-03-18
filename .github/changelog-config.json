@@ -12,5 +12,14 @@
   "pr_template": "- ${{TITLE}}. (#${{NUMBER}})",
   "base_branches": [
     "main"
-  ]
+  ],
+  "tag_resolver": {
+    "filter": {
+      "pattern": "trino-(.+)"
+    },
+    "transformer": {
+        "pattern": "trino-(.+)",
+        "target": "$1"
+    }
+  }
 }
