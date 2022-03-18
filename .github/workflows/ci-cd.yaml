@@ -3,7 +3,7 @@
 # Additionally if the event isn't a pull-request (and hence a merge/push to main):
 #   - sync README to gh-pages branch
 #   - release a new chart version if the version isn't already released
-name: CI
+name: CI/CD
 
 on:
   push:
