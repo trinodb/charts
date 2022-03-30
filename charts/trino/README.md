@@ -40,6 +40,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `additionalConfigProperties` |  | `{}` |
 | `additionalLogProperties` |  | `{}` |
 | `additionalExchangeManagerProperties` |  | `{}` |
+| `eventListenerProperties` |  | `{}` |
 | `additionalCatalogs` |  | `{}` |
 | `env` |  | `[]` |
 | `initContainers` |  | `{}` |

@@ -55,6 +55,8 @@ additionalLogProperties: {}
 
 additionalExchangeManagerProperties: {}
 
+eventListenerProperties: {}
+
 additionalCatalogs: {}
 
 # Array of EnvVar (https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core)
