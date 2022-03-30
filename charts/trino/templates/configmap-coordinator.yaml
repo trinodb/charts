@@ -81,4 +81,11 @@ data:
     file.password-file={{ .Values.server.config.path }}/auth/password.db
   {{- end }}
 
+{{ if .Values.eventListenerProperties }}
+  event-listener.properties: |
+  {{- range $configValue := .Values.eventListenerProperties }}
+    {{ $configValue }}
+  {{- end }}
+{{ end }}
+
 ---
