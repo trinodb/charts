@@ -56,6 +56,16 @@ The following table lists the configurable parameters of the Trino chart and the
 | `serviceAccount.name` |  | `""` |
 | `serviceAccount.annotations` |  | `{}` |
 | `secretMounts` |  | `[]` |
+| `coordinator.jvm.maxHeapSize` |  | `"8G"` |
+| `coordinator.jvm.gcMethod.type` |  | `"UseG1GC"` |
+| `coordinator.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
+| `coordinator.additionalJVMConfig` |  | `{}` |
+| `coordinator.resources` |  | `{}` |
+| `worker.jvm.maxHeapSize` |  | `"8G"` |
+| `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
+| `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
+| `worker.additionalJVMConfig` |  | `{}` |
+| `worker.resources` |  | `{}` |
 
 
 
