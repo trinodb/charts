@@ -35,8 +35,9 @@ spec:
           configMap:
             name: {{ template "trino.catalog" . }}
         {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
-        - mountPath: {{ .Values.server.config.path }}/auth
-          name: password-volume
+        - name: password-volume
+          secret:
+            secretName: trino-password-authentication
         {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
