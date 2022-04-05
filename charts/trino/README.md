@@ -62,11 +62,15 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
 | `coordinator.additionalJVMConfig` |  | `{}` |
 | `coordinator.resources` |  | `{}` |
+| `coordinator.livenessProbe` |  | `{}` |
+| `coordinator.readinessProbe` |  | `{}` |
 | `worker.jvm.maxHeapSize` |  | `"8G"` |
 | `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
 | `worker.additionalJVMConfig` |  | `{}` |
 | `worker.resources` |  | `{}` |
+| `worker.livenessProbe` |  | `{}` |
+| `worker.readinessProbe` |  | `{}` |
 
 
 
