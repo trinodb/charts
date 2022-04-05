@@ -34,6 +34,11 @@ spec:
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
+        {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+        - name: access-control-volume
+          configMap:
+            name: trino-access-control-volume-coordinator
+        {{- end }}{{- end }}
         {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
         - name: password-volume
           secret:
@@ -61,6 +66,10 @@ spec:
               name: config-volume
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
+            {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+            - mountPath: {{ .Values.server.config.path }}/access-control
+              name: access-control-volume
+            {{- end }}{{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}

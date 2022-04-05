@@ -62,6 +62,15 @@ data:
   {{- end }}
   {{ .Values.server.coordinatorExtraConfig | indent 4 }}
 
+{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+  access-control.properties: |
+    access-control.name=file
+    {{- if .Values.accessControl.refreshPeriod }}
+    security.refresh-period={{ .Values.accessControl.refreshPeriod }}
+    {{- end }}
+    security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
+{{- end }}{{- end }}
+
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
     exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
@@ -87,5 +96,21 @@ data:
     {{ $configValue }}
   {{- end }}
 {{ end }}
+
+---
+
+{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-access-control-volume-coordinator
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  {{- range $key, $val := .Values.accessControl.rules }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+{{- end }}{{- end }}
 
 ---
