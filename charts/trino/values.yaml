@@ -223,3 +223,40 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+kafka:
+  mountPath: "/etc/trino/schemas"
+  tableDescriptions: {}
+    # Custom kafka table descriptions that will be mounted in mountPath
+    # testschema.json: |-
+    #   {
+    #     "tableName": "testtable",
+    #     "schemaName": "testschema",
+    #     "topicName": "testtopic",
+    #     "key": {
+    #       "dataFormat": "json",
+    #       "fields": [
+    #         {
+    #           "name": "_key",
+    #           "dataFormat": "VARCHAR",
+    #           "type": "VARCHAR",
+    #           "hidden": "false"
+    #         }
+    #       ]
+    #     },
+    #     "message": {
+    #       "dataFormat": "json",
+    #       "fields": [
+    #         {
+    #           "name": "id",
+    #           "mapping": "id",
+    #           "type": "BIGINT"
+    #         },
+    #         {
+    #           "name": "test_field",
+    #           "mapping": "test_field",
+    #           "type": "VARCHAR"
+    #         }
+    #       ]
+    #     }
+    #   }
