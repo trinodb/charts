@@ -31,6 +31,9 @@ spec:
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
+        - name: schemas-volume
+          configMap:
+            name: schemas-volume-worker
       {{- if .Values.initContainers.worker }}
       initContainers:
       {{-  tpl (toYaml .Values.initContainers.worker) . | nindent 6 }}
@@ -48,6 +51,8 @@ spec:
               name: config-volume
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
+            - mountPath: {{ .Values.kafka.mountPath }}
+              name: schemas-volume
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

@@ -71,4 +71,17 @@ data:
   {{- end }}
 {{ end }}
 
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schemas-volume-worker
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+data:
+  {{- range $key, $val := .Values.kafka.tableDescriptions }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
 {{- end }}
