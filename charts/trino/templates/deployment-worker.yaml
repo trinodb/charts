@@ -13,7 +13,9 @@ metadata:
     {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if not .Values.server.autoscaling.enabled }}
   replicas: {{ .Values.server.workers }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ template "trino.name" . }}
