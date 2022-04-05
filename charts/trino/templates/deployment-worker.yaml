@@ -10,7 +10,9 @@ metadata:
     heritage: {{ .Release.Service }}
     component: worker
 spec:
+  {{- if not .Values.server.autoscaling.enabled }}
   replicas: {{ .Values.server.workers }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ template "trino.name" . }}
