@@ -77,7 +77,7 @@ spec:
             {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
-            {{- end }}   
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -86,10 +86,20 @@ spec:
             httpGet:
               path: /v1/info
               port: http
+            initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 20 }}
+            periodSeconds: {{ .Values.coordinator.livenessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.coordinator.livenessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.coordinator.livenessProbe.failureThreshold | default 6 }}
+            successThreshold: {{ .Values.coordinator.livenessProbe.successThreshold | default 1 }}
           readinessProbe:
             httpGet:
               path: /v1/info
               port: http
+            initialDelaySeconds: {{ .Values.coordinator.readinessProbe.initialDelaySeconds | default 20 }}
+            periodSeconds: {{ .Values.coordinator.readinessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.coordinator.readinessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.coordinator.readinessProbe.failureThreshold | default 6 }}
+            successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
