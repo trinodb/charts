@@ -153,6 +153,10 @@ serviceAccount:
   annotations: {}
 
 secretMounts: []
+  # Applies to both the coordinator and worker containers
+  # - name: sample-secret
+  #   secretName: sample-secret
+  #   path: /secrets/sample.json
 
 coordinator:
   jvm:
@@ -175,6 +179,11 @@ coordinator:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+  
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
 
 worker:
   jvm:
@@ -197,3 +206,8 @@ worker:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
+  
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
