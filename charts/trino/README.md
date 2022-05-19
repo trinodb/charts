@@ -71,6 +71,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.resources` |  | `{}` |
 | `worker.livenessProbe` |  | `{}` |
 | `worker.readinessProbe` |  | `{}` |
+| `kafka.mountPath` |  | `"/etc/trino/schemas"` |
+| `kafka.tableDescriptions` |  | `{}` |
 
 
 
