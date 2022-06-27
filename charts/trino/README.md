@@ -49,9 +49,12 @@ The following table lists the configurable parameters of the Trino chart and the
 | `securityContext.runAsGroup` |  | `1000` |
 | `service.type` |  | `"ClusterIP"` |
 | `service.port` |  | `8080` |
-| `nodeSelector` |  | `{}` |
-| `tolerations` |  | `[]` |
-| `affinity` |  | `{}` |
+| `nodeSelector.coordinator` |  | `{}` |
+| `nodeSelector.worker` |  | `{}` |
+| `tolerations.coordinator` |  | `[]` |
+| `tolerations.worker` |  | `[]` |
+| `affinity.coordinator` |  | `{}` |
+| `affinity.worker` |  | `{}` |
 | `auth` |  | `{}` |
 | `serviceAccount.create` |  | `false` |
 | `serviceAccount.name` |  | `""` |

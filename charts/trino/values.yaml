@@ -132,11 +132,17 @@ service:
   type: ClusterIP
   port: 8080
 
-nodeSelector: {}
+nodeSelector:
+  coordinator: {}
+  worker: {}
 
-tolerations: []
+tolerations:
+  coordinator: []
+  worker: []
 
-affinity: {}
+affinity:
+  coordinator: {}
+  worker: {}
 
 auth: {}
   # Set username and password
