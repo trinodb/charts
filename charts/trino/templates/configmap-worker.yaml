@@ -53,7 +53,7 @@ data:
 
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}

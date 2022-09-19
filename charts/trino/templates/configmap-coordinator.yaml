@@ -49,7 +49,6 @@ data:
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
     memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
-    discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
 {{- if .Values.server.config.authenticationType }}
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
@@ -75,7 +74,7 @@ data:
 
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
