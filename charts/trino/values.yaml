@@ -131,6 +131,7 @@ securityContext:
 service:
   type: ClusterIP
   port: 8080
+  annotations: {}
 
 nodeSelector: {}
 
