@@ -98,6 +98,15 @@ accessControl: {}
   #       ]
   #     }
 
+groupProvider: {}
+  # type: configmap
+  # refreshPeriod: 5s
+  # # Rules file is mounted to /etc/trino/group-provider
+  # configFile: "groups.txt"
+  # groups:
+  #   groups.txt: |-
+  #    group_name:user_1,user_2,user_3
+
 additionalNodeProperties: {}
 
 additionalConfigProperties: {}

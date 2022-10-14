@@ -73,6 +73,13 @@ data:
     security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
 {{- end }}{{- end }}
 
+{{- if .Values.groupProvider }}{{- if eq .Values.groupProvider.type "configmap" }}
+  group-provider.properties: |
+    group-provider.name=file
+    file.refresh-period={{ .Values.groupProvider.refreshPeriod | default "5s" }}
+    file.group-file={{ .Values.config.general.path }}/group-provider/{{ .Values.groupProvider.configFile | default "groups.txt" }}
+{{- end }}{{- end }}
+
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
     exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
@@ -111,6 +118,23 @@ metadata:
     app.kubernetes.io/component: coordinator
 data:
   {{- range $key, $val := .Values.accessControl.rules }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+{{- end }}{{- end }}
+
+---
+
+
+{{- if .Values.groupProvider }}{{- if eq .Values.groupProvider.type "configmap" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-group-provider-volume-coordinator
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  {{- range $key, $val := .Values.groupProvider.groups }}
   {{ $key }}: {{ $val | quote }}
   {{- end }}
 {{- end }}{{- end }}
