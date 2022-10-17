@@ -78,6 +78,7 @@ data:
     group-provider.name=file
     file.refresh-period={{ .Values.groupProvider.refreshPeriod | default "5s" }}
     file.group-file={{ .Values.server.config.path }}/group-provider/{{ .Values.groupProvider.configFile | default "groups.txt" }}
+  {{ .Values.groupProvider.customProperties | indent 4 }}
 {{- end }}{{- end }}
 
   exchange-manager.properties: |

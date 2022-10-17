@@ -99,6 +99,7 @@ accessControl: {}
   #     }
 
 groupProvider: {}
+  # customProperties: ""
   # type: configmap
   # refreshPeriod: 5s
   # # Rules file is mounted to /etc/trino/group-provider
