@@ -81,7 +81,7 @@ spec:
               name: access-control-volume
             {{- end }}{{- end }}
             {{- if .Values.groupProvider }}{{- if eq .Values.groupProvider.type "configmap" }}
-            - mountPath: {{ .Values.config.general.path }}/group-provider
+            - mountPath: {{ .Values.server.config.path }}/group-provider
               name: group-provider-volume
             {{- end }}{{- end }}
             {{- range .Values.secretMounts }}
