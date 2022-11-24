@@ -162,7 +162,7 @@ coordinator:
       g1:
         heapRegionSize: "32M"
 
-  additionalJVMConfig: []
+  additionalJVMConfig: "" 
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -197,7 +197,7 @@ worker:
       g1:
         heapRegionSize: "32M"
 
-  additionalJVMConfig: []
+  additionalJVMConfig: ""
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious

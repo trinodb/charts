@@ -34,9 +34,7 @@ data:
     -Djdk.nio.maxCachedBufferSize=2000000
     -XX:+UnlockDiagnosticVMOptions
     -XX:+UseAESCTRIntrinsics
-  {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
-    {{ $configValue }}
-  {{- end }}
+    {{ .Values.coordinator.additionalJVMConfig | nindent 4 }}
 
   config.properties: |
     coordinator=true
