@@ -22,7 +22,7 @@ variables:
     - apk add --no-cache bash
     - helm registry login $CI_REGISTRY --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD
     - echo Add Helm repoistory ${HELM_REPO_NAME} for url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${HELM_CHANNEL}
-    - helm repo add --username gitlab-ci-token --password ${CI_JOB_TOKEN} ${HELM_REPO_NAME} https://gitlab.com/api/v4/projects/41895085/packages/helm/trino
+    - helm repo add --username gitlab-ci-token --password ${CI_JOB_TOKEN} ${HELM_REPO_NAME} ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${HELM_CHANNEL}
     - helm plugin install https://github.com/chartmuseum/helm-push.git
   script:
     - |
@@ -58,6 +58,5 @@ trino:build:
   - cd ${CI_PROJECT_DIR}/charts/
   - helm package $chart_dir_name
   - export APP_VERSION="$(grep "version" ${chart_dir_name}/Chart.yaml | cut -d" " -f2)"
-  - ls -laht 
-  - helm cm-push trino-${APP_VERSION}.tgz trino
-#  - helm cm-push ${app_name}-${APP_VERSION}.tgz ${HELM_REPO_NAME}
+  - echo Push ${app_name}-${APP_VERSION}.tgz to ${HELM_REPO_NAME}
+  - helm cm-push ${app_name}-${APP_VERSION}.tgz ${HELM_REPO_NAME}
