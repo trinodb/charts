@@ -8,7 +8,7 @@ stages:
 
 variables:
   CI_API_V4_URL: https://gitlab.com/api/v4
-  HELM_REPO_NAME: "data-engineering-charts"
+  HELM_REPO_NAME: "trino"
   HELM_CHANNEL: stable
   HELM_EXPERIMENTAL_OCI: 1
   uri: "oci://registry.gitlab.com/wnf3/data-engineering/infrastructure/helm-charts/trino"
