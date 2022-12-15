@@ -58,5 +58,6 @@ trino:build:
   - cd ${CI_PROJECT_DIR}/charts/
   - helm package $chart_dir_name
   - export APP_VERSION="$(grep "version" ${chart_dir_name}/Chart.yaml | cut -d" " -f2)"
+  - ls -laht 
   - echo Push ${app_name}-${APP_VERSION}.tgz to ${HELM_REPO_NAME}
   - helm cm-push ${app_name}-${APP_VERSION}.tgz ${HELM_REPO_NAME}
