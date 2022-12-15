@@ -1,0 +1,63 @@
+default:
+  tags:
+  - k8s
+
+stages:
+  - helm:tests
+  - helm:build
+
+variables:
+  CI_API_V4_URL: https://gitlab.com/api/v4
+  HELM_REPO_NAME: "data-engineering"
+  HELM_CHANNEL: stable
+  HELM_EXPERIMENTAL_OCI: 1
+  uri: "oci://registry.gitlab.com/wnf3/data-engineering/infrastructure/helm-data-engineering"
+
+.helm_base:
+  stage: helm:build
+  image:
+    name: registry.gitlab.com/wnf3/shared-infra/docker-base/aws-helm
+    entrypoint: [""]
+  before_script:
+    - apk add --no-cache bash
+    - helm registry login $CI_REGISTRY --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD
+    - echo Add Helm repoistory ${HELM_REPO_NAME} for url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${HELM_CHANNEL}
+    - helm repo add --username gitlab-ci-token --password ${CI_JOB_TOKEN} ${HELM_REPO_NAME} ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${HELM_CHANNEL}
+    #- helm repo add --username gitlab-ci-token --password ${CI_JOB_TOKEN} ${HELM_REPO_NAME} ${CI_API_V4_URL}/projects/data-engineering/packages/helm/${HELM_CHANNEL}
+    - helm plugin install https://github.com/chartmuseum/helm-push.git
+  script:
+    - |
+      cd ${CI_PROJECT_DIR}/charts/
+      helm package $chart_dir_name
+      ls -la
+      tgz=`ls -la | grep ${app_name} | grep tgz |awk '{print $9}'`
+      echo Push package $tgz to local Helm package registry $uri
+      helm push $tgz $uri
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "CI"'
+      changes:
+        - charts/${chart_dir_name}/*
+        - charts/${chart_dir_name}/**/*
+        - .gitlab-ci.yml
+      when: manual
+    - when: never
+
+.trino:test:
+  stage: helm:tests
+  extends: .helm_base
+  script:
+    - helm lint .
+    - helm plugin install https://github.com/quintush/helm-unittest.git
+    - helm unittest .
+
+trino:build:
+  extends: .helm_base
+  variables:
+    chart_dir_name: "trino"
+    app_name: "trino"
+  after_script:
+  - cd ${CI_PROJECT_DIR}/charts/
+  - helm package $chart_dir_name
+  - export APP_VERSION="$(grep "version" ${chart_dir_name}/Chart.yaml | cut -d" " -f2)"
+  - echo Push ${app_name}-${APP_VERSION}.tgz to ${HELM_REPO_NAME}
+  - helm cm-push ${app_name}-${APP_VERSION}.tgz ${HELM_REPO_NAME}
