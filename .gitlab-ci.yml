@@ -9,7 +9,7 @@ stages:
 variables:
   CI_API_V4_URL: https://gitlab.com/api/v4
   HELM_REPO_NAME: "trino"
-  HELM_CHANNEL: stable
+  HELM_CHANNEL: trino
   HELM_EXPERIMENTAL_OCI: 1
   uri: "oci://registry.gitlab.com/wnf3/data-engineering/infrastructure/helm-charts/trino"
 
@@ -23,7 +23,6 @@ variables:
     - helm registry login $CI_REGISTRY --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD
     - echo Add Helm repoistory ${HELM_REPO_NAME} for url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${HELM_CHANNEL}
     - helm repo add --username gitlab-ci-token --password ${CI_JOB_TOKEN} ${HELM_REPO_NAME} ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/${HELM_CHANNEL}
-    #- helm repo add --username gitlab-ci-token --password ${CI_JOB_TOKEN} ${HELM_REPO_NAME} ${CI_API_V4_URL}/projects/data-engineering/packages/helm/${HELM_CHANNEL}
     - helm plugin install https://github.com/chartmuseum/helm-push.git
   script:
     - |
