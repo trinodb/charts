@@ -47,7 +47,7 @@ spec:
           secret:
             secretName: trino-password-authentication
             items:
-              {{- if or eq .Values.server.config.authenticationType "PASSWORD" }}
+              {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
               - key: password.db
                 path: password.db
               {{- end }}
