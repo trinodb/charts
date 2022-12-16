@@ -48,15 +48,15 @@ spec:
             secretName: trino-password-authentication
             items:
               - key: password.db
-                path: {{ .Values.server.config.path }}/auth/password.db
+                path: password.db
         {{- end }}
         {{- if .Values.groups }}
-        - name: groups-volume
+        - name: password-volume
           secret:
             secretName: trino-password-authentication
             items:
               - key: group.db
-                path: {{ .Values.server.config.path }}/auth/group.db                
+                path: group.db                
         {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
