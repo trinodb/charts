@@ -42,21 +42,19 @@ spec:
           configMap:
             name: trino-access-control-volume-coordinator
         {{- end }}{{- end }}
-        {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+        {{- if or (eq .Values.server.config.authenticationType "PASSWORD") (.Values.groups) }}
         - name: password-volume
           secret:
             secretName: trino-password-authentication
             items:
+              {{- if or eq .Values.server.config.authenticationType "PASSWORD" }}
               - key: password.db
                 path: password.db
-        {{- end }}
-        {{- if .Values.groups }}
-        - name: password-volume
-          secret:
-            secretName: trino-password-authentication
-            items:
+              {{- end }}
+              {{- if .Values.groups }}
               - key: group.db
-                path: group.db                
+                path: group.db
+              {{- end }}
         {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
