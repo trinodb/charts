@@ -101,6 +101,14 @@ data:
   {{- end }}
 {{ end }}
 
+  {{- if .Values.group }}
+  group-provider.properties: |
+    group-provider.name=file
+    file.group-file=/etc/trino/group.txt
+
+  group.txt: |
+    {{ .Values.group | nindent 4}}
+  {{- end }}
 ---
 
 {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}

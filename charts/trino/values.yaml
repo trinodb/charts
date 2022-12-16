@@ -11,6 +11,9 @@ image:
 imagePullSecrets:
   - name: registry-credentials
 
+#group: | 
+#  group_name:user_1,user_2,user_3
+
 server:
   workers: 2
   node:
