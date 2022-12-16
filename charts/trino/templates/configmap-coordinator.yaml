@@ -101,13 +101,11 @@ data:
   {{- end }}
 {{ end }}
 
-  {{- if .Values.group }}
+  {{- if .Values.groups }}
   group-provider.properties: |
     group-provider.name=file
-    file.group-file=/etc/trino/group.txt
-
-  group.txt: |
-    {{ .Values.group | nindent 4}}
+    file.group-file={{ .Values.server.config.path }}/auth/group.db
+    file.refresh-period={{ .Values.groups.refreshPeriod }}
   {{- end }}
 ---
 

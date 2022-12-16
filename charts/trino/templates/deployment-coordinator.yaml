@@ -46,6 +46,17 @@ spec:
         - name: password-volume
           secret:
             secretName: trino-password-authentication
+            items:
+              - key: password.db
+                path: {{ .Values.server.config.path }}/auth/password.db
+        {{- end }}
+        {{- if .Values.groups }}
+        - name: groups-volume
+          secret:
+            secretName: trino-password-authentication
+            items:
+              - key: group.db
+                path: {{ .Values.server.config.path }}/auth/group.db                
         {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
@@ -79,7 +90,7 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+            {{- if or (eq .Values.server.config.authenticationType "PASSWORD") (.Values.groups) }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
             {{- end }}

@@ -11,9 +11,6 @@ image:
 imagePullSecrets:
   - name: registry-credentials
 
-#group: | 
-#  group_name:user_1,user_2,user_3
-
 server:
   workers: 2
   node:
@@ -145,6 +142,12 @@ auth: {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
+
+groups: {}
+  # Set users' groups
+  # https://trino.io/docs/current/security/group-file.html#file-format
+  # refreshPeriod: 5s
+  # groups: "group_name:user_1,user_2,user_3"
 
 serviceAccount:
   # Specifies whether a service account should be created
