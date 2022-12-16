@@ -101,12 +101,12 @@ data:
   {{- end }}
 {{ end }}
 
-  {{- if .Values.groups }}
-  group-provider.properties: |
-    group-provider.name=file
-    file.group-file={{ .Values.server.config.path }}/auth/group.db
-    file.refresh-period={{ .Values.groups.refreshPeriod }}
-  {{- end }}
+  #{{- if .Values.groups }}
+  #group-provider.properties: |
+  #  group-provider.name=file
+  #  file.group-file={{ .Values.server.config.path }}/auth/group.db
+  #  file.refresh-period={{ .Values.groups.refreshPeriod }}
+  #{{- end }}
 ---
 
 {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}

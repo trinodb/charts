@@ -46,14 +46,14 @@ spec:
         - name: password-volume
           secret:
             secretName: trino-password-authentication
-            items:
+            #items:
               #{{- if eq .Values.server.config.authenticationType "PASSWORD" }}
-              - key: password.db
-                path: password.db
+              #- key: password.db
+              #  path: password.db
               #{{- end }}
               #{{- if .Values.groups }}
-              - key: group.db
-                path: group.db
+              #- key: group.db
+              #  path: group.db
               #{{- end }}
         #{{- end }}
       {{- if .Values.initContainers.coordinator }}
