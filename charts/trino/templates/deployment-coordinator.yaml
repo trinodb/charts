@@ -42,20 +42,20 @@ spec:
           configMap:
             name: trino-access-control-volume-coordinator
         {{- end }}{{- end }}
-        #{{- if or (eq .Values.server.config.authenticationType "PASSWORD") (.Values.groups) }}
+        {{- if or (eq .Values.server.config.authenticationType "PASSWORD") (.Values.groups) }}
         - name: password-volume
           secret:
             secretName: trino-password-authentication
-            #items:
-              #{{- if eq .Values.server.config.authenticationType "PASSWORD" }}
-              #- key: password.db
-              #  path: password.db
-              #{{- end }}
-              #{{- if .Values.groups }}
-              #- key: group.db
-              #  path: group.db
-              #{{- end }}
-        #{{- end }}
+            items:
+              {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+              - key: password.db
+                path: password.db
+              {{- end }}
+              {{- if .Values.groups }}
+              - key: group.db
+                path: group.db
+              {{- end }}
+        {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
       {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
@@ -88,10 +88,10 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            #{{- if or (eq .Values.server.config.authenticationType "PASSWORD") (.Values.groups) }}
+            {{- if or (eq .Values.server.config.authenticationType "PASSWORD") (.Values.groups) }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
-            #{{- end }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
