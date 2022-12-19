@@ -92,6 +92,14 @@ data:
   password-authenticator.properties: |
     password-authenticator.name=file
     file.password-file={{ .Values.server.config.path }}/auth/password.db
+  {{- if .Values.auth.groups }}
+  group-provider.properties: |
+    group-provider.name=file
+    file.group-file={{ .Values.server.config.path }}/auth/group.db
+    {{- if .Values.auth.refreshPeriod }}
+    file.refresh-period={{ .Values.auth.refreshPeriod }}
+    {{- end }}
+  {{- end }}
   {{- end }}
 
 {{ if .Values.eventListenerProperties }}
@@ -101,12 +109,6 @@ data:
   {{- end }}
 {{ end }}
 
-  {{- if .Values.groups }}
-  group-provider.properties: |
-    group-provider.name=file
-    file.group-file={{ .Values.server.config.path }}/auth/group.db
-    file.refresh-period={{ .Values.groups.refreshPeriod }}
-  {{- end }}
 ---
 
 {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
