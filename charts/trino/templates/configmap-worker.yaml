@@ -56,7 +56,7 @@ data:
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name  "filesystem" }}
-    exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- end }}  
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
