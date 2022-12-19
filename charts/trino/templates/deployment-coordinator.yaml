@@ -59,6 +59,13 @@ spec:
         - name: password-volume
           secret:
             secretName: trino-password-authentication
+            items:
+              - key: password.db
+                path: password.db
+              {{- if .Values.auth.groups }}
+              - key: group.db
+                path: group.db
+              {{- end }}
         {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
