@@ -1,0 +1,86 @@
+{{- if and .Values.prometheus.jmx.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-jmx-configmap
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  jmx-trino-prometheus.yml: |+
+    startDelaySeconds: 0
+    ssl: false
+    lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
+    rules:
+     - name: g1_old_collection_count
+       pattern: 'java.lang<name=G1 Old Generation, type=GarbageCollector><>CollectionCount: (\d+)'
+       value: $1
+       help: "G1 Old Generation GC collection count"
+     - name: g1_young_collection_count
+       pattern: 'java.lang<name=G1 Young Generation, type=GarbageCollector><>CollectionCount: (\d+)'
+       value: $1
+       help: "G1 Young Generation GC collection count"
+     - name: g1_old_collection_time
+       pattern: 'java.lang<name=G1 Old Generation, type=GarbageCollector><>CollectionTime: (\d+)'
+       value: $1
+       help: "G1 Old Generation collection time"
+     - name: g1_young_collection_time
+       pattern: 'java.lang<name=G1 Young Generation, type=GarbageCollector><>CollectionTime: (\d+)'
+       value: $1
+       help: "G1 Young Generation GC collection time"
+     - name: java_lang_Memory_HeapMemoryUsage_$1
+       pattern: 'java.lang<type=Memory><HeapMemoryUsage>(.+): .*' 
+     - name: java_lang_Memory_NonHeapMemoryUsage_$1
+       pattern: 'java.lang<type=Memory><NonHeapMemoryUsage>(.+): .*'    
+     - name: java_nio_direct_MemoryUsed
+       pattern: 'java.nio<name=direct, type=BufferPool><>MemoryUsed: (\d+)'
+       value: $1
+       help: "NIO buffer pool usage"    
+     - name: java_lang_OperatingSystem_OpenFileDescriptorCount
+       pattern: 'java.lang<type=OperatingSystem><.*>OpenFileDescriptorCount: .*'    
+     - name: java_lang_OperatingSystem_ProcessCpuLoad
+       pattern: 'java.lang<type=OperatingSystem><.*>ProcessCpuLoad: .*'    
+     - name: java_lang_Threading_ThreadCount
+       pattern: 'java.lang<type=Threading><(.*)>ThreadCount: .*'
+{{- end }}
+
+
+  jmx_exporter.yml: |
+    startDelaySeconds: 0
+    ssl: false
+    lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
+    rules:
+     - name: g1_old_collection_count
+       pattern: 'java.lang<name=G1 Old Generation, type=GarbageCollector><>CollectionCount: (\d+)'
+       value: $1
+       help: "G1 Old Generation GC collection count"
+     - name: g1_young_collection_count
+       pattern: 'java.lang<name=G1 Young Generation, type=GarbageCollector><>CollectionCount: (\d+)'
+       value: $1
+       help: "G1 Young Generation GC collection count"
+     - name: g1_old_collection_time
+       pattern: 'java.lang<name=G1 Old Generation, type=GarbageCollector><>CollectionTime: (\d+)'
+       value: $1
+       help: "G1 Old Generation collection time"
+     - name: g1_young_collection_time
+       pattern: 'java.lang<name=G1 Young Generation, type=GarbageCollector><>CollectionTime: (\d+)'
+       value: $1
+       help: "G1 Young Generation GC collection time"
+     - name: java_lang_Memory_HeapMemoryUsage_$1
+       pattern: 'java.lang<type=Memory><HeapMemoryUsage>(.+): .*' 
+     - name: java_lang_Memory_NonHeapMemoryUsage_$1
+       pattern: 'java.lang<type=Memory><NonHeapMemoryUsage>(.+): .*'    
+     - name: java_nio_direct_MemoryUsed
+       pattern: 'java.nio<name=direct, type=BufferPool><>MemoryUsed: (\d+)'
+       value: $1
+       help: "NIO buffer pool usage"    
+     - name: java_lang_OperatingSystem_OpenFileDescriptorCount
+       pattern: 'java.lang<type=OperatingSystem><.*>OpenFileDescriptorCount: .*'    
+     - name: java_lang_OperatingSystem_ProcessCpuLoad
+       pattern: 'java.lang<type=OperatingSystem><.*>ProcessCpuLoad: .*'    
+     - name: java_lang_Threading_ThreadCount
+       pattern: 'java.lang<type=Threading><(.*)>ThreadCount: .*'
