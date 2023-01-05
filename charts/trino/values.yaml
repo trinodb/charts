@@ -162,7 +162,7 @@ coordinator:
 
   config:
     memory:
-      heapHeadroomPerNode: "1GB"
+      heapHeadroomPerNode: ""
 
   additionalJVMConfig: {}
 
@@ -201,7 +201,7 @@ worker:
 
   config:
     memory:
-      heapHeadroomPerNode: "1GB"
+      heapHeadroomPerNode: ""
 
   additionalJVMConfig: {}
 
