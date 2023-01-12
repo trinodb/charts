@@ -107,15 +107,15 @@ spec:
             successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.nodeSelector.coordinator }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.affinity.coordinator }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.tolerations.coordinator }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

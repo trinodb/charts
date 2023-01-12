@@ -77,15 +77,15 @@ spec:
             successThreshold: {{ .Values.worker.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.nodeSelector.worker }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.affinity.worker }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.tolerations.worker }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
