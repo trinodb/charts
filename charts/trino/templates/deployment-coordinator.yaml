@@ -20,6 +20,9 @@ spec:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
         component: coordinator
+        {{- range $key, $val := .Values.coordinator.podLabels }}
+        {{ $key }}: {{ $val | quote }}
+        {{- end}}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
