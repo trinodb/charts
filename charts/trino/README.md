@@ -64,6 +64,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.resources` |  | `{}` |
 | `coordinator.livenessProbe` |  | `{}` |
 | `coordinator.readinessProbe` |  | `{}` |
+| `coordinator.podLabels` |  | `{}` |
 | `worker.jvm.maxHeapSize` |  | `"8G"` |
 | `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
@@ -72,6 +73,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.resources` |  | `{}` |
 | `worker.livenessProbe` |  | `{}` |
 | `worker.readinessProbe` |  | `{}` |
+| `worker.podLabels` |  | `{}` |
 | `kafka.mountPath` |  | `"/etc/trino/schemas"` |
 | `kafka.tableDescriptions` |  | `{}` |
 
