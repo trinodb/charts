@@ -191,6 +191,8 @@ coordinator:
     # failureThreshold: 6
     # successThreshold: 1
 
+  podLabels: {}
+
 worker:
   jvm:
     maxHeapSize: "8G"
@@ -229,6 +231,8 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  podLabels: {}
 
 kafka:
   mountPath: "/etc/trino/schemas"
