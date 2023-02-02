@@ -130,12 +130,6 @@ service:
   type: ClusterIP
   port: 8080
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
 auth: {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
@@ -190,6 +184,11 @@ coordinator:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
 
 worker:
   jvm:
@@ -229,6 +228,12 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+  
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
 
 kafka:
   mountPath: "/etc/trino/schemas"
