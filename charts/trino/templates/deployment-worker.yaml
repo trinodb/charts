@@ -53,6 +53,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
