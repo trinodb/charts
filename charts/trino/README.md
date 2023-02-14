@@ -43,6 +43,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `eventListenerProperties` |  | `{}` |
 | `additionalCatalogs` |  | `{}` |
 | `env` |  | `[]` |
+| `envFrom` |  | `[]` |
 | `initContainers` |  | `{}` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
