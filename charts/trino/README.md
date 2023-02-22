@@ -28,7 +28,6 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.config.authenticationType` |  | `""` |
 | `server.config.query.maxMemory` |  | `"4GB"` |
 | `server.config.query.maxMemoryPerNode` |  | `"1GB"` |
-| `server.config.memory.heapHeadroomPerNode` |  | `"1GB"` |
 | `server.exchangeManager.name` |  | `"filesystem"` |
 | `server.exchangeManager.baseDir` |  | `"/tmp/trino-local-file-system-exchange-manager"` |
 | `server.workerExtraConfig` |  | `""` |
@@ -60,6 +59,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.jvm.maxHeapSize` |  | `"8G"` |
 | `coordinator.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `coordinator.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
+| `coordinator.config.memory.heapHeadroomPerNode` |  | `""` |
 | `coordinator.additionalJVMConfig` |  | `{}` |
 | `coordinator.resources` |  | `{}` |
 | `coordinator.livenessProbe` |  | `{}` |
@@ -67,6 +67,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.jvm.maxHeapSize` |  | `"8G"` |
 | `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
+| `worker.config.memory.heapHeadroomPerNode` |  | `""` |
 | `worker.additionalJVMConfig` |  | `{}` |
 | `worker.resources` |  | `{}` |
 | `worker.livenessProbe` |  | `{}` |

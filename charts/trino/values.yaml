@@ -35,8 +35,6 @@ server:
     query:
       maxMemory: "4GB"
       maxMemoryPerNode: "1GB"
-    memory:
-      heapHeadroomPerNode: "1GB"
   exchangeManager:
     name: "filesystem"
     baseDir: "/tmp/trino-local-file-system-exchange-manager"
@@ -166,6 +164,10 @@ coordinator:
       g1:
         heapRegionSize: "32M"
 
+  config:
+    memory:
+      heapHeadroomPerNode: ""
+
   additionalJVMConfig: {}
 
   resources: {}
@@ -200,6 +202,10 @@ worker:
       type: "UseG1GC"
       g1:
         heapRegionSize: "32M"
+
+  config:
+    memory:
+      heapHeadroomPerNode: ""
 
   additionalJVMConfig: {}
 
