@@ -47,6 +47,11 @@ spec:
           secret:
             secretName: trino-password-authentication
         {{- end }}
+        {{- if .Values.hive.s3.securityMapping }}
+        - name: s3-security-mapping-volume
+          configMap:
+            name: s3-security-mapping-volume-coordinator
+        {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
       {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
@@ -82,6 +87,10 @@ spec:
             {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
+            {{- end }}
+            {{- if .Values.hive.s3.securityMapping }}
+            - mountPath: {{ .Values.server.config.path }}/hive/s3-security-mapping
+              name: s3-security-mapping-volume
             {{- end }}
           ports:
             - name: http
