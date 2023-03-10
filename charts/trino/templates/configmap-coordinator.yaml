@@ -63,6 +63,15 @@ data:
     http-server.https.enabled=true
     http-server.https.port={{ .Values.server.config.https.port }}
     http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
+    {{- if .Values.server.config.https.keystore.keystorePassword }}
+    http-server.https.keystore.key={{ .Values.server.config.https.keystore.keystorePassword }}
+    {{- end }}
+    {{- if .Values.server.config.https.keystore.keymanagerPassword }}
+    http-server.https.keymanager.password={{ .Values.server.config.https.keystore.keymanagerPassword }}
+    {{- end }}
+    {{- if .Values.server.config.http.allowInsecureOverHttp }}{{- if eq .Values.server.config.http.allowInsecureOverHttp true }}
+    http-server.authentication.allow-insecure-over-http=true
+    {{- end }}
   {{- end }}
   {{ .Values.server.coordinatorExtraConfig | indent 4 }}
 

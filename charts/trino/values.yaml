@@ -24,11 +24,14 @@ server:
     path: /etc/trino
     http:
       port: 8080
+      allowInsecureOverHttp: false
     https:
       enabled: false
       port: 8443
       keystore:
         path: ""
+        keystorePassword: ""
+        keymanagerPassword: ""
     # Trino supports multiple authentication types: PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS
     # For more info: https://trino.io/docs/current/security/authentication-types.html
     authenticationType: ""
@@ -45,7 +48,8 @@ server:
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
 
-accessControl: {}
+accessControl:
+  {}
   # type: configmap
   # refreshPeriod: 60s
   # # Rules file is mounted to /etc/trino/access-control
@@ -111,7 +115,8 @@ additionalCatalogs: {}
 # Array of EnvVar (https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core)
 env: []
 
-initContainers: {}
+initContainers:
+  {}
   # coordinator:
   #   - name: init-coordinator
   #     image: busybox:1.28
@@ -136,7 +141,8 @@ tolerations: []
 
 affinity: {}
 
-auth: {}
+auth:
+  {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
@@ -166,7 +172,8 @@ coordinator:
 
   additionalJVMConfig: {}
 
-  resources: {}
+  resources:
+    {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -178,13 +185,15 @@ coordinator:
     #   cpu: 100m
     #   memory: 128Mi
 
-  livenessProbe: {}
+  livenessProbe:
+    {}
     # initialDelaySeconds: 20
     # periodSeconds: 10
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
-  readinessProbe: {}
+  readinessProbe:
+    {}
     # initialDelaySeconds: 20
     # periodSeconds: 10
     # timeoutSeconds: 5
@@ -205,7 +214,8 @@ worker:
 
   additionalJVMConfig: {}
 
-  resources: {}
+  resources:
+    {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -217,13 +227,15 @@ worker:
     #   cpu: 100m
     #   memory: 128Mi
 
-  livenessProbe: {}
+  livenessProbe:
+    {}
     # initialDelaySeconds: 20
     # periodSeconds: 10
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
-  readinessProbe: {}
+  readinessProbe:
+    {}
     # initialDelaySeconds: 20
     # periodSeconds: 10
     # timeoutSeconds: 5
@@ -232,7 +244,8 @@ worker:
 
 kafka:
   mountPath: "/etc/trino/schemas"
-  tableDescriptions: {}
+  tableDescriptions:
+    {}
     # Custom kafka table descriptions that will be mounted in mountPath
     # testschema.json: |-
     #   {
