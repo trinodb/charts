@@ -22,9 +22,12 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.log.trino.level` |  | `"INFO"` |
 | `server.config.path` |  | `"/etc/trino"` |
 | `server.config.http.port` |  | `8080` |
+| `server.config.http.allowInsecureOverHttp` |  | `false` |
 | `server.config.https.enabled` |  | `false` |
 | `server.config.https.port` |  | `8443` |
 | `server.config.https.keystore.path` |  | `""` |
+| `server.config.https.keystore.keystorePassword` |  | `""` |
+| `server.config.https.keystore.keymanagerPassword` |  | `""` |
 | `server.config.authenticationType` |  | `""` |
 | `server.config.query.maxMemory` |  | `"4GB"` |
 | `server.config.query.maxMemoryPerNode` |  | `"1GB"` |
