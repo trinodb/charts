@@ -43,7 +43,7 @@ data:
     coordinator=false
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
-    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
+    query.max-memory-per-node={{ .Values.worker.config.query.maxMemoryPerNode }}
   {{- if .Values.worker.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.worker.config.memory.heapHeadroomPerNode }}
   {{- end }}
