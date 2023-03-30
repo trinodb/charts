@@ -196,6 +196,10 @@ coordinator:
 
   additionalConfigFiles: {}
 
+  annotations: {}
+
+  labels: {}
+
 worker:
   jvm:
     maxHeapSize: "8G"
@@ -246,6 +250,10 @@ worker:
   affinity: {}
 
   additionalConfigFiles: {}
+
+  annotations: {}
+
+  labels: {}
 
 kafka:
   mountPath: "/etc/trino/schemas"
