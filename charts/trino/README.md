@@ -66,6 +66,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.tolerations` |  | `[]` |
 | `coordinator.affinity` |  | `{}` |
 | `coordinator.additionalConfigFiles` |  | `{}` |
+| `coordinator.annotations` |  | `{}` |
+| `coordinator.labels` |  | `{}` |
 | `worker.jvm.maxHeapSize` |  | `"8G"` |
 | `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
@@ -80,6 +82,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.tolerations` |  | `[]` |
 | `worker.affinity` |  | `{}` |
 | `worker.additionalConfigFiles` |  | `{}` |
+| `worker.annotations` |  | `{}` |
+| `worker.labels` |  | `{}` |
 | `kafka.mountPath` |  | `"/etc/trino/schemas"` |
 | `kafka.tableDescriptions` |  | `{}` |
 

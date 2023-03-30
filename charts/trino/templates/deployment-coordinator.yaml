@@ -16,10 +16,17 @@ spec:
       component: coordinator
   template:
     metadata:
+      {{- if .Values.coordinator.annotations }}
+      annotations:
+      {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
         component: coordinator
+        {{- if .Values.coordinator.labels }}
+        {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
