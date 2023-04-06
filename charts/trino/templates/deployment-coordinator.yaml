@@ -47,6 +47,9 @@ spec:
           secret:
             secretName: trino-password-authentication
         {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
       {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
@@ -82,6 +85,9 @@ spec:
             {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
+            {{- end }}
+            {{- with .Values.extraVolumeMounts }}
+            {{- . | toYaml | nindent 12 }}
             {{- end }}
           ports:
             - name: http

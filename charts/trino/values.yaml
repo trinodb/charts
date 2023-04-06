@@ -275,3 +275,13 @@ kafka:
     #       ]
     #     }
     #   }
+extraVolumes:
+  []
+  # - name: extras
+  #   emptyDir: {}
+
+extraVolumeMounts:
+  []
+  # - name: extras
+  #   mountPath: /usr/share/extras
+  #   readOnly: true
