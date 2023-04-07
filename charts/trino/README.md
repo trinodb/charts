@@ -58,6 +58,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.config.memory.heapHeadroomPerNode` |  | `""` |
 | `coordinator.config.query.maxMemoryPerNode` |  | `"1GB"` |
 | `coordinator.additionalJVMConfig` |  | `{}` |
+| `coordinator.additionalExposedPorts` |  | `{}` |
 | `coordinator.resources` |  | `{}` |
 | `coordinator.livenessProbe` |  | `{}` |
 | `coordinator.readinessProbe` |  | `{}` |
@@ -71,6 +72,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.config.memory.heapHeadroomPerNode` |  | `""` |
 | `worker.config.query.maxMemoryPerNode` |  | `"1GB"` |
 | `worker.additionalJVMConfig` |  | `{}` |
+| `worker.additionalExposedPorts` |  | `{}` |
 | `worker.resources` |  | `{}` |
 | `worker.livenessProbe` |  | `{}` |
 | `worker.readinessProbe` |  | `{}` |

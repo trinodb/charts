@@ -14,6 +14,12 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
+    - port: {{ $value.servicePort }}
+      name: {{ $value.name }}
+      targetPort: {{ $value.port }}
+      protocol: {{ $value.protocol }}
+    {{- end }}
   selector:
     app: {{ template "trino.name" . }}
     release: {{ .Release.Name }}
