@@ -16,6 +16,11 @@ spec:
       component: coordinator
   template:
     metadata:
+      annotations:
+        # this will only recreate the coordinator pod if sha256sum changes i.e. change in catalog config
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
+        # this will recreate coordinator for every "helm upgrade"
+        # rollme: {{ randAlphaNum 5 | quote }}
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
