@@ -49,6 +49,8 @@ spec:
         - name: jmx-config
           configMap:
             name: {{ template "trino.fullname" . }}-jmx-configmap
+        - name: jmx-exporter
+          emptyDir: {}
         {{- end }}
         {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
         - name: access-control-volume
@@ -69,39 +71,30 @@ spec:
         {{- end }}
         - name: opt-prometheus
           emptyDir: {}
-      {{- if .Values.initContainers.coordinator }}
-      initContainers:
-      {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
-      {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
             secretName: {{ .secretName }}
         {{- end }}
+      {{- if or .Values.initContainers.coordinator .Values.prometheus.jmx.enabled }}
+      initContainers:
+      {{- if .Values.initContainers.coordinator }}
+        {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.jmx.enabled }}
+        - image: "{{ .Values.prometheus.jmx.image.repository }}:{{ .Values.prometheus.jmx.image.tag }}"
+          imagePullPolicy: {{ .Values.prometheus.jmx.image.pullPolicy }}
+          name: jmx-exporter
+          resources:
+            {{- toYaml .Values.prometheus.jmx.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /jmx_exporter
+              name: jmx-exporter
+      {{- end }}
+      {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
-        {{- if .Values.prometheus.jmx.enabled }}
-        - name: prometheus-jmx-exporter
-          image: "{{ .Values.prometheus.jmx.image }}:{{ .Values.prometheus.jmx.imageTag }}"
-          imagePullPolicy: "{{ .Values.prometheus.jmx.imagePullPolicy }}"
-          command:
-          - java
-          - -XX:+UnlockExperimentalVMOptions
-          - -XX:+UseCGroupMemoryLimitForHeap
-          - -XX:MaxRAMFraction=1
-          - -XshowSettings:vm
-          - -jar
-          - jmx_prometheus_httpserver.jar
-          - {{ .Values.prometheus.jmx.port | quote }}
-          - /etc/jmx-trino/jmx-trino-prometheus.yml
-          ports:
-          - containerPort: {{ .Values.prometheus.jmx.port }}
-          resources: {{ toYaml .Values.prometheus.jmx.resources | indent 12 }}
-          volumeMounts:
-          - name: jmx-config
-            mountPath: /etc/jmx-trino
-        {{- end }}
         - name: {{ .Chart.Name }}-coordinator
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -125,6 +118,10 @@ spec:
             {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
+            {{- end }}
+            {{- if .Values.prometheus.jmx.enabled }}
+            - mountPath: /jmx_exporter
+              name: jmx-exporter
             {{- end }}
           ports:
             - name: http

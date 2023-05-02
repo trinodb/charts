@@ -35,6 +35,9 @@ data:
     -Djdk.nio.maxCachedBufferSize=2000000
     -XX:+UnlockDiagnosticVMOptions
     -XX:+UseAESCTRIntrinsics
+  {{- if .Values.prometheus.jmx.enabled }}
+    -javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar={{ .Values.prometheus.jmx.port }}:{{ .Values.prometheus.jmx.config }}
+  {{- end }}
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
