@@ -274,7 +274,7 @@ prometheus:
   ## JMX Exporter Configuration
   ## ref: https://github.com/prometheus/jmx_exporter
   jmx:
-    enabled: false
+    enabled: true
     port: 5556
     config: /jmx_exporter/conf/default_config.yaml
     image:
@@ -282,3 +282,18 @@ prometheus:
       pullPolicy: IfNotPresent
       tag: 0.18.0
     resources: {}
+
+# TODO: Need to add support in Trino Chart
+
+ingress:
+  enabled: true
+  ingressClassName: "nginx-internal"
+  annotations: {}
+  path: /
+  pathType: ImplementationSpecific
+  hosts:
+    - trino-test.int.wnf.rocks
+  tls:
+    - secretName: wildcard-int
+      hosts:
+        - trino-test.int.wnf.rocks
