@@ -290,9 +290,25 @@ prometheus:
   ## ref: https://github.com/prometheus/jmx_exporter
   jmx:
     enabled: true
-    image: solsson/kafka-prometheus-jmx-exporter@sha256
-    imageTag: 6f82e2b0464f50da8104acd7363fb9b995001ddff77d248379f8788e78946143
-    imagePullPolicy: IfNotPresent
     port: 5556
-
+    config: /jmx_exporter/conf/default_config.yaml
+    image:
+      repository: 418337671376.dkr.ecr.eu-central-1.amazonaws.com/jmx_exporter
+      pullPolicy: IfNotPresent
+      tag: 0.18.0
     resources: {}
+
+# TODO: Need to add support in Trino Chart
+
+ingress:
+  enabled: true
+  ingressClassName: "nginx-internal"
+  annotations: {}
+  path: /
+  pathType: ImplementationSpecific
+  hosts:
+    - trino-test.int.wnf.rocks
+  tls:
+    - secretName: wildcard-int
+      hosts:
+        - trino-test.int.wnf.rocks
