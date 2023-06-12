@@ -78,6 +78,11 @@ data:
   {{- end }}
 {{ end }}
 
+{{- range $fileName, $fileContent := .Values.worker.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- $fileContent | nindent 4 }}
+{{- end }}
+
 ---
 
 apiVersion: v1

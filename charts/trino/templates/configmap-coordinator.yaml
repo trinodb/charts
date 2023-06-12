@@ -114,6 +114,11 @@ data:
   {{- end }}
 {{ end }}
 
+{{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- $fileContent | nindent 4 }}
+{{- end }}
+
 ---
 
 {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}

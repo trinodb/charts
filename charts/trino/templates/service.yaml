@@ -14,9 +14,11 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
-    {{- if .Values.prometheus.jmx.enabled }}
-    - name: metrics
-      port: {{ .Values.prometheus.jmx.port }}
+    {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
+    - port: {{ $value.servicePort }}
+      name: {{ $value.name }}
+      targetPort: {{ $value.port }}
+      protocol: {{ $value.protocol }}
     {{- end }}
   selector:
     app: {{ template "trino.name" . }}
