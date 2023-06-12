@@ -20,6 +20,14 @@ spec:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
         component: coordinator
+      annotations:
+      {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{- if .Values.prometheus.jmx.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.prometheus.jmx.port | quote }}
+      {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
@@ -37,6 +45,13 @@ spec:
         - name: schemas-volume
           configMap:
             name: schemas-volume-coordinator
+        {{- if .Values.prometheus.jmx.enabled }}
+        - name: jmx-config
+          configMap:
+            name: {{ template "trino.fullname" . }}-jmx-configmap
+        - name: jmx-exporter
+          emptyDir: {}
+        {{- end }}
         {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
         - name: access-control-volume
           configMap:
@@ -46,16 +61,37 @@ spec:
         - name: password-volume
           secret:
             secretName: trino-password-authentication
+            items:
+              - key: password.db
+                path: password.db
+              {{- if .Values.auth.groups }}
+              - key: group.db
+                path: group.db
+              {{- end }}
         {{- end }}
-      {{- if .Values.initContainers.coordinator }}
-      initContainers:
-      {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
-      {{- end }}
+        - name: opt-prometheus
+          emptyDir: {}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
             secretName: {{ .secretName }}
         {{- end }}
+      {{- if or .Values.initContainers.coordinator .Values.prometheus.jmx.enabled }}
+      initContainers:
+      {{- if .Values.initContainers.coordinator }}
+        {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.jmx.enabled }}
+        - image: "{{ .Values.prometheus.jmx.image.repository }}:{{ .Values.prometheus.jmx.image.tag }}"
+          imagePullPolicy: {{ .Values.prometheus.jmx.image.pullPolicy }}
+          name: jmx-exporter
+          resources:
+            {{- toYaml .Values.prometheus.jmx.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /jmx_exporter
+              name: jmx-exporter
+      {{- end }}
+      {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
@@ -83,10 +119,19 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
             {{- end }}
+            {{- if .Values.prometheus.jmx.enabled }}
+            - mountPath: /jmx_exporter
+              name: jmx-exporter
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
+            - name: {{ $value.name }}
+              containerPort: {{ $value.port }}
+              protocol: {{ $value.protocol }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /v1/info
@@ -107,15 +152,15 @@ spec:
             successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.coordinator.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.coordinator.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.coordinator.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

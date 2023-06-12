@@ -6,7 +6,7 @@ image:
   repository: trinodb/trino
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart version.
-  tag: latest
+  tag: 403
 
 imagePullSecrets:
   - name: registry-credentials
@@ -34,9 +34,6 @@ server:
     authenticationType: ""
     query:
       maxMemory: "4GB"
-      maxMemoryPerNode: "1GB"
-    memory:
-      heapHeadroomPerNode: "1GB"
   exchangeManager:
     name: "filesystem"
     baseDir: "/tmp/trino-local-file-system-exchange-manager"
@@ -132,16 +129,14 @@ service:
   type: ClusterIP
   port: 8080
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
 auth: {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
+  # Set users' groups
+  # https://trino.io/docs/current/security/group-file.html#file-format
+  # refreshPeriod: 5s
+  # groups: "group_name:user_1,user_2,user_3"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -162,7 +157,15 @@ coordinator:
       g1:
         heapRegionSize: "32M"
 
+  config:
+    memory:
+      heapHeadroomPerNode: ""
+    query:
+      maxMemoryPerNode: "1GB"
+
   additionalJVMConfig: {}
+
+  additionalExposedPorts: {}
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -188,6 +191,14 @@ coordinator:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  additionalConfigFiles: {}
 
 worker:
   jvm:
@@ -197,7 +208,15 @@ worker:
       g1:
         heapRegionSize: "32M"
 
+  config:
+    memory:
+      heapHeadroomPerNode: ""
+    query:
+      maxMemoryPerNode: "1GB"
+
   additionalJVMConfig: {}
+
+  additionalExposedPorts: {}
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -223,6 +242,14 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  additionalConfigFiles: {}
 
 kafka:
   mountPath: "/etc/trino/schemas"
@@ -260,3 +287,36 @@ kafka:
     #       ]
     #     }
     #   }
+
+jmx:
+  port: 5555
+
+## Prometheus Exporter Configuration
+## ref: https://prometheus.io/docs/instrumenting/exporters/
+prometheus:
+  ## JMX Exporter Configuration
+  ## ref: https://github.com/prometheus/jmx_exporter
+  jmx:
+    enabled: true
+    port: 5556
+    config: /jmx_exporter/conf/default_config.yaml
+    image:
+      repository: 418337671376.dkr.ecr.eu-central-1.amazonaws.com/jmx_exporter
+      pullPolicy: IfNotPresent
+      tag: 0.18.0
+    resources: {}
+
+# TODO: Need to add support in Trino Chart
+
+ingress:
+  enabled: true
+  ingressClassName: "nginx-internal"
+  annotations: {}
+  path: /
+  pathType: ImplementationSpecific
+  hosts:
+    - trino-test.int.wnf.rocks
+  tls:
+    - secretName: wildcard-int
+      hosts:
+        - trino-test.int.wnf.rocks

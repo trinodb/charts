@@ -34,6 +34,9 @@ data:
     -Djdk.nio.maxCachedBufferSize=2000000
     -XX:+UnlockDiagnosticVMOptions
     -XX:+UseAESCTRIntrinsics
+  {{- if .Values.prometheus.jmx.enabled }}
+    -javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar={{ .Values.prometheus.jmx.port }}:{{ .Values.prometheus.jmx.config }}
+  {{- end }}
   {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
@@ -47,8 +50,11 @@ data:
 {{- end }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
-    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
-    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
+    query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
+{{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
+{{- end }}
+    discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
 {{- if .Values.server.config.authenticationType }}
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
@@ -75,7 +81,7 @@ data:
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name "filesystem" }}
-    exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- end }}  
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
@@ -91,6 +97,14 @@ data:
   password-authenticator.properties: |
     password-authenticator.name=file
     file.password-file={{ .Values.server.config.path }}/auth/password.db
+  {{- if .Values.auth.groups }}
+  group-provider.properties: |
+    group-provider.name=file
+    file.group-file={{ .Values.server.config.path }}/auth/group.db
+    {{- if .Values.auth.refreshPeriod }}
+    file.refresh-period={{ .Values.auth.refreshPeriod }}
+    {{- end }}
+  {{- end }}
   {{- end }}
 
 {{ if .Values.eventListenerProperties }}
@@ -99,6 +113,11 @@ data:
     {{ $configValue }}
   {{- end }}
 {{ end }}
+
+{{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- $fileContent | nindent 4 }}
+{{- end }}
 
 ---
 
