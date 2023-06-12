@@ -43,8 +43,10 @@ data:
     coordinator=false
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
-    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
-    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
+    query.max-memory-per-node={{ .Values.worker.config.query.maxMemoryPerNode }}
+  {{- if .Values.worker.config.memory.heapHeadroomPerNode }}
+    memory.heap-headroom-per-node={{ .Values.worker.config.memory.heapHeadroomPerNode }}
+  {{- end }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
   {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
@@ -72,6 +74,11 @@ data:
     {{ $configValue }}
   {{- end }}
 {{ end }}
+
+{{- range $fileName, $fileContent := .Values.worker.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- $fileContent | nindent 4 }}
+{{- end }}
 
 ---
 

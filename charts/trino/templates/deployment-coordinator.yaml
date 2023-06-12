@@ -16,10 +16,17 @@ spec:
       component: coordinator
   template:
     metadata:
+      {{- if .Values.coordinator.annotations }}
+      annotations:
+      {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
         component: coordinator
+        {{- if .Values.coordinator.labels }}
+        {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
@@ -87,6 +94,11 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
+            - name: {{ $value.name }}
+              containerPort: {{ $value.port }}
+              protocol: {{ $value.protocol }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /v1/info
@@ -107,15 +119,15 @@ spec:
             successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.coordinator.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.coordinator.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.coordinator.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

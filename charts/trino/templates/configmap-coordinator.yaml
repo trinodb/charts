@@ -47,8 +47,10 @@ data:
 {{- end }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
-    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
-    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
+    query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
+{{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
+{{- end }}
     discovery-server.enabled=true
     discovery.uri=http://localhost:{{ .Values.service.port }}
 {{- if .Values.server.config.authenticationType }}
@@ -100,6 +102,11 @@ data:
     {{ $configValue }}
   {{- end }}
 {{ end }}
+
+{{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- $fileContent | nindent 4 }}
+{{- end }}
 
 ---
 

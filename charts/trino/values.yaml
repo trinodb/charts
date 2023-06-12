@@ -34,9 +34,6 @@ server:
     authenticationType: ""
     query:
       maxMemory: "4GB"
-      maxMemoryPerNode: "1GB"
-    memory:
-      heapHeadroomPerNode: "1GB"
   exchangeManager:
     name: "filesystem"
     baseDir: "/tmp/trino-local-file-system-exchange-manager"
@@ -132,12 +129,6 @@ service:
   type: ClusterIP
   port: 8080
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
 auth: {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
@@ -162,7 +153,15 @@ coordinator:
       g1:
         heapRegionSize: "32M"
 
+  config:
+    memory:
+      heapHeadroomPerNode: ""
+    query:
+      maxMemoryPerNode: "1GB"
+
   additionalJVMConfig: {}
+
+  additionalExposedPorts: {}
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -188,6 +187,18 @@ coordinator:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  additionalConfigFiles: {}
+
+  annotations: {}
+
+  labels: {}
 
 worker:
   jvm:
@@ -197,7 +208,15 @@ worker:
       g1:
         heapRegionSize: "32M"
 
+  config:
+    memory:
+      heapHeadroomPerNode: ""
+    query:
+      maxMemoryPerNode: "1GB"
+
   additionalJVMConfig: {}
+
+  additionalExposedPorts: {}
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -223,6 +242,18 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  additionalConfigFiles: {}
+
+  annotations: {}
+
+  labels: {}
 
 kafka:
   mountPath: "/etc/trino/schemas"
