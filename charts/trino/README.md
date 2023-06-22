@@ -13,7 +13,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | ------------------------ | ----------------------- | -------------- |
 | `image.repository` |  | `"trinodb/trino"` |
 | `image.pullPolicy` |  | `"IfNotPresent"` |
-| `image.tag` |  | `"latest"` |
+| `image.tag` |  | `423` |
 | `imagePullSecrets` |  | `[{"name": "registry-credentials"}]` |
 | `server.workers` |  | `2` |
 | `server.node.environment` |  | `"production"` |
