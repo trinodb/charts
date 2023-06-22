@@ -6,7 +6,8 @@ image:
   repository: trinodb/trino
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart version.
-  tag: latest
+  # Same value as Chart.yaml#appVersion
+  tag: 423
 
 imagePullSecrets:
   - name: registry-credentials
