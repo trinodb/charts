@@ -87,6 +87,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.labels` |  | `{}` |
 | `kafka.mountPath` |  | `"/etc/trino/schemas"` |
 | `kafka.tableDescriptions` |  | `{}` |
+| `hive.s3.securityMapping` |  | `{}` |
 
 
 

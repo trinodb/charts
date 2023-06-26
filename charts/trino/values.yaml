@@ -294,3 +294,50 @@ kafka:
     #       ]
     #     }
     #   }
+
+hive:
+  s3:
+    securityMapping: {}
+      # Custom security mapping for S3
+      # For more info: https://trino.io/docs/current/connector/hive-s3.html#s3-security-mapping
+      # configFile: 'mappings.json'
+      # Mappings file is mounted to /etc/trino/hive/s3-security-mapping
+      # mappings.json: |
+      #   {
+      #     "mappings": [
+      #       {
+      #         "prefix": "s3://bucket-name/abc/",
+      #         "iamRole": "arn:aws:iam::123456789101:role/test_path"
+      #       },
+      #       {
+      #         "user": "bob|charlie",
+      #         "iamRole": "arn:aws:iam::123456789101:role/test_default",
+      #         "allowedIamRoles": [
+      #           "arn:aws:iam::123456789101:role/test1",
+      #           "arn:aws:iam::123456789101:role/test2",
+      #           "arn:aws:iam::123456789101:role/test3"
+      #         ]
+      #       },
+      #       {
+      #         "prefix": "s3://special-bucket/",
+      #         "accessKey": "AKIAxxxaccess",
+      #         "secretKey": "iXbXxxxsecret"
+      #       },
+      #       {
+      #         "prefix": "s3://encrypted-bucket/",
+      #         "kmsKeyId": "kmsKey_10",
+      #       },
+      #       {
+      #         "user": "test.*",
+      #         "iamRole": "arn:aws:iam::123456789101:role/test_users"
+      #       },
+      #       {
+      #         "group": "finance",
+      #         "iamRole": "arn:aws:iam::123456789101:role/finance_users"
+      #       },
+      #       {
+      #         "iamRole": "arn:aws:iam::123456789101:role/default"
+      #       }
+      #     ]
+      #   }
+      

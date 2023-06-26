@@ -94,3 +94,21 @@ data:
   {{ $key }}: {{ $val | quote }}
   {{- end }}
 {{- end }}
+
+---
+
+{{- if .Values.hive.s3.securityMapping }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s3-security-mapping-volume-worker
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+data:
+  {{- range $key, $val := .Values.hive.s3.securityMapping }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+{{- end }}
+
+---
