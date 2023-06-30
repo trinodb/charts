@@ -56,6 +56,10 @@ spec:
         - name: {{ .Chart.Name }}-worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.securityContext.containers }}
+          securityContext:
+          {{  tpl (toYaml .Values.securityContext.containers) . | nindent 12 }}
+          {{- end }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
           envFrom:
