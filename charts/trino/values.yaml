@@ -136,6 +136,7 @@ auth: {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
+  # To use an externally created secret simply leave blank
 
 serviceAccount:
   # Specifies whether a service account should be created

@@ -32,7 +32,7 @@ spec:
       {{- with .Values.securityContext }}
       securityContext:
         runAsUser: {{ .runAsUser }}
-        runAsGroup: {{ .runAsGroup }}
+        runAsGroup: {{ .runAsGroup }}   
       {{- end }}
       volumes:
         - name: config-volume
@@ -49,7 +49,7 @@ spec:
           configMap:
             name: trino-access-control-volume-coordinator
         {{- end }}{{- end }}
-        {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+        {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
         - name: password-volume
           secret:
             secretName: trino-password-authentication
@@ -88,7 +88,7 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+            {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
             {{- end }}
