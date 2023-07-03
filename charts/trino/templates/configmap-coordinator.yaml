@@ -65,14 +65,22 @@ data:
   {{- end }}
   {{ .Values.server.coordinatorExtraConfig | indent 4 }}
 
-{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+{{- if .Values.accessControl }}
+  {{- if eq .Values.accessControl.type "configmap" }}
   access-control.properties: |
     access-control.name=file
     {{- if .Values.accessControl.refreshPeriod }}
     security.refresh-period={{ .Values.accessControl.refreshPeriod }}
     {{- end }}
     security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
-{{- end }}{{- end }}
+  {{- end }}
+  {{- if eq .Values.accessControl.type "custom" }}
+  access-control.properties: |
+    {{- range $configValue := .Values.accessControl.values }}
+      {{ $configValue }}
+    {{- end }}
+  {{- end }}
+{{- end }}
 
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
