@@ -45,7 +45,10 @@ server:
     targetCPUUtilizationPercentage: 50
 
 accessControl: {}
-  # type: configmap
+  # type: configmap | custom
+  # values:
+  #  - access-control.name=custom-access-control
+  #  - access-control.custom_key=custom_value
   # refreshPeriod: 60s
   # # Rules file is mounted to /etc/trino/access-control
   # configFile: "rules.json"
