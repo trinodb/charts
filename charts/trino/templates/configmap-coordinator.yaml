@@ -63,7 +63,7 @@ data:
     http-server.https.port={{ .Values.server.config.https.port }}
     http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
   {{- end }}
-  {{ .Values.server.coordinatorExtraConfig }}
+{{ .Values.server.coordinatorExtraConfig | indent 4 }}
 
 {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
   access-control.properties: |
