@@ -294,3 +294,5 @@ kafka:
     #       ]
     #     }
     #   }
+
+commonLabels: {}  # Labels that get applied to every resource's metadata
