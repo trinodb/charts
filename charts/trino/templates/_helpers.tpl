@@ -59,7 +59,11 @@ Create chart name and version as used by the chart label.
 
 
 {{- define "trino.catalog" -}}
+{{- if .Values.catalogsConfigmapOverride }}
+{{- .Values.catalogsConfigmapOverride }}
+{{- else }}
 {{ template "trino.fullname" . }}-catalog
+{{- end -}}
 {{- end -}}
 
 {{/*

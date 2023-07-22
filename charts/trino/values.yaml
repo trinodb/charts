@@ -105,6 +105,9 @@ additionalExchangeManagerProperties: {}
 
 eventListenerProperties: {}
 
+# need either one of catalogsConfigmapOverride or additionalCatalogs
+# catalogsConfigmapOverride will take precedence if both exists
+catalogsConfigmapOverride: ""
 additionalCatalogs: {}
 
 # Array of EnvVar (https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#envvar-v1-core)
