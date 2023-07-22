@@ -16,6 +16,7 @@ data:
   {{- range $configValue := .Values.additionalNodeProperties }}
     {{ $configValue }}
   {{- end }}
+  {{ .Values.server.coordinatorExtraNodeConfig | indent 4 }}
 
   jvm.config: |
     -server

@@ -38,7 +38,9 @@ server:
     name: "filesystem"
     baseDir: "/tmp/trino-local-file-system-exchange-manager"
   workerExtraConfig: ""
+  workerExtraNodeConfig: ""
   coordinatorExtraConfig: ""
+  coordinatorExtraNodeConfig: ""
   autoscaling:
     enabled: false
     maxReplicas: 5
