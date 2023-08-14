@@ -88,6 +88,11 @@ The following table lists the configurable parameters of the Trino chart and the
 | `kafka.mountPath` |  | `"/etc/trino/schemas"` |
 | `kafka.tableDescriptions` |  | `{}` |
 | `commonLabels` | Labels that get applied to every resource's metadata | `{}` |
+| `ingress.enabled` |  | `false` |
+| `ingress.className` |  | `""` |
+| `ingress.annotations` |  | `{}` |
+| `ingress.hosts` |  | `[]` |
+| `ingress.tls` |  | `[]` |
 
 
 
