@@ -57,15 +57,15 @@ spec:
           secret:
             secretName: trino-password-authentication
         {{- end }}
-      {{- if .Values.initContainers.coordinator }}
-      initContainers:
-      {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
-      {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
             secretName: {{ .secretName }}
         {{- end }}
+      {{- if .Values.initContainers.coordinator }}
+      initContainers:
+      {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
+      {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
