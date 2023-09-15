@@ -30,6 +30,9 @@ spec:
         {{- if .Values.coordinator.labels }}
         {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
         {{- end }}
+        {{- if .Values.commonLabels }}
+        {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}

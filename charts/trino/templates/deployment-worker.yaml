@@ -34,6 +34,9 @@ spec:
         {{- if .Values.worker.labels }}
         {{- tpl (toYaml .Values.worker.labels) . | nindent 8 }}
         {{- end }}
+        {{- if .Values.commonLabels }}
+        {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
