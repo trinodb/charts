@@ -151,7 +151,7 @@ serviceAccount:
   # Annotations to add to the service account
   annotations: {}
 
-secretMounts: [] #  Applies to both the coordinator and worker containers
+secretMounts: []
   # - name: sample-secret
   #   secretName: sample-secret
   #   path: /secrets/sample.json
@@ -211,7 +211,7 @@ coordinator:
 
   labels: {}
 
-  secretMounts: [] #  Only for the coordinator container
+  secretMounts: []
     # - name: sample-secret
     #   secretName: sample-secret
     #   path: /secrets/sample.json
@@ -271,7 +271,7 @@ worker:
 
   labels: {}
 
-  secretMounts: [] #  Only for the worker container
+  secretMounts: []
     # - name: sample-secret
     #   secretName: sample-secret
     #   path: /secrets/sample.json
