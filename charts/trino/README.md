@@ -52,7 +52,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `serviceAccount.create` |  | `false` |
 | `serviceAccount.name` |  | `""` |
 | `serviceAccount.annotations` |  | `{}` |
-| `secretMounts` |  | `[]` |
+| `secretMounts` | Applies to both the coordinator and worker containers | `[]` |
 | `coordinator.jvm.maxHeapSize` |  | `"8G"` |
 | `coordinator.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `coordinator.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
@@ -69,6 +69,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.additionalConfigFiles` |  | `{}` |
 | `coordinator.annotations` |  | `{}` |
 | `coordinator.labels` |  | `{}` |
+| `coordinator.secretMounts` | Only for the coordinator container | `[]` |
 | `worker.jvm.maxHeapSize` |  | `"8G"` |
 | `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
@@ -85,6 +86,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.additionalConfigFiles` |  | `{}` |
 | `worker.annotations` |  | `{}` |
 | `worker.labels` |  | `{}` |
+| `worker.secretMounts` | Only for the worker container | `[]` |
 | `kafka.mountPath` |  | `"/etc/trino/schemas"` |
 | `kafka.tableDescriptions` |  | `{}` |
 | `commonLabels` | Labels that get applied to every resource's metadata | `{}` |

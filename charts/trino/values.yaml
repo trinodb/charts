@@ -151,7 +151,10 @@ serviceAccount:
   # Annotations to add to the service account
   annotations: {}
 
-secretMounts: []
+secretMounts: [] # Applies to both the coordinator and worker containers
+  # - name: sample-secret
+  #   secretName: sample-secret
+  #   path: /secrets/sample.json
 
 coordinator:
   jvm:
@@ -208,6 +211,11 @@ coordinator:
 
   labels: {}
 
+  secretMounts: [] # Only for the coordinator container
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
+
 worker:
   jvm:
     maxHeapSize: "8G"
@@ -262,6 +270,11 @@ worker:
   annotations: {}
 
   labels: {}
+
+  secretMounts: [] # Only for the worker container
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
 
 kafka:
   mountPath: "/etc/trino/schemas"
