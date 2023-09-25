@@ -152,6 +152,9 @@ serviceAccount:
   annotations: {}
 
 secretMounts: []
+  # - name: sample-secret
+  #   secretName: sample-secret
+  #   path: /secrets/sample.json
 
 coordinator:
   jvm:
@@ -208,6 +211,11 @@ coordinator:
 
   labels: {}
 
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
+
 worker:
   jvm:
     maxHeapSize: "8G"
@@ -262,6 +270,11 @@ worker:
   annotations: {}
 
   labels: {}
+
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
 
 kafka:
   mountPath: "/etc/trino/schemas"
