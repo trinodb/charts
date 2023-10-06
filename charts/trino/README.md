@@ -44,8 +44,11 @@ The following table lists the configurable parameters of the Trino chart and the
 | `env` |  | `[]` |
 | `envFrom` |  | `[]` |
 | `initContainers` |  | `{}` |
+| `sidecarContainers` |  | `{}` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
+| `shareProcessNamespace.coordinator` |  | `false` |
+| `shareProcessNamespace.worker` |  | `false` |
 | `service.type` |  | `"ClusterIP"` |
 | `service.port` |  | `8080` |
 | `auth` |  | `{}` |

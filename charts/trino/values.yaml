@@ -125,9 +125,25 @@ initContainers: {}
   #     image: busybox:1.28
   #     command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
 
+sidecarContainers: {}
+#   coordinator:
+#     - name: side-coordinator
+#       image: busybox:1.28
+#       imagePullPolicy: IfNotPresent
+#       command: ['sleep', '1']
+#   worker:
+#     - name: side-worker
+#       image: busybox:1.28
+#       imagePullPolicy: IfNotPresent
+#       command: ['sleep', '1']
+
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
+
+shareProcessNamespace:
+  coordinator: false
+  worker: false
 
 service:
   type: ClusterIP

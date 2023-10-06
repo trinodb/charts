@@ -40,6 +40,9 @@ spec:
         runAsUser: {{ .runAsUser }}
         runAsGroup: {{ .runAsGroup }}
       {{- end }}
+      {{- if .Values.shareProcessNamespace.coordinator }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace.coordinator }}
+      {{- end }}
       volumes:
         - name: config-volume
           configMap:
@@ -143,6 +146,9 @@ spec:
             successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
+      {{- if .Values.sidecarContainers.coordinator }}
+        {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}
+      {{- end }}
       {{- with .Values.coordinator.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
