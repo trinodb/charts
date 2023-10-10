@@ -43,7 +43,12 @@ server:
   autoscaling:
     enabled: false
     maxReplicas: 5
-    targetCPUUtilizationPercentage: 50
+    apiVersion: autoscaling/v1
+    # extraSpec contains a templated HPA specification. Depending on the apiVersion,
+    # you may be able to configure more advanced behavior and metrics.
+    # See https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+    extraSpec: |-
+      targetCPUUtilizationPercentage: 50
 
 accessControl: {}
   # type: configmap

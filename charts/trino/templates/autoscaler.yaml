@@ -1,5 +1,5 @@
 {{- if .Values.server.autoscaling.enabled -}}
-apiVersion: autoscaling/v1
+apiVersion: {{ .Values.server.autoscaling.apiVersion }}
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ template "trino.worker" . }}
@@ -14,5 +14,5 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ template "trino.worker" . }}
-  targetCPUUtilizationPercentage: {{ .Values.server.autoscaling.targetCPUUtilizationPercentage }}
+    {{- .Values.server.autoscaling.extraSpec | nindent 2 }}
 {{- end }}
