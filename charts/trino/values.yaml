@@ -150,6 +150,8 @@ service:
   port: 8080
 
 auth: {}
+  # for password-authenticator.name=file
+  # authenticatorName: "file"
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
@@ -157,6 +159,15 @@ auth: {}
   # https://trino.io/docs/current/security/group-file.html#file-format
   # refreshPeriod: 5s
   # groups: "group_name:user_1,user_2,user_3"
+  # for password-authenticator.name=ldap
+  # authenticatorName: "ldap"
+  # https://trino.io/docs/current/security/ldap.html#password-authenticator-configuration
+  # ldap_url: "ldaps://ldap-server:636"
+  # ldap_bind_dn: "CN=admin,OU=CITY_OU,OU=STATE_OU,DC=domain"
+  # you can specify it as a variable
+  # ldap_bind_password: "${ENV:LDAP_PASSWORD}"
+  # ldap_user_base_dn: "OU=America,DC=corp,DC=example,DC=com"
+  # ldap_group_auth_pattern: "(&(objectClass=person)(sAMAccountName=${USER})(memberof=CN=TRINO-group,OU=America,DC=corp,DC=example,DC=com))"
 
 serviceAccount:
   # Specifies whether a service account should be created
