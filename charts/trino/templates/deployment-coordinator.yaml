@@ -58,7 +58,7 @@ spec:
           configMap:
             name: trino-access-control-volume-coordinator
         {{- end }}{{- end }}
-        {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+        {{- if and (eq .Values.server.config.authenticationType "PASSWORD") (eq .Values.auth.authenticatorName "file") }}
         - name: password-volume
           secret:
             secretName: trino-password-authentication
@@ -114,8 +114,10 @@ spec:
               mountPath: {{ .path }}
             {{- end }}
             {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+            {{- if eq .Values.auth.authenticatorName "file" }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
+            {{- end }}
             {{- end }}
           ports:
             - name: http

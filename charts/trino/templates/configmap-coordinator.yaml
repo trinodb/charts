@@ -81,7 +81,7 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name "filesystem" }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
-  {{- end }}  
+  {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
@@ -93,6 +93,7 @@ data:
   {{- end }}
 
   {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+  {{- if eq .Values.auth.authenticatorName "file" }}
   password-authenticator.properties: |
     password-authenticator.name=file
     file.password-file={{ .Values.server.config.path }}/auth/password.db
@@ -106,6 +107,21 @@ data:
   {{- end }}
   {{- end }}
 
+  {{- if eq .Values.auth.authenticatorName "ldap" }}
+  password-authenticator.properties: |
+    password-authenticator.name=ldap
+    ldap.url={{ .Values.auth.ldap_url }}
+    {{- if .Values.auth.ldap_ssl_truststore_path }}
+    ldap.ssl.truststore.path={{ .Values.auth.ldap_ssl_truststore_path }}
+    {{- end }}
+    {{- if .Values.auth.ldap_bind_dn }}
+    ldap.bind-dn={{ .Values.auth.ldap_bind_dn }}
+    ldap.bind-password={{ .Values.auth.ldap_bind_password }}
+    {{- end }}
+    ldap.user-base-dn={{ .Values.auth.ldap_user_base_dn }}
+    ldap.group-auth-pattern={{ .Values.auth.ldap_group_auth_pattern }}
+  {{- end }}
+  {{- end }}
 {{ if .Values.eventListenerProperties }}
   event-listener.properties: |
   {{- range $configValue := .Values.eventListenerProperties }}
