@@ -85,6 +85,16 @@ spec:
                 path: group.db
               {{- end }}
         {{- end }}
+        {{- range .Values.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+        {{- end }}
+        {{- range .Values.coordinator.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+        {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
@@ -129,6 +139,14 @@ spec:
             {{- if .Values.resourceGroups }}
             - mountPath: {{ .Values.server.config.path }}/resource-groups
               name: resource-groups-volume
+            {{- end }}
+            {{- range .Values.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
+            {{- range .Values.coordinator.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
             {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
