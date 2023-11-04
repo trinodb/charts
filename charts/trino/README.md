@@ -282,6 +282,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `serviceAccount.annotations` - object, default: `{}`  
 
   Annotations to add to the service account
+* `configMounts` - list, default: `[]`  
+
+  Allows mounting additional Trino configuration files from Kubernetes config maps on all nodes.
+  Example:
+  ```yaml
+   - name: sample-config-mount
+     configMap: sample-config-map
+     path: /config-map/sample.json
+  ```
 * `secretMounts` - list, default: `[]`  
 
   Allows mounting additional Trino configuration files from Kubernetes secrets on all nodes.
@@ -363,6 +372,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      readOnly: true
 * `coordinator.annotations` - object, default: `{}`
 * `coordinator.labels` - object, default: `{}`
+* `coordinator.configMounts` - list, default: `[]`  
+
+  Allows mounting additional Trino configuration files from Kubernetes config maps on the coordinator node.
+  Example:
+  ```yaml
+   - name: sample-config-mount
+     configMap: sample-config-mount
+     path: /config-mount/sample.json
+  ```
 * `coordinator.secretMounts` - list, default: `[]`  
 
   Allows mounting additional Trino configuration files from Kubernetes secrets on the coordinator node.
@@ -444,6 +462,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `worker.annotations` - object, default: `{}`
 * `worker.labels` - object, default: `{}`
+* `worker.configMounts` - list, default: `[]`  
+
+  Allows mounting additional Trino configuration files from Kubernetes config maps on all worker nodes.
+  Example:
+  ```yaml
+  - name: sample-config-mount
+    configMap: sample-config-mount
+    path: /config-mount/sample.json
+  ```
 * `worker.secretMounts` - list, default: `[]`  
 
   Allows mounting additional Trino configuration files from Kubernetes secrets on all worker nodes.
