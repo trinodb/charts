@@ -63,17 +63,19 @@ spec:
           configMap:
             name: trino-resource-groups-volume-coordinator
         {{- end }}
-        {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
-        - name: password-volume
+        {{- if or .Values.auth.passwordAuth .Values.auth.groups }}
+        - name: file-authentication-volume
           secret:
             {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
             secretName: {{ .Values.auth.passwordAuthSecret }}
             {{- else }}
-            secretName: trino-password-authentication
+            secretName: trino-file-authentication
             {{- end }}
             items:
+              {{- if .Values.auth.passwordAuth }}
               - key: password.db
                 path: password.db
+              {{- end }} 
               {{- if .Values.auth.groups }}
               - key: group.db
                 path: group.db
@@ -129,9 +131,9 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
+            {{- if or .Values.auth.passwordAuth .Values.auth.groups }}
             - mountPath: {{ .Values.server.config.path }}/auth
-              name: password-volume
+              name: file-authentication-volume
             {{- end }}
             {{- with .Values.coordinator.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}
