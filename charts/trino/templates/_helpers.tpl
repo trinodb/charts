@@ -120,3 +120,19 @@ Code is inspired from bitnami/common
   {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Create the name of the file auth secret to use
+*/}}
+{{- define "trino.fileAuthSecretName" -}}
+{{- if and .Values.auth .Values.auth.passwordAuthSecret }}
+{{- .Values.auth.passwordAuthSecret | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}-file-authentication
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-file-authentication
+{{- end }}
+{{- end }}
+{{- end }}
