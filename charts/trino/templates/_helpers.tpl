@@ -92,3 +92,16 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "trino.passwordSecret" -}}
+{{- if .Values.passwordSecretNameOverride }}
+{{- .Values.passwordSecretNameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.passwordSecretNameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}-password-authentication
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-password-authentication
+{{- end }}
+{{- end }}
+{{- end }}
