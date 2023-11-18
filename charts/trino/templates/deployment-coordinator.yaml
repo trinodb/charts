@@ -70,11 +70,7 @@ spec:
         {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret .Values.auth.groups }}
         - name: file-authentication-volume
           secret:
-            {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
-            secretName: {{ .Values.auth.passwordAuthSecret }}
-            {{- else }}
-            secretName: trino-file-authentication
-            {{- end }}
+            secretName: {{ template "trino.fileAuthSecretName" . }}
             items:
               {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
               - key: password.db
