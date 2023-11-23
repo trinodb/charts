@@ -61,7 +61,11 @@ spec:
         {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
         - name: password-volume
           secret:
+            {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
+            secretName: {{ .Values.auth.passwordAuthSecret }}
+            {{- else }}
             secretName: trino-password-authentication
+            {{- end }}
             items:
               - key: password.db
                 path: password.db
