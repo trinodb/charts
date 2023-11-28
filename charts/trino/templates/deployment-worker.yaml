@@ -38,6 +38,9 @@ spec:
         {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.hostAliases }}
+      {{- include "trino.hostAliases" . | nindent 6 }}
+      {{- end }}
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:

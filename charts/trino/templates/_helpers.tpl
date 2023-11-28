@@ -92,3 +92,17 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create the hostaliases
+*/}}
+{{- define "trino.hostAliases" -}}
+hostAliases:
+{{- range .Values.hostaliases }}
+- ip: {{ .ip }}
+  hostnames:
+  {{- range .hostnames }}
+  - {{ . }}
+  {{- end }}
+{{- end }}
+{{- end -}}
