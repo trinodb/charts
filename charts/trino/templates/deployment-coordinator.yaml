@@ -47,9 +47,6 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.coordinator" . }}
-        - name: catalog-volume
-          configMap:
-            name: {{ template "trino.catalog" . }}
         - name: schemas-volume
           configMap:
             name: schemas-volume-coordinator
@@ -101,8 +98,6 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
-            - mountPath: {{ .Values.server.config.path }}/catalog
-              name: catalog-volume
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
             {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}

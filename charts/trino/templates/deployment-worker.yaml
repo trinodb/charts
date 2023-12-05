@@ -51,9 +51,6 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.worker" . }}
-        - name: catalog-volume
-          configMap:
-            name: {{ template "trino.catalog" . }}
         - name: schemas-volume
           configMap:
             name: schemas-volume-worker
@@ -84,8 +81,6 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
-            - mountPath: {{ .Values.server.config.path }}/catalog
-              name: catalog-volume
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
             {{- range .Values.secretMounts }}
