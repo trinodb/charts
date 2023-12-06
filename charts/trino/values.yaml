@@ -348,7 +348,7 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-namespace: trino
+namespace: #trino
 
 secrets: []
   # - name: catalogs
