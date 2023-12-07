@@ -174,7 +174,7 @@ secretMounts: []
   #   secretName: sample-secret
   #   path: /secrets/sample.json
 
-hostAliases: []
+hostAliases: []  # Additional host aliases
 # When the pod starts, add the following host aliases to the /etc/hosts file
 # - ip: "127.0.0.1"
 #   hostnames:
