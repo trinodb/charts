@@ -55,6 +55,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `serviceAccount.create` |  | `false` |
 | `serviceAccount.name` |  | `""` |
 | `serviceAccount.annotations` |  | `{}` |
+| `configMounts` |  | `[]` |
 | `secretMounts` |  | `[]` |
 | `coordinator.jvm.maxHeapSize` |  | `"8G"` |
 | `coordinator.jvm.gcMethod.type` |  | `"UseG1GC"` |
@@ -72,6 +73,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.additionalConfigFiles` |  | `{}` |
 | `coordinator.annotations` |  | `{}` |
 | `coordinator.labels` |  | `{}` |
+| `coordinator.configMounts` |  | `[]` |
 | `coordinator.secretMounts` |  | `[]` |
 | `worker.jvm.maxHeapSize` |  | `"8G"` |
 | `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
@@ -89,6 +91,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.additionalConfigFiles` |  | `{}` |
 | `worker.annotations` |  | `{}` |
 | `worker.labels` |  | `{}` |
+| `worker.configMounts` |  | `[]` |
 | `worker.secretMounts` |  | `[]` |
 | `kafka.mountPath` |  | `"/etc/trino/schemas"` |
 | `kafka.tableDescriptions` |  | `{}` |

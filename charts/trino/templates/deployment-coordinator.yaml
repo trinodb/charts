@@ -74,6 +74,16 @@ spec:
                 path: group.db
               {{- end }}
         {{- end }}
+        {{- range .Values.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+        {{- end }}
+        {{- range .Values.coordinator.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+        {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
@@ -109,6 +119,14 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}{{- end }}
+            {{- range .Values.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
+            {{- range .Values.coordinator.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}

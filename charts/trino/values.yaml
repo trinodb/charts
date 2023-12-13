@@ -168,6 +168,11 @@ serviceAccount:
   name: ""
   # Annotations to add to the service account
   annotations: {}
+  
+configMounts: []
+  # - name: sample-config-mount
+  #   configMap: sample-config-mount
+  #   path: /config-mount/sample.json
 
 secretMounts: []
   # - name: sample-secret
@@ -228,6 +233,11 @@ coordinator:
   annotations: {}
 
   labels: {}
+  
+  configMounts: []
+    # - name: sample-config-mount
+    #   configMap: sample-config-mount
+    #   path: /config-mount/sample.json
 
   secretMounts: []
     # - name: sample-secret
@@ -288,6 +298,11 @@ worker:
   annotations: {}
 
   labels: {}
+  
+  configMounts: []
+    # - name: sample-config-mount
+    #   configMap: sample-config-mount
+    #   path: /config-mount/sample.json
 
   secretMounts: []
     # - name: sample-secret
