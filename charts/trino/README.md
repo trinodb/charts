@@ -47,6 +47,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `sidecarContainers` |  | `{}` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
+| `securityContext.containers` |  | `{}` |
 | `shareProcessNamespace.coordinator` |  | `false` |
 | `shareProcessNamespace.worker` |  | `false` |
 | `service.type` |  | `"ClusterIP"` |
