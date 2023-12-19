@@ -6,7 +6,8 @@ image:
   repository: trinodb/trino
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart version.
-  tag: latest
+  # Same value as Chart.yaml#appVersion
+  tag: 432
 
 imagePullSecrets:
   - name: registry-credentials
@@ -124,12 +125,28 @@ initContainers: {}
   #     image: busybox:1.28
   #     command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
 
+sidecarContainers: {}
+#   coordinator:
+#     - name: side-coordinator
+#       image: busybox:1.28
+#       imagePullPolicy: IfNotPresent
+#       command: ['sleep', '1']
+#   worker:
+#     - name: side-worker
+#       image: busybox:1.28
+#       imagePullPolicy: IfNotPresent
+#       command: ['sleep', '1']
+
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   containers:
     allowPrivilegeEscalation: false
-    
+
+shareProcessNamespace:
+  coordinator: false
+  worker: false
+
 service:
   type: ClusterIP
   port: 8080
@@ -138,6 +155,12 @@ auth: {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
+  # or set the name of a secret containing this file in the password.db key
+  # passwordAuthSecret: "trino-password-authentication"
+  # Set users' groups
+  # https://trino.io/docs/current/security/group-file.html#file-format
+  # refreshPeriod: 5s
+  # groups: "group_name:user_1,user_2,user_3"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -149,6 +172,9 @@ serviceAccount:
   annotations: {}
 
 secretMounts: []
+  # - name: sample-secret
+  #   secretName: sample-secret
+  #   path: /secrets/sample.json
 
 coordinator:
   jvm:
@@ -205,6 +231,11 @@ coordinator:
 
   labels: {}
 
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
+
 worker:
   jvm:
     maxHeapSize: "8G"
@@ -260,6 +291,11 @@ worker:
 
   labels: {}
 
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
+
 kafka:
   mountPath: "/etc/trino/schemas"
   tableDescriptions: {}
@@ -296,3 +332,17 @@ kafka:
     #       ]
     #     }
     #   }
+commonLabels: {}  # Labels that get applied to every resource's metadata
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  #  - host: trino.example.com
+  #    paths:
+  #      - path: /
+  #        pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local

@@ -9,6 +9,9 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     component: worker
+    {{- if .Values.commonLabels }}
+    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- end }}
 data:
   node.properties: |
     node.environment={{ .Values.server.node.environment }}
@@ -20,21 +23,22 @@ data:
 
   jvm.config: |
     -server
+    -agentpath:/usr/lib/trino/bin/libjvmkill.so
     -Xmx{{ .Values.worker.jvm.maxHeapSize }}
     -XX:+{{ .Values.worker.jvm.gcMethod.type }}
     -XX:G1HeapRegionSize={{ .Values.worker.jvm.gcMethod.g1.heapRegionSize }}
-    -XX:+UseGCOverheadLimit
     -XX:+ExplicitGCInvokesConcurrent
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:+ExitOnOutOfMemoryError
-    -Djdk.attach.allowAttachSelf=true
-    -XX:-UseBiasedLocking
+    -XX:-OmitStackTraceInFastThrow
     -XX:ReservedCodeCacheSize=512M
     -XX:PerMethodRecompilationCutoff=10000
     -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.attach.allowAttachSelf=true
     -Djdk.nio.maxCachedBufferSize=2000000
     -XX:+UnlockDiagnosticVMOptions
-    -XX:+UseAESCTRIntrinsics
+    # Reduce starvation of threads by GClocker, recommend to set about the number of cpu cores (JDK-8192647)
+    -XX:GCLockerRetryAllocationCount=32
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}

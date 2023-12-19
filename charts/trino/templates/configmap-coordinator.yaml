@@ -8,6 +8,9 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     component: coordinator
+    {{- if .Values.commonLabels }}
+    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- end }}
 data:
   node.properties: |
     node.environment={{ .Values.server.node.environment }}
@@ -19,21 +22,22 @@ data:
 
   jvm.config: |
     -server
+    -agentpath:/usr/lib/trino/bin/libjvmkill.so
     -Xmx{{ .Values.coordinator.jvm.maxHeapSize }}
     -XX:+{{ .Values.coordinator.jvm.gcMethod.type }}
     -XX:G1HeapRegionSize={{ .Values.coordinator.jvm.gcMethod.g1.heapRegionSize }}
-    -XX:+UseGCOverheadLimit
     -XX:+ExplicitGCInvokesConcurrent
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:+ExitOnOutOfMemoryError
-    -Djdk.attach.allowAttachSelf=true
-    -XX:-UseBiasedLocking
+    -XX:-OmitStackTraceInFastThrow
     -XX:ReservedCodeCacheSize=512M
     -XX:PerMethodRecompilationCutoff=10000
     -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.attach.allowAttachSelf=true
     -Djdk.nio.maxCachedBufferSize=2000000
     -XX:+UnlockDiagnosticVMOptions
-    -XX:+UseAESCTRIntrinsics
+    # Reduce starvation of threads by GClocker, recommend to set about the number of cpu cores (JDK-8192647)
+    -XX:GCLockerRetryAllocationCount=32
   {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
@@ -93,6 +97,14 @@ data:
   password-authenticator.properties: |
     password-authenticator.name=file
     file.password-file={{ .Values.server.config.path }}/auth/password.db
+  {{- if .Values.auth.groups }}
+  group-provider.properties: |
+    group-provider.name=file
+    file.group-file={{ .Values.server.config.path }}/auth/group.db
+    {{- if .Values.auth.refreshPeriod }}
+    file.refresh-period={{ .Values.auth.refreshPeriod }}
+    {{- end }}
+  {{- end }}
   {{- end }}
 
 {{ if .Values.eventListenerProperties }}

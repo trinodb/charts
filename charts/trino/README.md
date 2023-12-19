@@ -13,7 +13,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | ------------------------ | ----------------------- | -------------- |
 | `image.repository` |  | `"trinodb/trino"` |
 | `image.pullPolicy` |  | `"IfNotPresent"` |
-| `image.tag` |  | `"latest"` |
+| `image.tag` |  | `432` |
 | `imagePullSecrets` |  | `[{"name": "registry-credentials"}]` |
 | `server.workers` |  | `2` |
 | `server.node.environment` |  | `"production"` |
@@ -44,8 +44,11 @@ The following table lists the configurable parameters of the Trino chart and the
 | `env` |  | `[]` |
 | `envFrom` |  | `[]` |
 | `initContainers` |  | `{}` |
+| `sidecarContainers` |  | `{}` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
+| `shareProcessNamespace.coordinator` |  | `false` |
+| `shareProcessNamespace.worker` |  | `false` |
 | `service.type` |  | `"ClusterIP"` |
 | `service.port` |  | `8080` |
 | `auth` |  | `{}` |
@@ -69,6 +72,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.additionalConfigFiles` |  | `{}` |
 | `coordinator.annotations` |  | `{}` |
 | `coordinator.labels` |  | `{}` |
+| `coordinator.secretMounts` |  | `[]` |
 | `worker.jvm.maxHeapSize` |  | `"8G"` |
 | `worker.jvm.gcMethod.type` |  | `"UseG1GC"` |
 | `worker.jvm.gcMethod.g1.heapRegionSize` |  | `"32M"` |
@@ -85,8 +89,15 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.additionalConfigFiles` |  | `{}` |
 | `worker.annotations` |  | `{}` |
 | `worker.labels` |  | `{}` |
+| `worker.secretMounts` |  | `[]` |
 | `kafka.mountPath` |  | `"/etc/trino/schemas"` |
 | `kafka.tableDescriptions` |  | `{}` |
+| `commonLabels` | Labels that get applied to every resource's metadata | `{}` |
+| `ingress.enabled` |  | `false` |
+| `ingress.className` |  | `""` |
+| `ingress.annotations` |  | `{}` |
+| `ingress.hosts` |  | `[]` |
+| `ingress.tls` |  | `[]` |
 
 
 
