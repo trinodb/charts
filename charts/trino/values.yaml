@@ -140,6 +140,8 @@ sidecarContainers: {}
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
+  containers:
+    allowPrivilegeEscalation: false
 
 shareProcessNamespace:
   coordinator: false
