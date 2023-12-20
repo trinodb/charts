@@ -49,6 +49,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `sidecarContainers` |  | `{}` |
 | `securityContext.runAsUser` |  | `1000` |
 | `securityContext.runAsGroup` |  | `1000` |
+| `containerSecurityContext.allowPrivilegeEscalation` | Control whether a process can gain more privileges than its parent process. | `false` |
+| `containerSecurityContext.capabilities.drop` | List of Linux kernel capabilities that are dropped from every container. Valid values are listed at https://man7.org/linux/man-pages/man7/capabilities.7.html Ensure to remove the "CAP_" prefix which the kernel attaches to the names of permissions. | `["ALL"]` |
 | `shareProcessNamespace.coordinator` |  | `false` |
 | `shareProcessNamespace.worker` |  | `false` |
 | `service.type` |  | `"ClusterIP"` |
