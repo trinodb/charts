@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "trino.coordinator" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ template "trino.name" . }}
     chart: {{ template "trino.chart" . }}
@@ -132,6 +133,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: trino-access-control-volume-coordinator
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator
@@ -162,6 +164,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: schemas-volume-coordinator
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator

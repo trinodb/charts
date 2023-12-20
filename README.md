@@ -25,6 +25,12 @@ Then you can install chart using:
 helm install my-trino trino/trino --version 0.19.0
 ```
 
+Also, you can check the manifests using: 
+
+```console
+helm template my-trino trino/trino --namespace <YOUR_NAMESPACE>
+```
+
 ## Documentation
 
 You can find documentation about the chart [here](./charts/trino/README.md).
