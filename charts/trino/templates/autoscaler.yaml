@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ template "trino.worker" . }}
+  namespace: {{ .Release.Namespace }}
   {{- if .Values.commonLabels }}
   labels:
     {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
