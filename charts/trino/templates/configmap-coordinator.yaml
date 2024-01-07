@@ -78,6 +78,12 @@ data:
     security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
 {{- end }}{{- end }}
 
+{{- if .Values.resourceGroups }}
+  resource-groups.properties: |
+    resource-groups.configuration-manager=file
+    resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
+{{- end }}
+
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name "filesystem" }}
@@ -134,6 +140,21 @@ data:
   {{ $key }}: {{ $val | quote }}
   {{- end }}
 {{- end }}{{- end }}
+
+---
+
+{{- if .Values.resourceGroups }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-resource-groups-volume-coordinator
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  resource-groups.json: |- 
+    {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
+{{- end }}
 
 ---
 
