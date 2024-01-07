@@ -58,6 +58,11 @@ spec:
           configMap:
             name: trino-access-control-volume-coordinator
         {{- end }}{{- end }}
+        {{- if .Values.resourceGroups }}
+        - name: resource-groups-volume
+          configMap:
+            name: trino-resource-groups-volume-coordinator
+        {{- end }}
         {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
         - name: password-volume
           secret:
@@ -109,6 +114,10 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}{{- end }}
+            {{- if .Values.resourceGroups }}
+            - mountPath: {{ .Values.server.config.path }}/resource-groups
+              name: resource-groups-volume
+            {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
