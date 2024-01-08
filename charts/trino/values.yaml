@@ -44,6 +44,23 @@ server:
     enabled: false
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
+    behavior: {}
+    #  scaleDown:
+    #    stabilizationWindowSeconds: 300
+    #    policies:
+    #    - type: Percent
+    #      value: 100
+    #      periodSeconds: 15
+    #  scaleUp:
+    #    stabilizationWindowSeconds: 0
+    #    policies:
+    #    - type: Percent
+    #      value: 100
+    #      periodSeconds: 15
+    #    - type: Pods
+    #      value: 4
+    #      periodSeconds: 15
+    #    selectPolicy: Max
 
 accessControl: {}
   # type: configmap
