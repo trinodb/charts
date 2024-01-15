@@ -34,6 +34,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.autoscaling.enabled` |  | `false` |
 | `server.autoscaling.maxReplicas` |  | `5` |
 | `server.autoscaling.targetCPUUtilizationPercentage` |  | `50` |
+| `server.autoscaling.behavior` |  | `{}` |
 | `accessControl` |  | `{}` |
 | `additionalNodeProperties` |  | `{}` |
 | `additionalConfigProperties` |  | `{}` |
