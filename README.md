@@ -22,7 +22,7 @@ You can then run `helm search repo trino` to see the charts.
 Then you can install chart using:
 
 ```console
-helm install my-trino trino/trino --version 0.16.0
+helm install my-trino trino/trino --version 0.17.0
 ```
 
 ## Documentation
