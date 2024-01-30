@@ -89,6 +89,9 @@ spec:
           secret:
             secretName: {{ .secretName }}
         {{- end }}
+        {{- with .Values.coordinator.additionalVolumes }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
       {{- tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
@@ -129,6 +132,9 @@ spec:
             {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
+            {{- end }}
+            {{- with .Values.coordinator.additionalVolumeMounts }}
+            {{- . | toYaml | nindent 12 }}
             {{- end }}
           ports:
             - name: http
