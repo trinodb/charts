@@ -63,7 +63,7 @@ spec:
           configMap:
             name: trino-resource-groups-volume-coordinator
         {{- end }}
-        {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+        {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
         - name: password-volume
           secret:
             {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
@@ -126,7 +126,7 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+            {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
             {{- end }}
