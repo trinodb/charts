@@ -51,6 +51,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `securityContext.runAsGroup` |  | `1000` |
 | `shareProcessNamespace.coordinator` |  | `false` |
 | `shareProcessNamespace.worker` |  | `false` |
+| `service.annotations` |  | `{}` |
 | `service.type` |  | `"ClusterIP"` |
 | `service.port` |  | `8080` |
 | `auth` |  | `{}` |
