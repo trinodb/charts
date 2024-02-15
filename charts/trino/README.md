@@ -295,6 +295,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   A list of the Linux kernel capabilities that are dropped from every container. Valid values are listed at https://man7.org/linux/man-pages/man7/capabilities.7.html Ensure to remove the "CAP_" prefix which the kernel attaches to the names of permissions.
 * `shareProcessNamespace.coordinator` - bool, default: `false`
 * `shareProcessNamespace.worker` - bool, default: `false`
+* `service.annotations` - object, default: `{}`
 * `service.type` - string, default: `"ClusterIP"`
 * `service.port` - int, default: `8080`
 * `auth` - object, default: `{}`  

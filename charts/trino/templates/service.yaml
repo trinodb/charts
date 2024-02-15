@@ -11,6 +11,8 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
     {{- end }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
