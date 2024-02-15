@@ -18,6 +18,10 @@ additionalConfigProperties:
   - http-server.authentication.allow-insecure-over-http=true
   - http-server.process-forwarded=true
 
+service:
+  annotations:
+    custom/name: value
+
 auth:
   # created using htpasswd -B -C 10 password.db admin
   # every password is admin123

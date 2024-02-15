@@ -332,6 +332,7 @@ shareProcessNamespace:
   worker: false
 
 service:
+  annotations: {}
   type: ClusterIP
   port: 8080
 
