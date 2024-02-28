@@ -72,6 +72,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.tolerations` |  | `[]` |
 | `coordinator.affinity` |  | `{}` |
 | `coordinator.additionalConfigFiles` |  | `{}` |
+| `coordinator.additionalVolumes` | One or more additional volumes to add to the coordinator. | `[]` |
+| `coordinator.additionalVolumeMounts` | One or more additional volume mounts to add to the coordinator. | `[]` |
 | `coordinator.annotations` |  | `{}` |
 | `coordinator.labels` |  | `{}` |
 | `coordinator.secretMounts` |  | `[]` |
@@ -89,6 +91,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.tolerations` |  | `[]` |
 | `worker.affinity` |  | `{}` |
 | `worker.additionalConfigFiles` |  | `{}` |
+| `worker.additionalVolumes` | One or more additional volume mounts to add to all workers. | `[]` |
+| `worker.additionalVolumeMounts` | One or more additional volume mounts to add to all workers. | `[]` |
 | `worker.annotations` |  | `{}` |
 | `worker.labels` |  | `{}` |
 | `worker.secretMounts` |  | `[]` |
