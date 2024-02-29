@@ -4,7 +4,7 @@
 
 image:
   registry: ""   # Trino image registry
-  repository: trinodb/trino    # Trind image repository
+  repository: trinodb/trino    # Trino image repository
   # Overrides the image tag whose default is the chart version.
   # Same value as Chart.yaml#appVersion
   tag: ""   # Trino image tag. Default is appVersion from Chart.yaml

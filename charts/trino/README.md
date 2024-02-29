@@ -11,9 +11,11 @@ The following table lists the configurable parameters of the Trino chart and the
 
 | Parameter                | Description             | Default        |
 | ------------------------ | ----------------------- | -------------- |
-| `image.repository` |  | `"trinodb/trino"` |
+| `image.registry` | Trino image registry | `""` |
+| `image.repository` | Trino image repository | `"trinodb/trino"` |
+| `image.tag` | Trino image tag. Default is appVersion from Chart.yaml | `""` |
+| `image.digest` | Trino image digest as `sha256:abcd...`. Please note this parameter, if set, will override the tag | `""` |
 | `image.pullPolicy` |  | `"IfNotPresent"` |
-| `image.tag` |  | `432` |
 | `imagePullSecrets` |  | `[{"name": "registry-credentials"}]` |
 | `server.workers` |  | `2` |
 | `server.node.environment` |  | `"production"` |
