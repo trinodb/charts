@@ -67,6 +67,9 @@ spec:
           secret:
             secretName: {{ .secretName }}
         {{- end }}
+        {{- with .Values.worker.additionalVolumes }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       {{- if .Values.initContainers.worker }}
       initContainers:
       {{- tpl (toYaml .Values.initContainers.worker) . | nindent 6 }}
@@ -95,6 +98,9 @@ spec:
             {{- range .Values.worker.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+            {{- end }}
+            {{- with .Values.worker.additionalVolumeMounts }}
+            {{- . | toYaml | nindent 12 }}
             {{- end }}
           ports:
             - name: http
