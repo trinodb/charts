@@ -421,3 +421,29 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+
+# Requires the prometheus-operator to be installed in the cluster
+# Requires jmx_exporter to be installed in the cluster
+monitoring:
+  # monitoring.enabled -- Enable or disable monitoring on your pod.
+  enabled: false
+  # monitoring.path -- define the path of the Prometheus endpoint
+  path: /metrics
+  # monitoring.port -- define the port of the Prometheus endpoint
+  port: 9483
+  # monitoring.interval -- interval for scraping metrics
+  interval: 15s
+  # monitoring.scrapeTimeout -- timeout for scraping metrics
+  scrapeTimeout: 15s
+  # monitoring.honorLabels -- honor labels in the scrape
+  honorLabels: true
+  # monitoring.honorTimestamps -- honor timestamps in the scrape
+  honorTimestamps: true
+  # monitoring.additionalPodTargetLabels -- extra labels from your pods that you want to appear in your metrics
+  additionalPodTargetLabels: []
+  #  - label: "app"
+  #    path: "metadata.labels.app"
+  #  - label: "release"
+  #    path: "metadata.labels.release"
+

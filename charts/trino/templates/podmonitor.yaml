@@ -1,0 +1,26 @@
+{{- if .Values.monitoring.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "trino.fullname" . }}
+  labels:
+  {{- include "trino.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+  {{- include "trino.selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  podMetricsEndpoints:
+    - interval: {{ .Values.monitoring.interval}}
+      scrapeTimeout: {{ .Values.monitoring.scrapeTimeout }}
+      path: {{ .Values.monitoring.path }}
+      port: {{ .Values.monitoring.port }}
+      honorLabels: {{ .Values.monitoring.honorLabels }}
+      honorTimestamps: {{ .Values.monitoring.honorTimestamps }}
+  podTargetLabels:
+    {{- range .Values.monitoring.additionalPodTargetLabels }}
+    - {{ . }}
+    {{- end }}
+  {{- end }}
