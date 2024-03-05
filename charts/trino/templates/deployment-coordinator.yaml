@@ -8,6 +8,9 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     component: coordinator
+    {{- if .Values.commonLabels }}
+    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- end }}
 spec:
   selector:
     matchLabels:
@@ -16,16 +19,29 @@ spec:
       component: coordinator
   template:
     metadata:
+      {{- if .Values.coordinator.annotations }}
+      annotations:
+      {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
         component: coordinator
+        {{- if .Values.coordinator.labels }}
+        {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.commonLabels }}
+        {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:
         runAsUser: {{ .runAsUser }}
         runAsGroup: {{ .runAsGroup }}
+      {{- end }}
+      {{- if .Values.shareProcessNamespace.coordinator }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace.coordinator }}
       {{- end }}
       volumes:
         - name: config-volume
@@ -42,20 +58,44 @@ spec:
           configMap:
             name: trino-access-control-volume-coordinator
         {{- end }}{{- end }}
-        {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+        {{- if .Values.resourceGroups }}
+        - name: resource-groups-volume
+          configMap:
+            name: trino-resource-groups-volume-coordinator
+        {{- end }}
+        {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
         - name: password-volume
           secret:
+            {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
+            secretName: {{ .Values.auth.passwordAuthSecret }}
+            {{- else }}
             secretName: trino-password-authentication
+            {{- end }}
+            items:
+              - key: password.db
+                path: password.db
+              {{- if .Values.auth.groups }}
+              - key: group.db
+                path: group.db
+              {{- end }}
         {{- end }}
-      {{- if .Values.initContainers.coordinator }}
-      initContainers:
-      {{-  tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
-      {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
             secretName: {{ .secretName }}
         {{- end }}
+        {{- range .Values.coordinator.secretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ .secretName }}
+        {{- end }}
+        {{- with .Values.coordinator.additionalVolumes }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
+      {{- if .Values.initContainers.coordinator }}
+      initContainers:
+      {{- tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
+      {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       containers:
@@ -64,6 +104,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
@@ -75,18 +117,34 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}{{- end }}
+            {{- if .Values.resourceGroups }}
+            - mountPath: {{ .Values.server.config.path }}/resource-groups
+              name: resource-groups-volume
+            {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+            {{- range .Values.coordinator.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
+            {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: password-volume
+            {{- end }}
+            {{- with .Values.coordinator.additionalVolumeMounts }}
+            {{- . | toYaml | nindent 12 }}
             {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
+            - name: {{ $value.name }}
+              containerPort: {{ $value.port }}
+              protocol: {{ $value.protocol }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /v1/info
@@ -107,15 +165,18 @@ spec:
             successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+      {{- if .Values.sidecarContainers.coordinator }}
+        {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}
+      {{- end }}
+      {{- with .Values.coordinator.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.coordinator.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.coordinator.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

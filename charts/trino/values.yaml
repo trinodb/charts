@@ -6,7 +6,8 @@ image:
   repository: trinodb/trino
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart version.
-  tag: latest
+  # Same value as Chart.yaml#appVersion
+  tag: 432
 
 imagePullSecrets:
   - name: registry-credentials
@@ -34,9 +35,6 @@ server:
     authenticationType: ""
     query:
       maxMemory: "4GB"
-      maxMemoryPerNode: "1GB"
-    memory:
-      heapHeadroomPerNode: "1GB"
   exchangeManager:
     name: "filesystem"
     baseDir: "/tmp/trino-local-file-system-exchange-manager"
@@ -46,6 +44,23 @@ server:
     enabled: false
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
+    behavior: {}
+    #  scaleDown:
+    #    stabilizationWindowSeconds: 300
+    #    policies:
+    #    - type: Percent
+    #      value: 100
+    #      periodSeconds: 15
+    #  scaleUp:
+    #    stabilizationWindowSeconds: 0
+    #    policies:
+    #    - type: Percent
+    #      value: 100
+    #      periodSeconds: 15
+    #    - type: Pods
+    #      value: 4
+    #      periodSeconds: 15
+    #    selectPolicy: Max
 
 accessControl: {}
   # type: configmap
@@ -98,6 +113,66 @@ accessControl: {}
   #       ]
   #     }
 
+resourceGroups: {}
+  # # Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
+  # resourceGroupsConfig: |-
+  #     {
+  #       "rootGroups": [
+  #         {
+  #           "name": "global",
+  #           "softMemoryLimit": "80%",
+  #           "hardConcurrencyLimit": 100,
+  #           "maxQueued": 100,
+  #           "schedulingPolicy": "fair",
+  #           "jmxExport": true,
+  #           "subGroups": [
+  #             {
+  #               "name": "admin",
+  #               "softMemoryLimit": "30%",
+  #               "hardConcurrencyLimit": 20,
+  #               "maxQueued": 10
+  #             },
+  #             {
+  #               "name": "finance_human_resources",
+  #               "softMemoryLimit": "20%",
+  #               "hardConcurrencyLimit": 15,
+  #               "maxQueued": 10
+  #             },
+  #             {
+  #               "name": "general",
+  #               "softMemoryLimit": "30%",
+  #               "hardConcurrencyLimit": 20,
+  #               "maxQueued": 10
+  #             },
+  #             {
+  #               "name": "readonly",
+  #               "softMemoryLimit": "10%",
+  #               "hardConcurrencyLimit": 5,
+  #               "maxQueued": 5
+  #             }
+  #           ]
+  #         }
+  #       ],
+  #       "selectors": [
+  #         {
+  #           "user": "admin",
+  #           "group": "global.admin"
+  #         },
+  #         {
+  #           "group": "finance|human_resources",
+  #           "group": "global.finance_human_resources"
+  #         },
+  #         {
+  #           "user": "alice",
+  #           "group": "global.readonly"
+  #         },
+  #         {
+  #           "group": "global.general"
+  #         }
+  #       ]
+  #     }
+
+
 additionalNodeProperties: {}
 
 additionalConfigProperties: {}
@@ -110,8 +185,11 @@ eventListenerProperties: {}
 
 additionalCatalogs: {}
 
-# Array of EnvVar (https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core)
+# Array of EnvVar (https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#envvar-v1-core)
 env: []
+
+# Array of EnvFromSource (https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#envfromsource-v1-core)
+envFrom: []
 
 initContainers: {}
   # coordinator:
@@ -124,25 +202,41 @@ initContainers: {}
   #     image: busybox:1.28
   #     command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
 
+sidecarContainers: {}
+#   coordinator:
+#     - name: side-coordinator
+#       image: busybox:1.28
+#       imagePullPolicy: IfNotPresent
+#       command: ['sleep', '1']
+#   worker:
+#     - name: side-worker
+#       image: busybox:1.28
+#       imagePullPolicy: IfNotPresent
+#       command: ['sleep', '1']
+
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
+
+shareProcessNamespace:
+  coordinator: false
+  worker: false
 
 service:
   type: ClusterIP
   port: 8080
   annotations: {}
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
 auth: {}
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
+  # or set the name of a secret containing this file in the password.db key
+  # passwordAuthSecret: "trino-password-authentication"
+  # Set users' groups
+  # https://trino.io/docs/current/security/group-file.html#file-format
+  # refreshPeriod: 5s
+  # groups: "group_name:user_1,user_2,user_3"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -154,6 +248,9 @@ serviceAccount:
   annotations: {}
 
 secretMounts: []
+  # - name: sample-secret
+  #   secretName: sample-secret
+  #   path: /secrets/sample.json
 
 coordinator:
   jvm:
@@ -163,7 +260,15 @@ coordinator:
       g1:
         heapRegionSize: "32M"
 
+  config:
+    memory:
+      heapHeadroomPerNode: ""
+    query:
+      maxMemoryPerNode: "1GB"
+
   additionalJVMConfig: {}
+
+  additionalExposedPorts: {}
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -189,6 +294,32 @@ coordinator:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  additionalConfigFiles: {}
+
+  additionalVolumes: []  # One or more additional volumes to add to the coordinator.
+    # - name: extras
+    #   emptyDir: {}
+
+  additionalVolumeMounts: []  # One or more additional volume mounts to add to the coordinator.
+    # - name: extras
+    #   mountPath: /usr/share/extras
+    #   readOnly: true
+
+  annotations: {}
+
+  labels: {}
+
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
 
 worker:
   jvm:
@@ -198,7 +329,15 @@ worker:
       g1:
         heapRegionSize: "32M"
 
+  config:
+    memory:
+      heapHeadroomPerNode: ""
+    query:
+      maxMemoryPerNode: "1GB"
+
   additionalJVMConfig: {}
+
+  additionalExposedPorts: {}
 
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -224,6 +363,32 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  additionalConfigFiles: {}
+
+  additionalVolumes: []  # One or more additional volume mounts to add to all workers.
+    # - name: extras
+    #   emptyDir: {}
+
+  additionalVolumeMounts: []  # One or more additional volume mounts to add to all workers.
+    # - name: extras
+    #   mountPath: /usr/share/extras
+    #   readOnly: true
+
+  annotations: {}
+
+  labels: {}
+
+  secretMounts: []
+    # - name: sample-secret
+    #   secretName: sample-secret
+    #   path: /secrets/sample.json
 
 kafka:
   mountPath: "/etc/trino/schemas"
@@ -261,3 +426,17 @@ kafka:
     #       ]
     #     }
     #   }
+commonLabels: {}  # Labels that get applied to every resource's metadata
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  #  - host: trino.example.com
+  #    paths:
+  #      - path: /
+  #        pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local

@@ -9,8 +9,13 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     component: worker
+    {{- if .Values.commonLabels }}
+    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- end }}
 spec:
+  {{- if not .Values.server.autoscaling.enabled }}
   replicas: {{ .Values.server.workers }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ template "trino.name" . }}
@@ -18,12 +23,30 @@ spec:
       component: worker
   template:
     metadata:
+      {{- if .Values.worker.annotations }}
+      annotations:
+      {{- tpl (toYaml .Values.worker.annotations) . | nindent 8 }}
+      {{- end }}
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
         component: worker
+        {{- if .Values.worker.labels }}
+        {{- tpl (toYaml .Values.worker.labels) . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.commonLabels }}
+        {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
+      {{- with .Values.securityContext }}
+      securityContext:
+        runAsUser: {{ .runAsUser }}
+        runAsGroup: {{ .runAsGroup }}
+      {{- end }}
+      {{- if .Values.shareProcessNamespace.worker }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace.worker }}
+      {{- end }}
       volumes:
         - name: config-volume
           configMap:
@@ -34,9 +57,22 @@ spec:
         - name: schemas-volume
           configMap:
             name: schemas-volume-worker
+        {{- range .Values.secretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ .secretName }}
+        {{- end }}
+        {{- range .Values.worker.secretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ .secretName }}
+        {{- end }}
+        {{- with .Values.worker.additionalVolumes }}
+        {{- . | toYaml | nindent 8 }}
+        {{- end }}
       {{- if .Values.initContainers.worker }}
       initContainers:
-      {{-  tpl (toYaml .Values.initContainers.worker) . | nindent 6 }}
+      {{- tpl (toYaml .Values.initContainers.worker) . | nindent 6 }}
       {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
@@ -46,6 +82,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
@@ -53,10 +91,26 @@ spec:
               name: catalog-volume
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
+            {{- range .Values.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
+            {{- range .Values.worker.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
+            {{- with .Values.worker.additionalVolumeMounts }}
+            {{- . | toYaml | nindent 12 }}
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- range $key, $value := .Values.worker.additionalExposedPorts }}
+            - name: {{ $value.name }}
+              containerPort: {{ $value.port }}
+              protocol: {{ $value.protocol }}
+          {{- end }}
           livenessProbe:
             httpGet:
               path: /v1/info
@@ -77,15 +131,18 @@ spec:
             successThreshold: {{ .Values.worker.readinessProbe.successThreshold | default 1 }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
+      {{- if .Values.sidecarContainers.worker }}
+        {{- toYaml .Values.sidecarContainers.worker | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.worker.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.worker.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

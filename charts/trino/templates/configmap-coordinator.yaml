@@ -8,6 +8,9 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     component: coordinator
+    {{- if .Values.commonLabels }}
+    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- end }}
 data:
   node.properties: |
     node.environment={{ .Values.server.node.environment }}
@@ -19,21 +22,22 @@ data:
 
   jvm.config: |
     -server
+    -agentpath:/usr/lib/trino/bin/libjvmkill.so
     -Xmx{{ .Values.coordinator.jvm.maxHeapSize }}
     -XX:+{{ .Values.coordinator.jvm.gcMethod.type }}
     -XX:G1HeapRegionSize={{ .Values.coordinator.jvm.gcMethod.g1.heapRegionSize }}
-    -XX:+UseGCOverheadLimit
     -XX:+ExplicitGCInvokesConcurrent
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:+ExitOnOutOfMemoryError
-    -Djdk.attach.allowAttachSelf=true
-    -XX:-UseBiasedLocking
+    -XX:-OmitStackTraceInFastThrow
     -XX:ReservedCodeCacheSize=512M
     -XX:PerMethodRecompilationCutoff=10000
     -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.attach.allowAttachSelf=true
     -Djdk.nio.maxCachedBufferSize=2000000
     -XX:+UnlockDiagnosticVMOptions
-    -XX:+UseAESCTRIntrinsics
+    # Reduce starvation of threads by GClocker, recommend to set about the number of cpu cores (JDK-8192647)
+    -XX:GCLockerRetryAllocationCount=32
   {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
@@ -47,9 +51,10 @@ data:
 {{- end }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
-    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
-    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
-    discovery-server.enabled=true
+    query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
+{{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
+{{- end }}
     discovery.uri=http://localhost:{{ .Values.service.port }}
 {{- if .Values.server.config.authenticationType }}
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
@@ -73,9 +78,17 @@ data:
     security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
 {{- end }}{{- end }}
 
+{{- if .Values.resourceGroups }}
+  resource-groups.properties: |
+    resource-groups.configuration-manager=file
+    resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
+{{- end }}
+
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directory={{ .Values.server.exchangeManager.baseDir }}
+  {{ if eq .Values.server.exchangeManager.name "filesystem" }}
+    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
+  {{- end }}  
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
@@ -86,10 +99,18 @@ data:
     {{ $configValue }}
   {{- end }}
 
-  {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+  {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
   password-authenticator.properties: |
     password-authenticator.name=file
     file.password-file={{ .Values.server.config.path }}/auth/password.db
+  {{- if .Values.auth.groups }}
+  group-provider.properties: |
+    group-provider.name=file
+    file.group-file={{ .Values.server.config.path }}/auth/group.db
+    {{- if .Values.auth.refreshPeriod }}
+    file.refresh-period={{ .Values.auth.refreshPeriod }}
+    {{- end }}
+  {{- end }}
   {{- end }}
 
 {{ if .Values.eventListenerProperties }}
@@ -98,6 +119,11 @@ data:
     {{ $configValue }}
   {{- end }}
 {{ end }}
+
+{{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- $fileContent | nindent 4 }}
+{{- end }}
 
 ---
 
@@ -114,6 +140,21 @@ data:
   {{ $key }}: {{ $val | quote }}
   {{- end }}
 {{- end }}{{- end }}
+
+---
+
+{{- if .Values.resourceGroups }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-resource-groups-volume-coordinator
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  resource-groups.json: |- 
+    {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
+{{- end }}
 
 ---
 
