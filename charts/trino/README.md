@@ -11,9 +11,12 @@ The following table lists the configurable parameters of the Trino chart and the
 
 | Parameter                | Description             | Default        |
 | ------------------------ | ----------------------- | -------------- |
-| `image.repository` |  | `"trinodb/trino"` |
+| `image.registry` | Image registry, defaults to empty, which results in DockerHub usage | `""` |
+| `image.repository` | Repository location of the Trino image, typically `organization/imagename` | `"trinodb/trino"` |
+| `image.tag` | Image tag, defaults to the Trino release version specified as `appVersion` from Chart.yaml | `""` |
+| `image.digest` | Optional digest value of the image specified as `sha256:abcd...`. A specified value overrides `tag`. | `""` |
+| `image.useRepositoryAsSoleImageReference` | When true, only the content in `repository` is used as image reference | `false` |
 | `image.pullPolicy` |  | `"IfNotPresent"` |
-| `image.tag` |  | `432` |
 | `imagePullSecrets` |  | `[{"name": "registry-credentials"}]` |
 | `server.workers` |  | `2` |
 | `server.node.environment` |  | `"production"` |
