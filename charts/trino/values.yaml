@@ -3,12 +3,10 @@
 # Declare variables to be passed into your templates.
 
 image:
-  registry: ""   # Trino image registry
-  repository: trinodb/trino    # Trino image repository
-  # Overrides the image tag whose default is the chart version.
-  # Same value as Chart.yaml#appVersion
-  tag: ""   # Trino image tag. Default is appVersion from Chart.yaml
-  digest: ""   # Trino image digest as `sha256:abcd...`. Please note this parameter, if set, will override the tag
+  registry: ""   # Image registry, defaults to empty, which results in DockerHub usage
+  repository: trinodb/trino    # Repository location of the Trino image, typically `organization/imagename`
+  tag: ""   # Image tag, defaults to the Trino release version specified as `appVersion` from Chart.yaml
+  digest: ""   # Optional digest value of the image specified as `sha256:abcd...`. A specified value overrides `tag`.
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
