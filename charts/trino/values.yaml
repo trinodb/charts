@@ -303,6 +303,15 @@ coordinator:
 
   additionalConfigFiles: {}
 
+  additionalVolumes: []  # One or more additional volumes to add to the coordinator.
+    # - name: extras
+    #   emptyDir: {}
+
+  additionalVolumeMounts: []  # One or more additional volume mounts to add to the coordinator.
+    # - name: extras
+    #   mountPath: /usr/share/extras
+    #   readOnly: true
+
   annotations: {}
 
   labels: {}
@@ -362,6 +371,15 @@ worker:
   affinity: {}
 
   additionalConfigFiles: {}
+
+  additionalVolumes: []  # One or more additional volume mounts to add to all workers.
+    # - name: extras
+    #   emptyDir: {}
+
+  additionalVolumeMounts: []  # One or more additional volume mounts to add to all workers.
+    # - name: extras
+    #   mountPath: /usr/share/extras
+    #   readOnly: true
 
   annotations: {}
 
