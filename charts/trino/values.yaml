@@ -7,6 +7,7 @@ image:
   repository: trinodb/trino    # Repository location of the Trino image, typically `organization/imagename`
   tag: ""   # Image tag, defaults to the Trino release version specified as `appVersion` from Chart.yaml
   digest: ""   # Optional digest value of the image specified as `sha256:abcd...`. A specified value overrides `tag`.
+  useRepositoryAsSoleImageReference: false  # When true, only the content in `repository` will be used as image reference
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
