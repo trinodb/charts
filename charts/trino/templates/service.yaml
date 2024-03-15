@@ -14,6 +14,16 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    {{- if .Values.jmx.enabled }}
+    - port: {{ .Values.jmx.registryPort }}
+      targetPort: jmx-registry
+      protocol: TCP
+      name: jmx-registry
+    - port: {{ .Values.jmx.serverPort }}
+      targetPort: jmx-server
+      protocol: TCP
+      name: jmx-server
+    {{- end }}
     {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
     - port: {{ $value.servicePort }}
       name: {{ $value.name }}

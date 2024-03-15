@@ -142,6 +142,14 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{-if .Values.jmx.enabled }}
+            - name: jmx-registry
+              containerPort: {{ .Values.jmx.registryPort }}
+              protocol: TCP
+            - name: jmx-server
+              containerPort: {{ .Values.jmx.serverPort }}
+              protocol: TCP
+            {{- end }}
           {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
             - name: {{ $value.name }}
               containerPort: {{ $value.port }}
