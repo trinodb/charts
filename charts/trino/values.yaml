@@ -251,6 +251,9 @@ secretMounts: []
   # - name: sample-secret
   #   secretName: sample-secret
   #   path: /secrets/sample.json
+  # - name: catalogs
+  #   secretName: catalogs
+  #   path: /etc/trino/catalog
 
 coordinator:
   jvm:
@@ -440,3 +443,18 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+secrets: []
+  # - name: catalogs
+  #   value:
+  #     mariadb.properties: |
+  #       connector.name=mariadb
+  #       connection-user=
+  #       connection-url=
+  #       connection-password=
+  #     postgresql.properties: |
+  #       connector.name=postgresql
+  #       connection-user=
+  #       connection-url=
+  #       postgresql.array-mapping=
+  #       connection-password=
