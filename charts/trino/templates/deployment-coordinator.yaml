@@ -105,6 +105,8 @@ spec:
         - name: {{ .Chart.Name }}-coordinator
           image: {{ include "trino.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
           envFrom:
