@@ -295,6 +295,13 @@ coordinator:
     # failureThreshold: 6
     # successThreshold: 1
 
+  lifecycle: {}
+    # preStop:
+    #   exec:
+    #     command: ["/bin/sh", "-c", "sleep 120"]
+
+  terminationGracePeriodSeconds: ""
+
   nodeSelector: {}
 
   tolerations: []
@@ -363,6 +370,17 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  lifecycle: {}
+    # preStop:
+    #   exec:
+    #     command: ["/bin/sh", "-c", "curl -v -X PUT -d '\"SHUTTING_DOWN\"' -H \"Content-type: application/json\" http://localhost:8081/v1/info/state"]
+    # https://trino.io/docs/current/admin/graceful-shutdown.html#admin-graceful-shutdown--page-root
+
+  terminationGracePeriodSeconds: ""
+  # Sleep for shutdown.grace-period, which defaults to 2 minutes.
+  # After this, the coordinator is aware of the shutdown and stops sending tasks to the worker.
+  # https://trino.io/docs/current/admin/graceful-shutdown.html#shutdown-behavior
 
   nodeSelector: {}
 
