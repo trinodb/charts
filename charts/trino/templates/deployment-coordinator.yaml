@@ -64,7 +64,7 @@ spec:
           configMap:
             name: trino-resource-groups-volume-coordinator
         {{- end }}
-        {{- if or .Values.auth.passwordAuth .Values.auth.groups }}
+        {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret .Values.auth.groups }}
         - name: file-authentication-volume
           secret:
             {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
@@ -73,7 +73,7 @@ spec:
             secretName: trino-file-authentication
             {{- end }}
             items:
-              {{- if .Values.auth.passwordAuth }}
+              {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
               - key: password.db
                 path: password.db
               {{- end }} 
@@ -132,7 +132,7 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            {{- if or .Values.auth.passwordAuth .Values.auth.groups }}
+            {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret .Values.auth.groups }}
             - mountPath: {{ .Values.server.config.path }}/auth
               name: file-authentication-volume
             {{- end }}
