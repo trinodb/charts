@@ -226,6 +226,7 @@ shareProcessNamespace:
 service:
   type: ClusterIP
   port: 8080
+  annotations: {}
 
 auth: {}
   # Set username and password
