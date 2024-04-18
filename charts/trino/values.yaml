@@ -266,7 +266,7 @@ coordinator:
     query:
       maxMemoryPerNode: "1GB"
 
-  additionalJVMConfig: {}
+  additionalJVMConfig: []
 
   additionalExposedPorts: {}
 
@@ -335,7 +335,7 @@ worker:
     query:
       maxMemoryPerNode: "1GB"
 
-  additionalJVMConfig: {}
+  additionalJVMConfig: []
 
   additionalExposedPorts: {}
 
