@@ -92,9 +92,7 @@ spec:
           secret:
             secretName: {{ .secretName }}
         {{- end }}
-        {{- with .Values.coordinator.additionalVolumes }}
-        {{- . | toYaml | nindent 8 }}
-        {{- end }}
+        {{- toYaml .Values.coordinator.additionalVolumes | nindent 8 }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
       {{- tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
@@ -136,9 +134,7 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/auth
               name: file-authentication-volume
             {{- end }}
-            {{- with .Values.coordinator.additionalVolumeMounts }}
-            {{- . | toYaml | nindent 12 }}
-            {{- end }}
+            {{- toYaml .Values.coordinator.additionalVolumeMounts | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
