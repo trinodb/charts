@@ -295,6 +295,13 @@ coordinator:
     # failureThreshold: 6
     # successThreshold: 1
 
+  lifecycle: {}
+    # preStop:
+    #   exec:
+    #     command: ["/bin/sh", "-c", "sleep 120"]
+
+  terminationGracePeriodSeconds: 30
+
   nodeSelector: {}
 
   tolerations: []
@@ -363,6 +370,18 @@ worker:
     # timeoutSeconds: 5
     # failureThreshold: 6
     # successThreshold: 1
+
+  lifecycle: {}
+    # To enable Graceful shutdown, Define a lifecycle preStop like bellow,
+    # Set the `terminationGracePeriodSeconds` to a value greater than or equal to the configured `shutdown.grace-period`.
+    # Configure `shutdown.grace-period` in `additionalConfigProperties` as `shutdown.grace-period=2m` (default is 2 minutes).
+    # Allow the operation on `accessControl` because isn't allow by default.
+    # Check the documentaion on https://trino.io/docs/current/admin/graceful-shutdown.html
+    # preStop:
+    #   exec:
+    #     command: ["/bin/sh", "-c", "curl -v -X PUT -d '\"SHUTTING_DOWN\"' -H \"Content-type: application/json\" http://localhost:8081/v1/info/state"]
+
+  terminationGracePeriodSeconds: 30
 
   nodeSelector: {}
 
