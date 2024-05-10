@@ -63,6 +63,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `coordinator.resources` |  | `{}` |
 | `coordinator.livenessProbe` |  | `{}` |
 | `coordinator.readinessProbe` |  | `{}` |
+| `coordinator.lifecycle` |  | `{}` |
+| `coordinator.terminationGracePeriodSeconds` |  | `30` |
 | `coordinator.nodeSelector` |  | `{}` |
 | `coordinator.tolerations` |  | `[]` |
 | `coordinator.affinity` |  | `{}` |
@@ -79,6 +81,8 @@ The following table lists the configurable parameters of the Trino chart and the
 | `worker.resources` |  | `{}` |
 | `worker.livenessProbe` |  | `{}` |
 | `worker.readinessProbe` |  | `{}` |
+| `worker.lifecycle` |  | `{}` |
+| `worker.terminationGracePeriodSeconds` |  | `30` |
 | `worker.nodeSelector` |  | `{}` |
 | `worker.tolerations` |  | `[]` |
 | `worker.affinity` |  | `{}` |
