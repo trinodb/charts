@@ -23,5 +23,3 @@ data:
   {{ $catalogName }}.properties: |
     {{- $catalogProperties | nindent 4 }}
 {{- end }}
-
-
