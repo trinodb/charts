@@ -63,7 +63,7 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name "filesystem" }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
-  {{- end }}  
+  {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}

@@ -25,7 +25,7 @@ Then you can install chart using:
 helm install my-trino trino/trino --version 0.21.0
 ```
 
-Also, you can check the manifests using: 
+Also, you can check the manifests using:
 
 ```console
 helm template my-trino trino/trino --namespace <YOUR_NAMESPACE>
@@ -34,3 +34,14 @@ helm template my-trino trino/trino --namespace <YOUR_NAMESPACE>
 ## Documentation
 
 You can find documentation about the chart [here](./charts/trino/README.md).
+
+## Development
+
+The documentation is automatically generated from the chart files. Install a
+git hook to have it automatically updated when committing changes. Make sure
+you [install the pre-commit binary](https://pre-commit.com/#install), then run:
+
+```console
+pre-commit install
+pre-commit install-hooks
+```

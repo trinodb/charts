@@ -23,7 +23,7 @@ spec:
           type: Utilization
           averageUtilization: {{ .Values.server.autoscaling.targetCPUUtilizationPercentage }}
   {{ if .Values.server.autoscaling.behavior -}}
-  behavior: 
+  behavior:
     {{- toYaml .Values.server.autoscaling.behavior | nindent 4 }}
   {{- end }}
 {{- end }}

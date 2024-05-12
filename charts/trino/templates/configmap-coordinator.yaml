@@ -90,7 +90,7 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name "filesystem" }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
-  {{- end }}  
+  {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
@@ -154,7 +154,7 @@ metadata:
     namespace: {{ .Release.Namespace }}
     app.kubernetes.io/component: coordinator
 data:
-  resource-groups.json: |- 
+  resource-groups.json: |-
     {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
 {{- end }}
 ---
