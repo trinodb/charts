@@ -1,3 +1,4 @@
+{{- if not .Values.catalogsConfigmapOverride }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -22,6 +23,7 @@ data:
 {{- range $catalogName, $catalogProperties := .Values.additionalCatalogs }}
   {{ $catalogName }}.properties: |
     {{- $catalogProperties | nindent 4 }}
+{{- end }}
 {{- end }}
 
 
