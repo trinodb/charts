@@ -85,6 +85,12 @@ data:
     resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
 {{- end }}
 
+{{- if .Values.sessionPropertyConfig }}
+  session-property-config.properties: |
+    session-property-config.configuration-manager=file
+    session-property-manager.config-file={{ .Values.server.config.path }}/session-property-config/session-property-config.json
+{{- end }}
+        
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name "filesystem" }}
@@ -156,6 +162,21 @@ metadata:
 data:
   resource-groups.json: |- 
     {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
+{{- end }}
+
+---
+
+{{- if .Values.sessionPropertyConfig }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-session-property-config-volume-coordinator
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  session-property-config.json: |- 
+    {{- .Values.sessionPropertyConfig.sessionPropertyConfig | nindent 4 }}
 {{- end }}
 
 ---

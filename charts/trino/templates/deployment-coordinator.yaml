@@ -64,6 +64,11 @@ spec:
           configMap:
             name: trino-resource-groups-volume-coordinator
         {{- end }}
+        {{- if .Values.sessionPropertyConfig }}
+        - name: session-property-config-volume
+          configMap:
+            name: trino-session-property-config-volume-coordinator
+        {{- end }}
         {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret .Values.auth.groups }}
         - name: file-authentication-volume
           secret:
@@ -125,6 +130,10 @@ spec:
             {{- if .Values.resourceGroups }}
             - mountPath: {{ .Values.server.config.path }}/resource-groups
               name: resource-groups-volume
+            {{- end }}
+            {{- if .Values.sessionPropertyConfig }}
+            - mountPath: {{ .Values.server.config.path }}/session-property-config
+              name: session-property-config-volume
             {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
