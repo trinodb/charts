@@ -53,16 +53,16 @@ spec:
             name: {{ template "trino.catalog" . }}
         - name: schemas-volume
           configMap:
-            name: schemas-volume-coordinator
+            name: {{ template "trino.coordinator" . }}-schemas-volume-coordinator
         {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
         - name: access-control-volume
           configMap:
-            name: trino-access-control-volume-coordinator
+            name: {{ template "trino.coordinator" . }}-access-control-volume-coordinator
         {{- end }}{{- end }}
         {{- if .Values.resourceGroups }}
         - name: resource-groups-volume
           configMap:
-            name: trino-resource-groups-volume-coordinator
+            name: {{ template "trino.coordinator" . }}-resource-groups-volume-coordinator
         {{- end }}
         {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret .Values.auth.groups }}
         - name: file-authentication-volume
@@ -70,7 +70,7 @@ spec:
             {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
             secretName: {{ .Values.auth.passwordAuthSecret }}
             {{- else }}
-            secretName: trino-file-authentication
+            secretName: {{ template "trino.name" . }}-file-authentication
             {{- end }}
             items:
               {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}

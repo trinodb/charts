@@ -57,7 +57,7 @@ spec:
             name: {{ template "trino.catalog" . }}
         - name: schemas-volume
           configMap:
-            name: schemas-volume-worker
+            name: {{ template "trino.worker" . }}-schemas-volume-worker
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
