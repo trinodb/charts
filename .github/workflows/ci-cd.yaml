@@ -30,6 +30,16 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    name: test ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { label: default, args: '' }
+          # last Trino version that requires JDK 21
+          - { label: 446, args: '--set image.tag=446' }
+          # last Trino version that requires JDK 17
+          - { label: 435, args: '--set image.tag=435' }
     steps:
       - uses: actions/checkout@v4
       - name: Set up Helm
@@ -41,7 +51,7 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.10.0
       - name: Install charts
-        run: ct install --charts=charts/trino
+        run: ct install --charts=charts/trino --helm-extra-set-args "${{ matrix.args }}"
 
   docs:
     runs-on: ubuntu-latest
