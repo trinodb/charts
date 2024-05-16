@@ -37,9 +37,8 @@ data:
     -XX:PerBytecodeRecompilationCutoff=10000
     -Djdk.attach.allowAttachSelf=true
     -Djdk.nio.maxCachedBufferSize=2000000
-    -XX:+UnlockDiagnosticVMOptions
-    # Reduce starvation of threads by GClocker, recommend to set about the number of cpu cores (JDK-8192647)
-    -XX:GCLockerRetryAllocationCount=32
+    # Allow loading dynamic agent used by JOL
+    -XX:+EnableDynamicAgentLoading
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
