@@ -11,6 +11,15 @@
 
 {{ template "chart.requirementsSection" . }}
 
-{{ template "chart.valuesSection" . }}
+{{ template "chart.valuesHeader" . }}
+
+{{- range .Values }}
+* `{{ .Key }}` - {{ .Type }}, default: {{ if .Default }}{{ .Default }}{{ else }}{{ .AutoDefault }}{{ end }}{{ if or .Description .AutoDescription }}   {{ end }}
+{{- if .Description }}
+{{ .Description | nindent 2 }}
+{{- else if .AutoDescription }}
+{{ .AutoDescription | nindent 2 }}
+{{- end }}
+{{- end }}
 
 {{ template "helm-docs.versionFooter" . }}
