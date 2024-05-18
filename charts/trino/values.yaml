@@ -3,11 +3,16 @@
 # Declare variables to be passed into your templates.
 
 image:
-  registry: ""   # Image registry, defaults to empty, which results in DockerHub usage
-  repository: trinodb/trino    # Repository location of the Trino image, typically `organization/imagename`
-  tag: ""   # Image tag, defaults to the Trino release version specified as `appVersion` from Chart.yaml
-  digest: ""   # Optional digest value of the image specified as `sha256:abcd...`. A specified value overrides `tag`.
-  useRepositoryAsSoleImageReference: false  # When true, only the content in `repository` is used as image reference
+  # Image registry, defaults to empty, which results in DockerHub usage
+  registry: ""
+  # Repository location of the Trino image, typically `organization/imagename`
+  repository: trinodb/trino
+  # Image tag, defaults to the Trino release version specified as `appVersion` from Chart.yaml
+  tag: ""
+  # Optional digest value of the image specified as `sha256:abcd...`. A specified value overrides `tag`.
+  digest: ""
+  # When true, only the content in `repository` is used as image reference
+  useRepositoryAsSoleImageReference: false
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
@@ -64,114 +69,114 @@ server:
     #    selectPolicy: Max
 
 accessControl: {}
-  # type: configmap
-  # refreshPeriod: 60s
-  # # Rules file is mounted to /etc/trino/access-control
-  # configFile: "rules.json"
-  # rules:
-  #   rules.json: |-
-  #     {
-  #       "catalogs": [
-  #         {
-  #           "user": "admin",
-  #           "catalog": "(mysql|system)",
-  #           "allow": "all"
-  #         },
-  #         {
-  #           "group": "finance|human_resources",
-  #           "catalog": "postgres",
-  #           "allow": true
-  #         },
-  #         {
-  #           "catalog": "hive",
-  #           "allow": "all"
-  #         },
-  #         {
-  #           "user": "alice",
-  #           "catalog": "postgresql",
-  #           "allow": "read-only"
-  #         },
-  #         {
-  #           "catalog": "system",
-  #           "allow": "none"
-  #         }
-  #       ],
-  #       "schemas": [
-  #         {
-  #           "user": "admin",
-  #           "schema": ".*",
-  #           "owner": true
-  #         },
-  #         {
-  #           "user": "guest",
-  #           "owner": false
-  #         },
-  #         {
-  #           "catalog": "default",
-  #           "schema": "default",
-  #           "owner": true
-  #         }
-  #       ]
-  #     }
+#  type: configmap
+#  refreshPeriod: 60s
+#  # Rules file is mounted to /etc/trino/access-control
+#  configFile: "rules.json"
+#  rules:
+#    rules.json: |-
+#      {
+#        "catalogs": [
+#          {
+#            "user": "admin",
+#            "catalog": "(mysql|system)",
+#            "allow": "all"
+#          },
+#          {
+#            "group": "finance|human_resources",
+#            "catalog": "postgres",
+#            "allow": true
+#          },
+#          {
+#            "catalog": "hive",
+#            "allow": "all"
+#          },
+#          {
+#            "user": "alice",
+#            "catalog": "postgresql",
+#            "allow": "read-only"
+#          },
+#          {
+#            "catalog": "system",
+#            "allow": "none"
+#          }
+#        ],
+#        "schemas": [
+#          {
+#            "user": "admin",
+#            "schema": ".*",
+#            "owner": true
+#          },
+#          {
+#            "user": "guest",
+#            "owner": false
+#          },
+#          {
+#            "catalog": "default",
+#            "schema": "default",
+#            "owner": true
+#          }
+#        ]
+#      }
 
 resourceGroups: {}
-  # # Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
-  # resourceGroupsConfig: |-
-  #     {
-  #       "rootGroups": [
-  #         {
-  #           "name": "global",
-  #           "softMemoryLimit": "80%",
-  #           "hardConcurrencyLimit": 100,
-  #           "maxQueued": 100,
-  #           "schedulingPolicy": "fair",
-  #           "jmxExport": true,
-  #           "subGroups": [
-  #             {
-  #               "name": "admin",
-  #               "softMemoryLimit": "30%",
-  #               "hardConcurrencyLimit": 20,
-  #               "maxQueued": 10
-  #             },
-  #             {
-  #               "name": "finance_human_resources",
-  #               "softMemoryLimit": "20%",
-  #               "hardConcurrencyLimit": 15,
-  #               "maxQueued": 10
-  #             },
-  #             {
-  #               "name": "general",
-  #               "softMemoryLimit": "30%",
-  #               "hardConcurrencyLimit": 20,
-  #               "maxQueued": 10
-  #             },
-  #             {
-  #               "name": "readonly",
-  #               "softMemoryLimit": "10%",
-  #               "hardConcurrencyLimit": 5,
-  #               "maxQueued": 5
-  #             }
-  #           ]
-  #         }
-  #       ],
-  #       "selectors": [
-  #         {
-  #           "user": "admin",
-  #           "group": "global.admin"
-  #         },
-  #         {
-  #           "group": "finance|human_resources",
-  #           "group": "global.finance_human_resources"
-  #         },
-  #         {
-  #           "user": "alice",
-  #           "group": "global.readonly"
-  #         },
-  #         {
-  #           "group": "global.general"
-  #         }
-  #       ]
-  #     }
+#  # Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
+#  resourceGroupsConfig: |-
+#      {
+#        "rootGroups": [
+#          {
+#            "name": "global",
+#            "softMemoryLimit": "80%",
+#            "hardConcurrencyLimit": 100,
+#            "maxQueued": 100,
+#            "schedulingPolicy": "fair",
+#            "jmxExport": true,
+#            "subGroups": [
+#              {
+#                "name": "admin",
+#                "softMemoryLimit": "30%",
+#                "hardConcurrencyLimit": 20,
+#                "maxQueued": 10
+#              },
+#              {
+#                "name": "finance_human_resources",
+#                "softMemoryLimit": "20%",
+#                "hardConcurrencyLimit": 15,
+#                "maxQueued": 10
+#              },
+#              {
+#                "name": "general",
+#                "softMemoryLimit": "30%",
+#                "hardConcurrencyLimit": 20,
+#                "maxQueued": 10
+#              },
+#              {
+#                "name": "readonly",
+#                "softMemoryLimit": "10%",
+#                "hardConcurrencyLimit": 5,
+#                "maxQueued": 5
+#              }
+#            ]
+#          }
+#        ],
+#        "selectors": [
+#          {
+#            "user": "admin",
+#            "group": "global.admin"
+#          },
+#          {
+#            "group": "finance|human_resources",
+#            "group": "global.finance_human_resources"
+#          },
+#          {
+#            "user": "alice",
+#            "group": "global.readonly"
+#          },
+#          {
+#            "group": "global.general"
+#          }
+#        ]
+#      }
 
 
 additionalNodeProperties: {}
@@ -193,27 +198,27 @@ env: []
 envFrom: []
 
 initContainers: {}
-  # coordinator:
-  #   - name: init-coordinator
-  #     image: busybox:1.28
-  #     imagePullPolicy: IfNotPresent
-  #     command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
-  # worker:
-  #   - name: init-worker
-  #     image: busybox:1.28
-  #     command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
+#  coordinator:
+#    - name: init-coordinator
+#      image: busybox:1.28
+#      imagePullPolicy: IfNotPresent
+#      command: ['sh', '-c', "until nslookup myservice.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+#  worker:
+#    - name: init-worker
+#      image: busybox:1.28
+#      command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
 
 sidecarContainers: {}
-#   coordinator:
-#     - name: side-coordinator
-#       image: busybox:1.28
-#       imagePullPolicy: IfNotPresent
-#       command: ['sleep', '1']
-#   worker:
-#     - name: side-worker
-#       image: busybox:1.28
-#       imagePullPolicy: IfNotPresent
-#       command: ['sleep', '1']
+#  coordinator:
+#    - name: side-coordinator
+#      image: busybox:1.28
+#      imagePullPolicy: IfNotPresent
+#      command: ['sleep', '1']
+#  worker:
+#    - name: side-worker
+#      image: busybox:1.28
+#      imagePullPolicy: IfNotPresent
+#      command: ['sleep', '1']
 
 securityContext:
   runAsUser: 1000
@@ -228,15 +233,15 @@ service:
   port: 8080
 
 auth: {}
-  # Set username and password
-  # https://trino.io/docs/current/security/password-file.html#file-format
-  # passwordAuth: "username:encrypted-password-with-htpasswd"
-  # or set the name of a secret containing this file in the password.db key
-  # passwordAuthSecret: "trino-password-authentication"
-  # Set users' groups
-  # https://trino.io/docs/current/security/group-file.html#file-format
-  # refreshPeriod: 5s
-  # groups: "group_name:user_1,user_2,user_3"
+# Set username and password
+# https://trino.io/docs/current/security/password-file.html#file-format
+#  passwordAuth: "username:encrypted-password-with-htpasswd"
+# or set the name of a secret containing this file in the password.db key
+#  passwordAuthSecret: "trino-password-authentication"
+# Set users' groups
+# https://trino.io/docs/current/security/group-file.html#file-format
+#  refreshPeriod: 5s
+#  groups: "group_name:user_1,user_2,user_3"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -248,9 +253,9 @@ serviceAccount:
   annotations: {}
 
 secretMounts: []
-  # - name: sample-secret
-  #   secretName: sample-secret
-  #   path: /secrets/sample.json
+#  - name: sample-secret
+#    secretName: sample-secret
+#    path: /secrets/sample.json
 
 coordinator:
   jvm:
@@ -271,34 +276,34 @@ coordinator:
   additionalExposedPorts: {}
 
   resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  #  limits:
+  #    cpu: 100m
+  #    memory: 128Mi
+  #  requests:
+  #    cpu: 100m
+  #    memory: 128Mi
 
   livenessProbe: {}
-    # initialDelaySeconds: 20
-    # periodSeconds: 10
-    # timeoutSeconds: 5
-    # failureThreshold: 6
-    # successThreshold: 1
+  #  initialDelaySeconds: 20
+  #  periodSeconds: 10
+  #  timeoutSeconds: 5
+  #  failureThreshold: 6
+  #  successThreshold: 1
   readinessProbe: {}
-    # initialDelaySeconds: 20
-    # periodSeconds: 10
-    # timeoutSeconds: 5
-    # failureThreshold: 6
-    # successThreshold: 1
+  #  initialDelaySeconds: 20
+  #  periodSeconds: 10
+  #  timeoutSeconds: 5
+  #  failureThreshold: 6
+  #  successThreshold: 1
 
   lifecycle: {}
-    # preStop:
-    #   exec:
-    #     command: ["/bin/sh", "-c", "sleep 120"]
+  #  preStop:
+  #    exec:
+  #      command: ["/bin/sh", "-c", "sleep 120"]
 
   terminationGracePeriodSeconds: 30
 
@@ -310,23 +315,25 @@ coordinator:
 
   additionalConfigFiles: {}
 
-  additionalVolumes: []  # One or more additional volumes to add to the coordinator.
-    # - name: extras
-    #   emptyDir: {}
+  additionalVolumes: []
+  # One or more additional volumes to add to the coordinator.
+  #  - name: extras
+  #    emptyDir: {}
 
-  additionalVolumeMounts: []  # One or more additional volume mounts to add to the coordinator.
-    # - name: extras
-    #   mountPath: /usr/share/extras
-    #   readOnly: true
+  additionalVolumeMounts: []
+  # One or more additional volume mounts to add to the coordinator.
+  #  - name: extras
+  #    mountPath: /usr/share/extras
+  #    readOnly: true
 
   annotations: {}
 
   labels: {}
 
   secretMounts: []
-    # - name: sample-secret
-    #   secretName: sample-secret
-    #   path: /secrets/sample.json
+  #  - name: sample-secret
+  #    secretName: sample-secret
+  #    path: /secrets/sample.json
 
 worker:
   jvm:
@@ -347,39 +354,39 @@ worker:
   additionalExposedPorts: {}
 
   resources: {}
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  #  limits:
+  #    cpu: 100m
+  #    memory: 128Mi
+  #  requests:
+  #    cpu: 100m
+  #    memory: 128Mi
 
   livenessProbe: {}
-    # initialDelaySeconds: 20
-    # periodSeconds: 10
-    # timeoutSeconds: 5
-    # failureThreshold: 6
-    # successThreshold: 1
+  #  initialDelaySeconds: 20
+  #  periodSeconds: 10
+  #  timeoutSeconds: 5
+  #  failureThreshold: 6
+  #  successThreshold: 1
   readinessProbe: {}
-    # initialDelaySeconds: 20
-    # periodSeconds: 10
-    # timeoutSeconds: 5
-    # failureThreshold: 6
-    # successThreshold: 1
+  #  initialDelaySeconds: 20
+  #  periodSeconds: 10
+  #  timeoutSeconds: 5
+  #  failureThreshold: 6
+  #  successThreshold: 1
 
   lifecycle: {}
-    # To enable Graceful shutdown, Define a lifecycle preStop like bellow,
-    # Set the `terminationGracePeriodSeconds` to a value greater than or equal to the configured `shutdown.grace-period`.
-    # Configure `shutdown.grace-period` in `additionalConfigProperties` as `shutdown.grace-period=2m` (default is 2 minutes).
-    # Allow the operation on `accessControl` because isn't allow by default.
-    # Check the documentaion on https://trino.io/docs/current/admin/graceful-shutdown.html
-    # preStop:
-    #   exec:
-    #     command: ["/bin/sh", "-c", "curl -v -X PUT -d '\"SHUTTING_DOWN\"' -H \"Content-type: application/json\" http://localhost:8081/v1/info/state"]
+  # To enable Graceful shutdown, Define a lifecycle preStop like bellow,
+  # Set the `terminationGracePeriodSeconds` to a value greater than or equal to the configured `shutdown.grace-period`.
+  # Configure `shutdown.grace-period` in `additionalConfigProperties` as `shutdown.grace-period=2m` (default is 2 minutes).
+  # Allow the operation on `accessControl` because isn't allow by default.
+  # Check the documentaion on https://trino.io/docs/current/admin/graceful-shutdown.html
+  #  preStop:
+  #    exec:
+  #      command: ["/bin/sh", "-c", "curl -v -X PUT -d '\"SHUTTING_DOWN\"' -H \"Content-type: application/json\" http://localhost:8081/v1/info/state"]
 
   terminationGracePeriodSeconds: 30
 
@@ -391,61 +398,65 @@ worker:
 
   additionalConfigFiles: {}
 
-  additionalVolumes: []  # One or more additional volume mounts to add to all workers.
-    # - name: extras
-    #   emptyDir: {}
+  additionalVolumes: []
+  # One or more additional volume mounts to add to all workers.
+  #  - name: extras
+  #    emptyDir: {}
 
-  additionalVolumeMounts: []  # One or more additional volume mounts to add to all workers.
-    # - name: extras
-    #   mountPath: /usr/share/extras
-    #   readOnly: true
+  additionalVolumeMounts: []
+  # One or more additional volume mounts to add to all workers.
+  #  - name: extras
+  #    mountPath: /usr/share/extras
+  #    readOnly: true
 
   annotations: {}
 
   labels: {}
 
   secretMounts: []
-    # - name: sample-secret
-    #   secretName: sample-secret
-    #   path: /secrets/sample.json
+  #  - name: sample-secret
+  #    secretName: sample-secret
+  #    path: /secrets/sample.json
 
 kafka:
   mountPath: "/etc/trino/schemas"
   tableDescriptions: {}
-    # Custom kafka table descriptions that will be mounted in mountPath
-    # testschema.json: |-
-    #   {
-    #     "tableName": "testtable",
-    #     "schemaName": "testschema",
-    #     "topicName": "testtopic",
-    #     "key": {
-    #       "dataFormat": "json",
-    #       "fields": [
-    #         {
-    #           "name": "_key",
-    #           "dataFormat": "VARCHAR",
-    #           "type": "VARCHAR",
-    #           "hidden": "false"
-    #         }
-    #       ]
-    #     },
-    #     "message": {
-    #       "dataFormat": "json",
-    #       "fields": [
-    #         {
-    #           "name": "id",
-    #           "mapping": "id",
-    #           "type": "BIGINT"
-    #         },
-    #         {
-    #           "name": "test_field",
-    #           "mapping": "test_field",
-    #           "type": "VARCHAR"
-    #         }
-    #       ]
-    #     }
-    #   }
-commonLabels: {}  # Labels that get applied to every resource's metadata
+  # Custom kafka table descriptions that will be mounted in mountPath
+  #  testschema.json: |-
+  #    {
+  #      "tableName": "testtable",
+  #      "schemaName": "testschema",
+  #      "topicName": "testtopic",
+  #      "key": {
+  #        "dataFormat": "json",
+  #        "fields": [
+  #          {
+  #            "name": "_key",
+  #            "dataFormat": "VARCHAR",
+  #            "type": "VARCHAR",
+  #            "hidden": "false"
+  #          }
+  #        ]
+  #      },
+  #      "message": {
+  #        "dataFormat": "json",
+  #        "fields": [
+  #          {
+  #            "name": "id",
+  #            "mapping": "id",
+  #            "type": "BIGINT"
+  #          },
+  #          {
+  #            "name": "test_field",
+  #            "mapping": "test_field",
+  #            "type": "VARCHAR"
+  #          }
+  #        ]
+  #      }
+  #    }
+
+# Labels that get applied to every resource's metadata
+commonLabels: {}
 ingress:
   enabled: false
   className: ""
