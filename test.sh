@@ -2,31 +2,49 @@
 
 set -euo pipefail
 
-usage() {
-    cat <<EOF 1>&2
-Usage: $0 [-h] [-n <NAMESPACE>] [-a <HELM_EXTRA_SET_ARGS>]
-Test the Trino chart
+declare -A testCases=(
+    [default]=""
+    [single_node]="--set server.workers=0"
+    [complete_values]="--values test-values.yaml"
+)
 
--h       Display help
--n       Kubernetes namespace, a randomly generated one is used if not provided
--a       Extra Helm set args
--s       Skip chart cleanup
-EOF
+function join_by {
+    local d=${1-} f=${2-}
+    if shift 2; then
+        printf %s "$f" "${@/#/$d}"
+    fi
 }
 
 # default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
 NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 HELM_EXTRA_SET_ARGS=
-CT_ARGS=()
+CT_ARGS=(--charts=charts/trino)
 CLEANUP_NAMESPACE=true
+TEST_NAMES=("${!testCases[@]}")
 
-while getopts ":a:n:sh:" OPTKEY; do
+usage() {
+    cat <<EOF 1>&2
+Usage: $0 [-h] [-n <NAMESPACE>] [-a <HELM_EXTRA_SET_ARGS>] [-t <TESTS>] [-s]
+Test the Trino chart
+
+-h       Display help
+-n       Kubernetes namespace, a randomly generated one is used if not provided
+-a       Extra Helm set args
+-t       Test names to run, comma separated; defaults to $(join_by , "${TEST_NAMES[@]}")
+-s       Skip chart cleanup
+EOF
+}
+
+while getopts ":a:n:t:sh:" OPTKEY; do
     case "${OPTKEY}" in
         a)
             HELM_EXTRA_SET_ARGS=${OPTARG}
             ;;
         n)
             NAMESPACE=${OPTARG}
+            ;;
+        t)
+            IFS=, read -ra TEST_NAMES <<<"$OPTARG"
             ;;
         s)
             CT_ARGS+=(--skip-clean-up)
@@ -58,9 +76,13 @@ kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cer
 
 CT_ARGS+=(--namespace "$NAMESPACE")
 
-ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS"
-ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS --set server.workers=0"
-ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS --values test-values.yaml"
+for test_name in "${TEST_NAMES[@]}"; do
+    echo ""
+    echo "🧪 Running test $test_name"
+    echo ""
+    time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"
+    echo "Test $test_name completed"
+done
 
 if [ "$CLEANUP_NAMESPACE" == "true" ]; then
     kubectl delete namespace "$NAMESPACE"
