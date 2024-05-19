@@ -50,8 +50,8 @@ jobs:
         uses: helm/chart-testing-action@v2.6.1
       - name: Create kind cluster
         uses: helm/kind-action@v1.10.0
-      - name: Install charts
-        run: ct install --charts=charts/trino --helm-extra-set-args "${{ matrix.args }}"
+      - name: Run tests
+        run: ./test.sh -a "${{ matrix.args }}"
 
   docs:
     runs-on: ubuntu-latest
