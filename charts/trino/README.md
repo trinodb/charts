@@ -40,6 +40,7 @@ The following table lists the configurable parameters of the Trino chart and the
 | `server.autoscaling.behavior` |  | `{}` |
 | `accessControl` |  | `{}` |
 | `resourceGroups` |  | `{}` |
+| `sessionPropertyConfig` |  | `{}` |
 | `additionalNodeProperties` |  | `{}` |
 | `additionalConfigProperties` |  | `{}` |
 | `additionalLogProperties` |  | `{}` |

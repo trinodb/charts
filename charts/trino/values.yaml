@@ -173,6 +173,31 @@ resourceGroups: {}
   #       ]
   #     }
 
+sessionPropertyConfig: {}
+  # # Session property config file is mounted to /etc/trino/session-property-config/session-property-config.json
+  # sessionPropertyConfig: |-
+  #   [
+  #     {
+  #       "group": "global.admin",
+  #       "sessionProperties": {
+  #         "query_max_execution_time": "5h",
+  #         "scale_writers": "true"
+  #       }
+  #     },
+  #     {
+  #       "group": "global.finance_human_resources",
+  #       "sessionProperties": {
+  #         "query_max_execution_time": "3h"
+  #       }
+  #     },
+  #     {
+  #       "group": "global.general",
+  #       "sessionProperties": {
+  #         "query_max_scan_physical_bytes": "1GB",
+  #         "query_max_cpu_time": "10m"
+  #       }
+  #     }
+  #   ]
 
 additionalNodeProperties: {}
 
