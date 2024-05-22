@@ -267,6 +267,15 @@ securityContext:
   runAsUser: 1000
   runAsGroup: 1000
 
+# -- [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
+containerSecurityContext:
+  # -- Control whether a process can gain more privileges than its parent process.
+  allowPrivilegeEscalation: false
+  capabilities:
+    # -- A list of the Linux kernel capabilities that are dropped from every container. Valid values are listed at https://man7.org/linux/man-pages/man7/capabilities.7.html Ensure to remove the "CAP_" prefix which the kernel attaches to the names of permissions.
+    drop:
+      - ALL
+
 shareProcessNamespace:
   coordinator: false
   worker: false
