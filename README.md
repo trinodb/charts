@@ -52,6 +52,17 @@ To run tests with specific values:
 ct install --helm-extra-set-args "--set image.tag=448"
 ```
 
+Use the `test.sh` script to run a suite of tests, with different chart values.
+If some of the tests fail, use the `-s` flag to skip cleanup and inspect the
+resources installed in the Kubernetes cluster. Use `-n` to use a specific
+namespace, not a randomly generated one. Use `-t` to run only selected tests.
+See the command help (`-h`) for a list of available tests.
+
+Example:
+```console
+./test.sh -n trino -s -t default
+```
+
 The documentation is automatically generated from the chart files. Install a
 git hook to have it automatically updated when committing changes. Make sure
 you [install the pre-commit binary](https://pre-commit.com/#install), then run:
