@@ -244,6 +244,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `securityContext.runAsUser` - int, default: `1000`
 * `securityContext.runAsGroup` - int, default: `1000`
+* `containerSecurityContext` - object, default: `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}`  
+
+  [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
+* `containerSecurityContext.allowPrivilegeEscalation` - bool, default: `false`  
+
+  Control whether a process can gain more privileges than its parent process.
+* `containerSecurityContext.capabilities.drop` - list, default: `["ALL"]`  
+
+  A list of the Linux kernel capabilities that are dropped from every container. Valid values are listed at https://man7.org/linux/man-pages/man7/capabilities.7.html Ensure to remove the "CAP_" prefix which the kernel attaches to the names of permissions.
 * `shareProcessNamespace.coordinator` - bool, default: `false`
 * `shareProcessNamespace.worker` - bool, default: `false`
 * `service.type` - string, default: `"ClusterIP"`
