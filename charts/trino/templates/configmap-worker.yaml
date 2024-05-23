@@ -37,9 +37,8 @@ data:
     -XX:PerBytecodeRecompilationCutoff=10000
     -Djdk.attach.allowAttachSelf=true
     -Djdk.nio.maxCachedBufferSize=2000000
-    -XX:+UnlockDiagnosticVMOptions
-    # Reduce starvation of threads by GClocker, recommend to set about the number of cpu cores (JDK-8192647)
-    -XX:GCLockerRetryAllocationCount=32
+    # Allow loading dynamic agent used by JOL
+    -XX:+EnableDynamicAgentLoading
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
@@ -49,20 +48,22 @@ data:
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.worker.config.query.maxMemoryPerNode }}
-  {{- if .Values.worker.config.memory.heapHeadroomPerNode }}
+    {{- if .Values.worker.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.worker.config.memory.heapHeadroomPerNode }}
-  {{- end }}
+    {{- end }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
-  {{- range $configValue := .Values.additionalConfigProperties }}
+    {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
-  {{- end }}
-  {{ .Values.server.workerExtraConfig | indent 4 }}
+    {{- end }}
+    {{- if .Values.server.workerExtraConfig }}
+    {{- .Values.server.workerExtraConfig | nindent 4 }}
+    {{- end }}
 
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-  {{ if eq .Values.server.exchangeManager.name  "filesystem" }}
+  {{ if eq .Values.server.exchangeManager.name "filesystem" }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
-  {{- end }}  
+  {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
