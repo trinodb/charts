@@ -149,9 +149,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "trino.coordinator" . }}-resource-groups-volume-coordinator
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
-    namespace: {{ .Release.Namespace }}
     app.kubernetes.io/component: coordinator
 data:
   resource-groups.json: |-
