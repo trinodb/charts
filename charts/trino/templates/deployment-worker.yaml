@@ -119,7 +119,7 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 20 }}
+            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 15 }}
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold | default 6 }}
@@ -128,7 +128,7 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds | default 20 }}
+            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds | default 15 }}
             periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold | default 6 }}

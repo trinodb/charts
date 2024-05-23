@@ -76,7 +76,7 @@ spec:
               {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
               - key: password.db
                 path: password.db
-              {{- end }} 
+              {{- end }}
               {{- if .Values.auth.groups }}
               - key: group.db
                 path: group.db
@@ -155,7 +155,7 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 20 }}
+            initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 15 }}
             periodSeconds: {{ .Values.coordinator.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.coordinator.livenessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.coordinator.livenessProbe.failureThreshold | default 6 }}
@@ -164,7 +164,7 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.coordinator.readinessProbe.initialDelaySeconds | default 20 }}
+            initialDelaySeconds: {{ .Values.coordinator.readinessProbe.initialDelaySeconds | default 15 }}
             periodSeconds: {{ .Values.coordinator.readinessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.coordinator.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.coordinator.readinessProbe.failureThreshold | default 6 }}

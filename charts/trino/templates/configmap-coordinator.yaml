@@ -36,39 +36,40 @@ data:
     -XX:PerBytecodeRecompilationCutoff=10000
     -Djdk.attach.allowAttachSelf=true
     -Djdk.nio.maxCachedBufferSize=2000000
-    -XX:+UnlockDiagnosticVMOptions
-    # Reduce starvation of threads by GClocker, recommend to set about the number of cpu cores (JDK-8192647)
-    -XX:GCLockerRetryAllocationCount=32
+    # Allow loading dynamic agent used by JOL
+    -XX:+EnableDynamicAgentLoading
   {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
 
   config.properties: |
     coordinator=true
-{{- if gt (int .Values.server.workers) 0 }}
+    {{- if gt (int .Values.server.workers) 0 }}
     node-scheduler.include-coordinator=false
-{{- else }}
+    {{- else }}
     node-scheduler.include-coordinator=true
-{{- end }}
+    {{- end }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
-{{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    {{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
-{{- end }}
+    {{- end }}
     discovery.uri=http://localhost:{{ .Values.service.port }}
-{{- if .Values.server.config.authenticationType }}
+    {{- if .Values.server.config.authenticationType }}
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
-{{- end }}
-  {{- range $configValue := .Values.additionalConfigProperties }}
+    {{- end }}
+    {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
-  {{- end }}
-  {{- if .Values.server.config.https.enabled }}
+    {{- end }}
+    {{- if .Values.server.config.https.enabled }}
     http-server.https.enabled=true
     http-server.https.port={{ .Values.server.config.https.port }}
     http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
-  {{- end }}
-  {{ .Values.server.coordinatorExtraConfig | indent 4 }}
+    {{- end }}
+    {{- if .Values.server.coordinatorExtraConfig }}
+    {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
+    {{- end }}
 
 {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
   access-control.properties: |
@@ -89,7 +90,7 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
   {{ if eq .Values.server.exchangeManager.name "filesystem" }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
-  {{- end }}  
+  {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
@@ -142,10 +143,8 @@ data:
   {{ $key }}: {{ $val | quote }}
   {{- end }}
 {{- end }}{{- end }}
-
----
-
 {{- if .Values.resourceGroups }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -155,12 +154,10 @@ metadata:
     namespace: {{ .Release.Namespace }}
     app.kubernetes.io/component: coordinator
 data:
-  resource-groups.json: |- 
+  resource-groups.json: |-
     {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
 {{- end }}
-
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -173,5 +170,3 @@ data:
   {{- range $key, $val := .Values.kafka.tableDescriptions }}
   {{ $key }}: {{ $val | quote }}
   {{- end }}
-
----

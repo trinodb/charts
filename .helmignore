@@ -19,3 +19,5 @@
 .project
 .idea/
 *.tmproj
+# helm-doc template
+README.md.gotmpl
