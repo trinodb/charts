@@ -6,6 +6,7 @@ declare -A testCases=(
     [default]=""
     [single_node]="--set server.workers=0"
     [complete_values]="--values test-values.yaml"
+    [multiple_clusters]="--set coordinatorNameOverride: overriden --set workerNameOverride: overriden --set nameOverride: overriden"
 )
 
 function join_by {
@@ -79,8 +80,14 @@ CT_ARGS+=(--namespace "$NAMESPACE")
 for test_name in "${TEST_NAMES[@]}"; do
     echo ""
     echo "🧪 Running test $test_name"
-    echo ""
-    time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"
+    echo "${testCases[$test_name]}"
+    if [ "$test_name" == "multiple_clusters" ]; then
+        time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[default]}"
+        time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"
+    else
+        time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"
+    fi
+    
     echo "Test $test_name completed"
 done
 
