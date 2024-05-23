@@ -6,7 +6,7 @@ declare -A testCases=(
     [default]=""
     [single_node]="--set server.workers=0"
     [complete_values]="--values test-values.yaml"
-    [multiple_clusters]="--set coordinatorNameOverride: overriden --set workerNameOverride: overriden --set nameOverride: overriden"
+    [multiple_clusters]="--set coordinatorNameOverride=overriden --set workerNameOverride=overriden --set nameOverride=overriden"
 )
 
 function join_by {
