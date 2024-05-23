@@ -19,14 +19,14 @@ spec:
       release: {{ .Release.Name }}
       component: coordinator
   template:
-    metadata:      
+    metadata:
       annotations:
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
       {{- if .Values.coordinator.annotations }}
       {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
       {{- end }}
-      
+
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
