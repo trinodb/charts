@@ -24,8 +24,9 @@ spec:
       component: worker
   template:
     metadata:
-      {{- if .Values.worker.annotations }}
       annotations:
+        checksum/worker-config: {{ include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum }}
+      {{- if .Values.worker.annotations }}
       {{- tpl (toYaml .Values.worker.annotations) . | nindent 8 }}
       {{- end }}
       labels:
