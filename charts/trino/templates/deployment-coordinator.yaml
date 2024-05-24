@@ -20,10 +20,13 @@ spec:
       component: coordinator
   template:
     metadata:
-      {{- if .Values.coordinator.annotations }}
       annotations:
+        checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
+        checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
+      {{- if .Values.coordinator.annotations }}
       {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
       {{- end }}
+
       labels:
         app: {{ template "trino.name" . }}
         release: {{ .Release.Name }}
@@ -76,7 +79,7 @@ spec:
               {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
               - key: password.db
                 path: password.db
-              {{- end }} 
+              {{- end }}
               {{- if .Values.auth.groups }}
               - key: group.db
                 path: group.db
@@ -155,7 +158,7 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 20 }}
+            initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 15 }}
             periodSeconds: {{ .Values.coordinator.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.coordinator.livenessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.coordinator.livenessProbe.failureThreshold | default 6 }}
@@ -164,7 +167,7 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.coordinator.readinessProbe.initialDelaySeconds | default 20 }}
+            initialDelaySeconds: {{ .Values.coordinator.readinessProbe.initialDelaySeconds | default 15 }}
             periodSeconds: {{ .Values.coordinator.readinessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.coordinator.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.coordinator.readinessProbe.failureThreshold | default 6 }}

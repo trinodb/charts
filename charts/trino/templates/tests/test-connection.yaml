@@ -18,8 +18,33 @@ spec:
       image: {{ include "trino.image" . }}
       command: ['trino']
       args:
+    {{- if .Values.server.config.https.enabled }}
+      # port must match coordinator.additionalExposedPorts
+      - trino://{{ include "trino.fullname" . }}.{{ .Release.Namespace }}:8443?SSL=true&SSLVerification=FULL&SSLTrustStorePath=/etc/trino/certificates/tls.crt
+    {{- else }}
       - trino://{{ include "trino.fullname" . }}:{{ .Values.service.port }}
-      -  --debug
+    {{- end }}
+      - --user=admin
+    {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+      - --password
+    {{- end }}
+      - --debug
       - --network-logging=BODY
       - --execute=SELECT 1
+    {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+      env:
+        - name: TRINO_PASSWORD
+          # must match test-values.yaml
+          value: admin123
+    {{- end }}
+    {{- if .Values.server.config.https.enabled }}
+      volumeMounts:
+        - name: certificates
+          readOnly: true
+          mountPath: "/etc/trino/certificates"
+  volumes:
+    - name: certificates
+      secret:
+        secretName: certificates
+    {{- end }}
   restartPolicy: Never

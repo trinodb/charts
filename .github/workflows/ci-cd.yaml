@@ -50,8 +50,8 @@ jobs:
         uses: helm/chart-testing-action@v2.6.1
       - name: Create kind cluster
         uses: helm/kind-action@v1.10.0
-      - name: Install charts
-        run: ct install --charts=charts/trino --helm-extra-set-args "${{ matrix.args }}"
+      - name: Run tests
+        run: ./test.sh -a "${{ matrix.args }}"
 
   docs:
     runs-on: ubuntu-latest
@@ -60,28 +60,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Install Frigate
-        run: pip install frigate
-      - name: Check if chart README is in-sync
-        run: |
-          frigate gen charts/trino > charts/trino/README.md
-          if ! git diff --exit-code --quiet; then
-            cat << 'EOF'
-          charts/trino/README.md is not in sync with chart
-          Please update charts/trino/README.md by running:
-              python3 -m venv .venv && . .venv/bin/activate
-              pip install frigate
-              frigate gen charts/trino > charts/trino/README.md
-
-          Here's a diff of what's changed:
-          EOF
-
-            git diff
-            # fail the job
-            exit 1
-          else
-            echo "charts/trino/README.md is in-sync with chart"
-          fi
+      - uses: pre-commit/action@v3.0.1
 
   # Everything above is CI, everything here and below is for releases and runs only on non-pull-request events
   sync-readme:
