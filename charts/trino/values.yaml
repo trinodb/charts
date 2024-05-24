@@ -228,11 +228,24 @@ service:
   port: 8080
 
 auth: {}
+  # Set the type of authentication "ldap" or "file" with authMethod
+
+  # File
   # Set username and password
   # https://trino.io/docs/current/security/password-file.html#file-format
   # passwordAuth: "username:encrypted-password-with-htpasswd"
   # or set the name of a secret containing this file in the password.db key
   # passwordAuthSecret: "trino-password-authentication"
+
+  # LDAP
+  # https://trino.io/docs/current/security/ldap.html
+  # example
+  # authMethod: "ldap"
+  # ldap:
+  #   url: "ldap://{ip addresss}:389"
+  #   allowInsecure: true
+  #   userBindPattern: ${USER}@corp.{domain}.com
+
   # Set users' groups
   # https://trino.io/docs/current/security/group-file.html#file-format
   # refreshPeriod: 5s

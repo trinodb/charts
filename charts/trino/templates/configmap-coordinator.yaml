@@ -100,10 +100,24 @@ data:
   {{- end }}
 
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
+  {{- if contains "file" .Values.auth.authMethod }}
   password-authenticator.properties: |
     password-authenticator.name=file
     file.password-file={{ .Values.server.config.path }}/auth/password.db
   {{- end }}
+  {{- if contains "ldap" .Values.auth.authMethod }}
+  password-authenticator.properties: |
+    password-authenticator.name=ldap
+    ldap.allow-insecure={{ .Values.auth.ldap.allowInsecure }}
+    ldap.url={{ .Values.auth.ldap.url }}
+    ldap.user-bind-pattern={{ .Values.auth.ldap.userBindPattern }}
+    ldap.ignore-referrals={{ .Values.auth.ldap.ignoreReferrals }}
+    ldap.bind-dn={{ .Values.auth.ldap.bindDn }}
+    ldap.bind-password={{ .Values.auth.ldap.bindPassword }}
+    ldap.group-auth-pattern={{ .Values.auth.ldap.groupAuthPattern }}
+  {{- end }}
+  {{- end }}
+
   {{- if .Values.auth.groups }}{{- if not (index .Values.coordinator.additionalConfigFiles "group-provider.properties") }}
   group-provider.properties: |
     group-provider.name=file
