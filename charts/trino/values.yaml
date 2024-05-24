@@ -2,6 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# If you want to have multiple Trino Clusters in same namespace 
+# override the following values to avoid naming conflicts
+# Example:
+# coordinatorNameOverride: trino-adhoc 
+# workerNameOverride: trino-adhoc  
+# nameOverride: trino-adhoc
+
 image:
   # -- Image registry, defaults to empty, which results in DockerHub usage
   registry: ""
