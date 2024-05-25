@@ -133,7 +133,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: trino-access-control-volume-coordinator
+  name: {{ template "trino.accessControl" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
@@ -148,7 +148,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: trino-resource-groups-volume-coordinator
+  name: {{ template "trino.resourceGroups" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
@@ -161,7 +161,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: schemas-volume-coordinator
+  name: {{ template "trino.schemasCoordinator" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}

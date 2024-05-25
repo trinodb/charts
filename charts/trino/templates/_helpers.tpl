@@ -57,9 +57,25 @@ Create chart name and version as used by the chart label.
 {{- end }}
 {{- end }}
 
+{{- define "trino.accessControl" -}}
+{{ template "trino.fullname" . }}-access-control-volume-coordinator
+{{- end -}}
+
 
 {{- define "trino.catalog" -}}
 {{ template "trino.fullname" . }}-catalog
+{{- end -}}
+
+{{- define "trino.resourceGroups" -}}
+{{ template "trino.fullname" . }}-resource-groups-volume-coordinator
+{{- end -}}
+
+{{- define "trino.schemasCoordinator" -}}
+{{ template "trino.fullname" . }}-schemas-volume-coordinator
+{{- end -}}
+
+{{- define "trino.schemasWorker" -}}
+{{ template "trino.fullname" . }}-schemas-volume-worker
 {{- end -}}
 
 {{/*
