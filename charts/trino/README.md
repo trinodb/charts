@@ -189,12 +189,52 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
          ]
        }
   ```
-* `additionalNodeProperties` - object, default: `{}`
-* `additionalConfigProperties` - object, default: `{}`
-* `additionalLogProperties` - object, default: `{}`
-* `additionalExchangeManagerProperties` - object, default: `{}`
-* `eventListenerProperties` - object, default: `{}`
-* `additionalCatalogs` - object, default: `{}`
+* `additionalNodeProperties` - list, default: `[]`  
+
+  [Additional node properties](https://trino.io/docs/current/installation/deployment.html#log-levels).
+  Example, assuming the NODE_ID environment variable has been set:
+  ```yaml
+   - node.id=${NODE_ID}
+  ```
+* `additionalConfigProperties` - list, default: `[]`  
+
+  [Additional config properties](https://trino.io/docs/current/admin/properties.html).
+  Example:
+  ```yaml
+   - internal-communication.shared-secret=random-value-999
+   - http-server.process-forwarded=true
+  ```
+* `additionalLogProperties` - list, default: `[]`  
+
+  [Additional log properties](https://trino.io/docs/current/installation/deployment.html#log-levels).
+  Example:
+  ```yaml
+   - io.airlift=DEBUG
+  ```
+* `additionalExchangeManagerProperties` - list, default: `[]`
+* `eventListenerProperties` - list, default: `[]`  
+
+  [Event listener](https://trino.io/docs/current/develop/event-listener.html#event-listener) properties. To configure multiple event listeners, add them in `coordinator.additionalConfigFiles` and `worker.additionalConfigFiles`, and set the `event-listener.config-files` property in `additionalConfigProperties` to their locations.
+  Example:
+  ```yaml
+   - event-listener.name=custom-event-listener
+   - custom-property1=custom-value1
+   - custom-property2=custom-value2
+  ```
+* `additionalCatalogs` - object, default: `{}`  
+
+  Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties). The TPCH and TPCDS catalogs are always enabled by default, with 4 splits per node.
+  Example:
+  ```yaml
+   objectstore: |
+     connector.name=iceberg
+     iceberg.catalog.type=glue
+   jmx: |
+     connector.name=memory
+   memory: |
+     connector.name=memory
+     memory.max-data-per-node=128MB
+  ```
 * `env` - list, default: `[]`  
 
   additional environment variables added to every pod, specified as a list with explicit values
@@ -297,7 +337,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.config.memory.heapHeadroomPerNode` - string, default: `""`
 * `coordinator.config.query.maxMemoryPerNode` - string, default: `"1GB"`
 * `coordinator.additionalJVMConfig` - list, default: `[]`
-* `coordinator.additionalExposedPorts` - object, default: `{}`
+* `coordinator.additionalExposedPorts` - object, default: `{}`  
+
+  Additional ports configured in the coordinator container and the service.
+  Example:
+  ```yaml
+   https:
+     servicePort: 8443
+     name: https
+     port: 8443
+     protocol: TCP
+  ```
 * `coordinator.resources` - object, default: `{}`  
 
   It is recommended not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. If you do want to specify resources, use the following example, and adjust it as necessary.
@@ -345,7 +395,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.nodeSelector` - object, default: `{}`
 * `coordinator.tolerations` - list, default: `[]`
 * `coordinator.affinity` - object, default: `{}`
-* `coordinator.additionalConfigFiles` - object, default: `{}`
+* `coordinator.additionalConfigFiles` - object, default: `{}`  
+
+  Additional config files placed in the default configuration directory.
+  Example:
+  ```yaml
+  secret.txt: |
+    secret-value
+  ```
 * `coordinator.additionalVolumes` - list, default: `[]`  
 
   One or more additional volumes to add to the coordinator.
@@ -376,7 +433,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.config.memory.heapHeadroomPerNode` - string, default: `""`
 * `worker.config.query.maxMemoryPerNode` - string, default: `"1GB"`
 * `worker.additionalJVMConfig` - list, default: `[]`
-* `worker.additionalExposedPorts` - object, default: `{}`
+* `worker.additionalExposedPorts` - object, default: `{}`  
+
+  Additional container ports configured in all worker pods.
+  Example:
+  ```yaml
+   https:
+     servicePort: 8443
+     name: https
+     port: 8443
+     protocol: TCP
+  ```
 * `worker.resources` - object, default: `{}`  
 
   It is recommended not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. If you do want to specify resources, use the following example, and adjust it as necessary.
@@ -424,7 +491,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.nodeSelector` - object, default: `{}`
 * `worker.tolerations` - list, default: `[]`
 * `worker.affinity` - object, default: `{}`
-* `worker.additionalConfigFiles` - object, default: `{}`
+* `worker.additionalConfigFiles` - object, default: `{}`  
+
+  Additional config files placed in the default configuration directory.
+  Example:
+  ```yaml
+  secret.txt: |
+    secret-value
+  ```
 * `worker.additionalVolumes` - list, default: `[]`  
 
   One or more additional volume mounts to add to all workers.
