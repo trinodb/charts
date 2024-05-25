@@ -196,17 +196,68 @@ resourceGroups: {}
 # ```
 
 
-additionalNodeProperties: {}
+additionalNodeProperties: []
+# additionalNodeProperties -- [Additional node
+# properties](https://trino.io/docs/current/installation/deployment.html#log-levels).
+# @raw
+# Example, assuming the NODE_ID environment variable has been set:
+# ```yaml
+#  - node.id=${NODE_ID}
+# ```
 
-additionalConfigProperties: {}
+additionalConfigProperties: []
+# additionalConfigProperties -- [Additional config
+# properties](https://trino.io/docs/current/admin/properties.html).
+# @raw
+# Example:
+# ```yaml
+#  - internal-communication.shared-secret=random-value-999
+#  - http-server.process-forwarded=true
+# ```
 
-additionalLogProperties: {}
+additionalLogProperties: []
+# additionalLogProperties -- [Additional log
+# properties](https://trino.io/docs/current/installation/deployment.html#log-levels).
+# @raw
+# Example:
+# ```yaml
+#  - io.airlift=DEBUG
+# ```
 
-additionalExchangeManagerProperties: {}
+additionalExchangeManagerProperties: []
 
-eventListenerProperties: {}
+eventListenerProperties: []
+# eventListenerProperties -- [Event
+# listener](https://trino.io/docs/current/develop/event-listener.html#event-listener)
+# properties. To configure multiple event listeners, add them in
+# `coordinator.additionalConfigFiles` and `worker.additionalConfigFiles`, and
+# set the `event-listener.config-files` property in
+# `additionalConfigProperties` to their locations.
+# @raw
+# Example:
+# ```yaml
+#  - event-listener.name=custom-event-listener
+#  - custom-property1=custom-value1
+#  - custom-property2=custom-value2
+# ```
 
 additionalCatalogs: {}
+# additionalCatalogs -- Configure additional
+# [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
+# The TPCH and TPCDS catalogs are always enabled by default, with 4 splits per
+# node.
+# @raw
+# Example:
+# ```yaml
+#  objectstore: |
+#    connector.name=iceberg
+#    iceberg.catalog.type=glue
+#  jmx: |
+#    connector.name=memory
+#  memory: |
+#    connector.name=memory
+#    memory.max-data-per-node=128MB
+# ```
 
 env: []
 # env -- additional environment variables added to every pod, specified as a list with explicit values
@@ -349,6 +400,16 @@ coordinator:
   additionalJVMConfig: []
 
   additionalExposedPorts: {}
+  # coordinator.additionalExposedPorts -- Additional ports configured in the coordinator container and the service.
+  # @raw
+  # Example:
+  # ```yaml
+  #  https:
+  #    servicePort: 8443
+  #    name: https
+  #    port: 8443
+  #    protocol: TCP
+  # ```
 
   resources: {}
   # coordinator.resources -- It is recommended not to specify default resources
@@ -413,6 +474,13 @@ coordinator:
   affinity: {}
 
   additionalConfigFiles: {}
+  # coordinator.additionalConfigFiles -- Additional config files placed in the default configuration directory.
+  # @raw
+  # Example:
+  # ```yaml
+  # secret.txt: |
+  #   secret-value
+  # ```
 
   additionalVolumes: []
   # coordinator.additionalVolumes -- One or more additional volumes to add to the coordinator.
@@ -472,6 +540,16 @@ worker:
   additionalJVMConfig: []
 
   additionalExposedPorts: {}
+  # worker.additionalExposedPorts -- Additional container ports configured in all worker pods.
+  # @raw
+  # Example:
+  # ```yaml
+  #  https:
+  #    servicePort: 8443
+  #    name: https
+  #    port: 8443
+  #    protocol: TCP
+  # ```
 
   resources: {}
   # worker.resources -- It is recommended not to specify default resources and
@@ -541,6 +619,13 @@ worker:
   affinity: {}
 
   additionalConfigFiles: {}
+  # worker.additionalConfigFiles -- Additional config files placed in the default configuration directory.
+  # @raw
+  # Example:
+  # ```yaml
+  # secret.txt: |
+  #   secret-value
+  # ```
 
   additionalVolumes: []
   # worker.additionalVolumes -- One or more additional volume mounts to add to all workers.
