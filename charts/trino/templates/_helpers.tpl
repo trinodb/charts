@@ -16,8 +16,8 @@ If release name contains chart name it will be used as a full name.
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- if hasPrefix .Release.Name $name }}
+{{- $name | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
 {{- end }}
@@ -36,10 +36,10 @@ Create chart name and version as used by the chart label.
 {{- .Values.coordinatorNameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}-coordinator
+{{- if hasPrefix .Release.Name $name }}
+{{- printf "%s-%s" $name "coordinator" | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-coordinator
+{{- printf "%s-%s-%s" .Release.Name $name "coordinator" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -49,10 +49,10 @@ Create chart name and version as used by the chart label.
 {{- .Values.workerNameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}-worker
+{{- if hasPrefix .Release.Name $name }}
+{{- printf "%s-%s" $name "worker" | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-worker
+{{- printf "%s-%s-%s" .Release.Name $name "worker" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -129,10 +129,10 @@ Create the name of the file auth secret to use
 {{- .Values.auth.passwordAuthSecret | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}-file-authentication
+{{- if hasPrefix .Release.Name $name }}
+{{- printf "%s-%s" $name "file-authentication" | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-file-authentication
+{{- printf "%s-%s-%s" .Release.Name $name "file-authentication" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 {{- end }}
