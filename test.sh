@@ -6,6 +6,7 @@ declare -A testCases=(
     [default]=""
     [single_node]="--set server.workers=0"
     [complete_values]="--values test-values.yaml"
+    [overrides]="--set coordinatorNameOverride=coordinator-overridden,workerNameOverride=worker-overridden,nameOverride=overridden"
 )
 
 function join_by {
@@ -20,7 +21,7 @@ NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 HELM_EXTRA_SET_ARGS=
 CT_ARGS=(--charts=charts/trino --skip-clean-up)
 CLEANUP_NAMESPACE=true
-TEST_NAMES=("${!testCases[@]}")
+TEST_NAMES=(default single_node complete_values)
 
 usage() {
     cat <<EOF 1>&2

@@ -83,7 +83,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: schemas-volume-worker
+  name: {{ template "trino.fullname" . }}-schemas-volume-worker
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
