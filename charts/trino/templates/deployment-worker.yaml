@@ -138,16 +138,15 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 15 }}
+            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.worker.livenessProbe.successThreshold | default 1 }}
           readinessProbe:
-            httpGet:
-              path: /v1/info
-              port: http
-            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds | default 15 }}
+            exec:
+              command: [/usr/lib/trino/bin/health-check]
+            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds | default 10 }}
             periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold | default 6 }}
