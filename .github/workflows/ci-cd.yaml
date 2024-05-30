@@ -37,9 +37,11 @@ jobs:
         include:
           - { label: default, args: '' }
           # last Trino version that requires JDK 21
-          - { label: 446, args: '--set image.tag=446' }
+          - { label: 446, args: '-a "--set image.tag=446"' }
           # last Trino version that requires JDK 17
-          - { label: 435, args: '--set image.tag=435' }
+          - { label: 435, args: '-a "--set image.tag=435"' }
+          # skip cleanup to test deploying multiple releases in a single namespace
+          - { label: overrides, args: '-s -t default,overrides' }
     steps:
       - uses: actions/checkout@v4
       - name: Set up Helm
@@ -51,7 +53,7 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.10.0
       - name: Run tests
-        run: ./test.sh -a "${{ matrix.args }}"
+        run: ./test.sh ${{ matrix.args }}
 
   docs:
     runs-on: ubuntu-latest

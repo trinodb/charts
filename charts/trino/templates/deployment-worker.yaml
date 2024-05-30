@@ -50,7 +50,7 @@ spec:
             name: {{ template "trino.catalog" . }}
         - name: schemas-volume
           configMap:
-            name: schemas-volume-worker
+            name: {{ template "trino.fullname" . }}-schemas-volume-worker
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:

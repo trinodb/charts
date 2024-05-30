@@ -2,6 +2,19 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- Override resource names to avoid name conflicts when deploying multiple
+# releases in the same namespace.
+# @raw
+# Example:
+# ```yaml
+# coordinatorNameOverride: trino-coordinator-adhoc
+# workerNameOverride: trino-worker-adhoc
+# nameOverride: trino-adhoc
+# ```
+nameOverride:
+coordinatorNameOverride:
+workerNameOverride:
+
 image:
   # -- Image registry, defaults to empty, which results in DockerHub usage
   registry: ""
