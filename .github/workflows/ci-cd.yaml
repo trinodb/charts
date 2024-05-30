@@ -100,27 +100,14 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - uses: actions/checkout@v4
-        with:
-          # history is required to generate changelog
-          fetch-depth: 0
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-      - name: Build release changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          configuration: '.github/changelog-config.json'
-          outputFile: ${{ runner.temp }}/CHANGELOG.md
-      - name: Inspect changelog
-        run: cat ${{ runner.temp }}/CHANGELOG.md
       - name: Release charts
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NOTES_FILE: ${{ runner.temp }}/CHANGELOG.md
+          CR_GENERATE_RELEASE_NOTES: true
           # If we didn't bump the chart version then we can skip the release
           CR_SKIP_EXISTING: true
