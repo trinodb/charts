@@ -5,13 +5,10 @@ metadata:
   name: {{ template "trino.worker" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: worker
-    {{- if .Values.commonLabels }}
-    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+    {{- if .Values.worker.labels }}
+    {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not .Values.server.autoscaling.enabled }}
@@ -19,9 +16,8 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app: {{ template "trino.name" . }}
-      release: {{ .Release.Name }}
-      component: worker
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
   template:
     metadata:
       annotations:
@@ -30,14 +26,10 @@ spec:
       {{- tpl (toYaml .Values.worker.annotations) . | nindent 8 }}
       {{- end }}
       labels:
-        app: {{ template "trino.name" . }}
-        release: {{ .Release.Name }}
-        component: worker
+        {{- include "trino.labels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
         {{- if .Values.worker.labels }}
         {{- tpl (toYaml .Values.worker.labels) . | nindent 8 }}
-        {{- end }}
-        {{- if .Values.commonLabels }}
-        {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
         {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}

@@ -5,14 +5,8 @@ metadata:
   name: {{ template "trino.worker" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: worker
-    {{- if .Values.commonLabels }}
-    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
-    {{- end }}
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
 data:
   node.properties: |
     node.environment={{ .Values.server.node.environment }}
@@ -85,9 +79,7 @@ data:
   {{ $fileName }}: |
     {{- $fileContent | nindent 4 }}
 {{- end }}
-
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:

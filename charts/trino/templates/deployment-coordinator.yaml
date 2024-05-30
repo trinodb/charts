@@ -4,20 +4,16 @@ metadata:
   name: {{ template "trino.coordinator" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: coordinator
-    {{- if .Values.commonLabels }}
-    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+    {{- if .Values.coordinator.labels }}
+    {{- tpl (toYaml .Values.coordinator.labels) . | nindent 4 }}
     {{- end }}
 spec:
   selector:
     matchLabels:
-      app: {{ template "trino.name" . }}
-      release: {{ .Release.Name }}
-      component: coordinator
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: coordinator
   template:
     metadata:
       annotations:
@@ -28,14 +24,10 @@ spec:
       {{- end }}
 
       labels:
-        app: {{ template "trino.name" . }}
-        release: {{ .Release.Name }}
-        component: coordinator
+        {{- include "trino.labels" . | nindent 8 }}
+        app.kubernetes.io/component: coordinator
         {{- if .Values.coordinator.labels }}
         {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
-        {{- end }}
-        {{- if .Values.commonLabels }}
-        {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
         {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
