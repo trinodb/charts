@@ -18,7 +18,7 @@ function join_by {
 # default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
 NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 HELM_EXTRA_SET_ARGS=
-CT_ARGS=(--charts=charts/trino)
+CT_ARGS=(--charts=charts/trino --skip-clean-up)
 CLEANUP_NAMESPACE=true
 TEST_NAMES=("${!testCases[@]}")
 
@@ -47,7 +47,6 @@ while getopts ":a:n:t:sh:" OPTKEY; do
             IFS=, read -ra TEST_NAMES <<<"$OPTARG"
             ;;
         s)
-            CT_ARGS+=(--skip-clean-up)
             CLEANUP_NAMESPACE=false
             ;;
         h)
@@ -65,7 +64,7 @@ shift $((OPTIND - 1))
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 cd "${SCRIPT_DIR}" || exit 2
 
-echo "Generating a self-signed TLS certificate"
+echo 1>&2 "Generating a self-signed TLS certificate"
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
     -subj "/O=Trino Software Foundation" \
     -addext "subjectAltName=DNS:localhost,DNS:*.$NAMESPACE,DNS:*.$NAMESPACE.svc,DNS:*.$NAMESPACE.svc.cluster.local,IP:127.0.0.1" \
@@ -76,14 +75,29 @@ kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cer
 
 CT_ARGS+=(--namespace "$NAMESPACE")
 
+result=0
 for test_name in "${TEST_NAMES[@]}"; do
-    echo ""
-    echo "🧪 Running test $test_name"
-    echo ""
-    time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"
-    echo "Test $test_name completed"
+    echo 1>&2 ""
+    echo 1>&2 "🧪 Running test $test_name"
+    echo 1>&2 ""
+    if ! time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
+        echo 1>&2 "❌ Test $test_name failed"
+        echo 1>&2 "Test logs:"
+        kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test
+        result=1
+    else
+        echo 1>&2 "✅ Test $test_name completed"
+    fi
+    if [ "$CLEANUP_NAMESPACE" == "true" ]; then
+        for release in $(helm --namespace "$NAMESPACE" ls --all --short); do
+            echo 1>&2 "Cleaning up Helm release $release"
+            helm --namespace "$NAMESPACE" delete "$release"
+        done
+    fi
 done
 
 if [ "$CLEANUP_NAMESPACE" == "true" ]; then
     kubectl delete namespace "$NAMESPACE"
 fi
+
+exit $result
