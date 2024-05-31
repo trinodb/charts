@@ -12,6 +12,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * <https://github.com/trinodb/trino/tree/master/core/docker>
 
 ## Values
+* `nameOverride` - string, default: `nil`  
+
+  Override resource names to avoid name conflicts when deploying multiple releases in the same namespace.
+  Example:
+  ```yaml
+  coordinatorNameOverride: trino-coordinator-adhoc
+  workerNameOverride: trino-worker-adhoc
+  nameOverride: trino-adhoc
+  ```
+* `coordinatorNameOverride` - string, default: `nil`
+* `workerNameOverride` - string, default: `nil`
 * `image.registry` - string, default: `""`  
 
   Image registry, defaults to empty, which results in DockerHub usage
