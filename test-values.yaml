@@ -139,3 +139,11 @@ accessControl:
           }
         ]
       }
+
+ingress:
+  enabled: true
+  hosts:
+    - host: trino.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
