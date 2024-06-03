@@ -25,7 +25,11 @@ spec:
     {{- end }}
       - --debug
       - --network-logging=BODY
-      - --execute=SELECT 1
+    {{- if has "catalog.management=dynamic" .Values.additionalConfigProperties }}
+      - --execute=CREATE CATALOG dynamic USING tpch; SELECT name FROM dynamic.tiny.nation WHERE nationkey = 12
+    {{- else }}
+      - --execute=SELECT name FROM tpch.tiny.nation WHERE nationkey = 12
+    {{- end }}
     {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
       env:
         - name: TRINO_PASSWORD
