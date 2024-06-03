@@ -30,9 +30,9 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "trino.fullname" . }}
+                name: {{ include "trino.fullname" $ }}
                 port:
-                  number: {{ .Values.service.port }}
+                  number: {{ $.Values.service.port }}
           {{- end }}
     {{- end }}
 {{- end }}
