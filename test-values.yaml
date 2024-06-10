@@ -1,0 +1,149 @@
+# All custom values belong here during testing.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+server:
+  config:
+    https:
+      enabled: true
+      keystore:
+        path: /etc/trino/generated/tls.pem
+    authenticationType: PASSWORD
+  coordinatorExtraConfig: |
+    query.client.timeout=5m
+    query.execution-policy=phased
+
+additionalConfigProperties:
+  - internal-communication.shared-secret=random-value-999
+  - http-server.authentication.allow-insecure-over-http=true
+  - http-server.process-forwarded=true
+
+service:
+  annotations:
+    custom/name: value
+
+auth:
+  # created using htpasswd -B -C 10 password.db admin
+  # every password is admin123
+  passwordAuth: |
+    admin:$2y$10$8SWYy3DhcZNfQnpeHOMnD.GOcuKJ/Hqzw8CXSp05YEmXUA.k/4L7a
+    alice:$2y$10$6XLlfiT7Q0MwJmU61CnP1.BzOImMxfqzULQHbSxAoeqTHn661uoGK
+    bob:$2y$10$aXfppF9iHtHjuKzbIUY8f.F98IRj2ZGfu2aok0wDgBBnD6hnDZKwK
+  refreshPeriod: 15s
+  groups: |
+    group1:admin,alice,bob
+    group2:alice
+    group3:bob
+
+secretMounts:
+  - name: certificates
+    secretName: certificates
+    path: /etc/trino/certificates
+
+coordinator:
+  jvm:
+    maxHeapSize: "8G"
+    gcMethod:
+      type: "UseG1GC"
+      g1:
+        heapRegionSize: "32M"
+  config:
+    memory:
+      heapHeadroomPerNode: "2GB"
+    query:
+      maxMemoryPerNode: "2GB"
+
+  additionalVolumes:
+    - name: generated-files
+      emptyDir: {}
+
+  additionalVolumeMounts:
+    - name: generated-files
+      mountPath: /etc/trino/generated
+      readOnly: false
+
+  additionalExposedPorts:
+    https:
+      servicePort: 8443
+      name: https
+      port: 8443
+      protocol: TCP
+
+worker:
+  jvm:
+    maxHeapSize: "8G"
+    gcMethod:
+      type: "UseG1GC"
+      g1:
+        heapRegionSize: "32M"
+  config:
+    memory:
+      heapHeadroomPerNode: "2GB"
+    query:
+      maxMemoryPerNode: "2GB"
+
+commonLabels:
+  extra-label: extra-value
+
+initContainers:
+  coordinator:
+    - name: init-coordinator
+      image: busybox:1.36
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', "cat /etc/trino/certificates/tls.crt /etc/trino/certificates/tls.key > /etc/trino/generated/tls.pem"]
+      volumeMounts:
+        - name: certificates
+          readOnly: true
+          mountPath: "/etc/trino/certificates"
+        - name: generated-files
+          readOnly: false
+          mountPath: "/etc/trino/generated"
+
+accessControl:
+  type: configmap
+  refreshPeriod: 60s
+  configFile: "rules.json"
+  rules:
+    rules.json: |-
+      {
+        "catalogs": [
+          {
+            "user": "admin",
+            "catalog": "(tpch|system)",
+            "allow": "all"
+          },
+          {
+            "group": "group1",
+            "catalog": "tpch",
+            "allow": true
+          },
+          {
+            "user": "alice",
+            "catalog": "jmx",
+            "allow": "read-only"
+          },
+          {
+            "catalog": "system",
+            "allow": "none"
+          }
+        ],
+        "schemas": [
+          {
+            "user": "admin",
+            "schema": ".*",
+            "owner": true
+          },
+          {
+            "user": "alice",
+            "owner": false
+          }
+        ]
+      }
+
+ingress:
+  enabled: true
+  hosts:
+    - host: trino.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific

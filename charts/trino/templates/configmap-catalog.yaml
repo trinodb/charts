@@ -4,14 +4,8 @@ metadata:
   name: {{ template "trino.catalog" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    role: catalogs
-    {{- if .Values.commonLabels }}
-    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
-    {{- end }}
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: catalogs
 data:
   tpch.properties: |
     connector.name=tpch
@@ -23,5 +17,3 @@ data:
   {{ $catalogName }}.properties: |
     {{- $catalogProperties | nindent 4 }}
 {{- end }}
-
-

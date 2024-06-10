@@ -5,13 +5,10 @@ metadata:
   name: {{ template "trino.worker" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-    component: worker
-    {{- if .Values.commonLabels }}
-    {{- tpl (toYaml .Values.commonLabels) . | nindent 4 }}
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+    {{- if .Values.worker.labels }}
+    {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
     {{- end }}
 spec:
   {{- if not .Values.server.autoscaling.enabled }}
@@ -19,24 +16,20 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      app: {{ template "trino.name" . }}
-      release: {{ .Release.Name }}
-      component: worker
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
   template:
     metadata:
-      {{- if .Values.worker.annotations }}
       annotations:
+        checksum/worker-config: {{ include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum }}
+      {{- if .Values.worker.annotations }}
       {{- tpl (toYaml .Values.worker.annotations) . | nindent 8 }}
       {{- end }}
       labels:
-        app: {{ template "trino.name" . }}
-        release: {{ .Release.Name }}
-        component: worker
+        {{- include "trino.labels" . | nindent 8 }}
+        app.kubernetes.io/component: worker
         {{- if .Values.worker.labels }}
         {{- tpl (toYaml .Values.worker.labels) . | nindent 8 }}
-        {{- end }}
-        {{- if .Values.commonLabels }}
-        {{- tpl (toYaml .Values.commonLabels) . | nindent 8 }}
         {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
@@ -58,7 +51,17 @@ spec:
             name: {{ template "trino.catalog" . }}
         - name: schemas-volume
           configMap:
-            name: schemas-volume-worker
+            name: {{ template "trino.fullname" . }}-schemas-volume-worker
+        {{- range .Values.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+        {{- end }}
+        {{- range .Values.worker.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ .configMap }}
+        {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
@@ -78,10 +81,13 @@ spec:
       {{- end }}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}-worker
           image: {{ include "trino.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           env:
             {{- toYaml .Values.env | nindent 12 }}
           envFrom:
@@ -93,6 +99,14 @@ spec:
               name: catalog-volume
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
+            {{- range .Values.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
+            {{- range .Values.worker.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+            {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
@@ -117,20 +131,21 @@ spec:
             httpGet:
               path: /v1/info
               port: http
-            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 20 }}
+            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.worker.livenessProbe.successThreshold | default 1 }}
           readinessProbe:
-            httpGet:
-              path: /v1/info
-              port: http
-            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds | default 20 }}
+            exec:
+              command: [/usr/lib/trino/bin/health-check]
+            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds | default 10 }}
             periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.worker.readinessProbe.successThreshold | default 1 }}
+          lifecycle:
+            {{- toYaml .Values.worker.lifecycle | nindent 12 }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
       {{- if .Values.sidecarContainers.worker }}

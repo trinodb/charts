@@ -22,56 +22,47 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.0.1
+        uses: helm/chart-testing-action@v2.6.1
       - name: Lint charts
         run: ct lint --charts=charts/trino --validate-maintainers=false
 
   test:
     runs-on: ubuntu-latest
+    name: test ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { label: default, args: '' }
+          # last Trino version that requires JDK 21
+          - { label: 446, args: '-a "--set image.tag=446"' }
+          # last Trino version that requires JDK 17
+          - { label: 435, args: '-a "--set image.tag=435"' }
+          # skip cleanup to test deploying multiple releases in a single namespace
+          - { label: overrides, args: '-s -t default,overrides' }
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v4
         with:
-          version: v3.4.0
+          version: v3.14.4
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.0.1
+        uses: helm/chart-testing-action@v2.6.1
       - name: Create kind cluster
-        uses: helm/kind-action@v1.2.0
-      - name: Install charts
-        run: ct install --charts=charts/trino
+        uses: helm/kind-action@v1.10.0
+      - name: Run tests
+        run: ./test.sh ${{ matrix.args }}
 
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-      - name: Install Frigate
-        run: pip install frigate
-      - name: Check if chart README is in-sync
-        run: |
-          frigate gen charts/trino > charts/trino/README.md
-          if ! git diff --exit-code --quiet; then
-            cat << 'EOF'
-          charts/trino/README.md is not in sync with chart
-          Please update charts/trino/README.md by running:
-              python3 -m venv .venv && . .venv/bin/activate
-              pip install frigate
-              frigate gen charts/trino > charts/trino/README.md
-
-          Here's a diff of what's changed:
-          EOF
-
-            git diff
-            # fail the job
-            exit 1
-          else
-            echo "charts/trino/README.md is in-sync with chart"
-          fi
+      - uses: pre-commit/action@v3.0.1
 
   # Everything above is CI, everything here and below is for releases and runs only on non-pull-request events
   sync-readme:
@@ -80,11 +71,11 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - name: Checkout main
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: main
       - name: Checkout gh-pages
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: gh-pages
           path: gh-pages
@@ -108,28 +99,17 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
-          # history is required to generate changelog
           fetch-depth: 0
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-      - name: Build release changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@v2.9.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          configuration: '.github/changelog-config.json'
-          outputFile: ${{ runner.temp }}/CHANGELOG.md
-      - name: Inspect changelog
-        run: cat ${{ runner.temp }}/CHANGELOG.md
       - name: Release charts
-        uses: helm/chart-releaser-action@v1.3.0
+        uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          CR_RELEASE_NOTES_FILE: ${{ runner.temp }}/CHANGELOG.md
+          CR_GENERATE_RELEASE_NOTES: true
           # If we didn't bump the chart version then we can skip the release
           CR_SKIP_EXISTING: true

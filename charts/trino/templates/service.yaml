@@ -4,10 +4,9 @@ metadata:
   name: {{ template "trino.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ template "trino.name" . }}
-    chart: {{ template "trino.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "trino.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -22,6 +21,5 @@ spec:
       protocol: {{ $value.protocol }}
     {{- end }}
   selector:
-    app: {{ template "trino.name" . }}
-    release: {{ .Release.Name }}
-    component: coordinator
+    {{- include "trino.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
