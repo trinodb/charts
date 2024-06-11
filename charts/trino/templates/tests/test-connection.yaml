@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: test
+    test: connection
   annotations:
     "helm.sh/hook": test-success
 spec:

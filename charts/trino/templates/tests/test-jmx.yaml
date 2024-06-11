@@ -1,0 +1,22 @@
+{{- if .Values.jmx.exporter.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino.fullname" . }}-test-jmx
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: jmx
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    {{- if .Values.jmx.exporter.enabled }}
+    - name: trino-jmx
+      image: {{ include "trino.image" . }}
+      command: ["/bin/bash", "-c"]
+      args:
+      - curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:5556 | grep -q trino
+    {{- end }}
+  restartPolicy: Never
+{{- end }}

@@ -727,6 +727,42 @@ kafka:
   #    }
   # ```
 
+jmx:
+  # -- Set to true to enable the RMI server to expose Trino's [JMX metrics](https://trino.io/docs/current/admin/jmx.html).
+  enabled: false
+  registryPort: 9080
+  serverPort: 9081
+  exporter:
+    # jmx.exporter.enabled -- Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
+    enabled: false
+    image: bitnami/jmx-exporter:latest
+    pullPolicy: Always
+    port: 5556
+    configProperties: []
+    # jmx.exporter.configProperties -- JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+    # @raw
+    # Example:
+    # ```yaml
+    #  configProperties: |-
+    #     startDelaySeconds: 0
+    #     ssl: false
+    #     lowercaseOutputName: false
+    #     lowercaseOutputLabelNames: false
+    #     includeObjectNames: ["java.lang:type=Threading"]
+    #     autoExcludeObjectNameAttributes: true
+    #     excludeObjectNameAttributes:
+    #       "java.lang:type=OperatingSystem":
+    #         - "ObjectName"
+    #       "java.lang:type=Runtime":
+    #         - "ClassPath"
+    #         - "SystemProperties"
+    #     rules:
+    #       - pattern: 'java\.lang<type=Threading><(.*)>ThreadCount: (.*)'
+    #         name: java_lang_Threading_ThreadCount
+    #         value: '$2'
+    #         help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
+    #         type: UNTYPED
+
 # -- Labels that get applied to every resource's metadata
 commonLabels: {}
 
