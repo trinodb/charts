@@ -168,7 +168,7 @@ spec:
               containerPort: {{ .Values.jmx.serverPort }}
               protocol: TCP
             {{- end }}
-            {{- if .Values.podMonitor.enabled }}
+            {{- if .Values.serviceMonitor.enabled }}
             - name: jmx-exporter
               containerPort: {{ .Values.jmx.exporter.port }}
               protocol: TCP

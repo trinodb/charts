@@ -1,0 +1,32 @@
+{{- if .Values.jmx.exporter.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino.fullname" . }}-test-jmx
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: jmx
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    {{- if .Values.jmx.exporter.enabled }}
+    - name: trino-jmx
+      image: {{ include "trino.image" . }}
+      command: ["/bin/bash", "-c"]
+      args:
+      - curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:5556 | grep -q trino
+    {{- end }}
+    {{- if .Values.serviceMonitor.enabled }}
+    - name: podmonitor
+      image: {{ include "trino.image" . }}
+      command: ["/bin/bash", "-c"]
+      args:
+      - sleep 60
+      - |
+        output=$(curl -s "prometheus-operator-kube-p-prometheus.default:9090/api/v1/targets?scrapePool=serviceMonitor/{{ .Release.Namespace }}/{{ include "trino.fullname" . }}/0&state=active" |
+        python -c 'import sys, json; print(json.load(sys.stdin)["data"]["activeTargets"][0]["discoveredLabels"]["__meta_kubernetes_service_name"])') && [ "$output" == "{{ include "trino.fullname" . }}" ]
+    {{- end }}
+  restartPolicy: Never
+{{- end }}

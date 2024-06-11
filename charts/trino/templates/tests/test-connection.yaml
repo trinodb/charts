@@ -24,8 +24,8 @@ spec:
       - --password
     {{- end }}
       - --debug
-      - --network-logging=BODY
       - --execute=SELECT 1
+      - --no-progress
     {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
       env:
         - name: TRINO_PASSWORD

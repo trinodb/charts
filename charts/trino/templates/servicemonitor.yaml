@@ -16,6 +16,5 @@ spec:
       {{- include "trino.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: jmx-exporter
-      path: {{ .Values.serviceMonitor.path }}
       interval: {{ .Values.serviceMonitor.interval }}
 {{- end }}

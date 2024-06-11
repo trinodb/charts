@@ -769,8 +769,6 @@ serviceMonitor:
   # serviceMonitor.selector -- Labels for serviceMonitor, so that Prometheus can select it
   selector:
     prometheus: kube-prometheus
-  # serviceMonitor.path -- The serviceMonitor web endpoint path
-  path: /admin/metrics
   # serviceMonitor.interval -- The serviceMonitor web endpoint interval
   interval: "30s"
 
