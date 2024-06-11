@@ -1,0 +1,13 @@
+{{- if .Values.jmx.exporter.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-jmx-exporter-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: jmx
+data:
+  jmx-exporter-config.yaml: |-
+    {{- .Values.jmx.exporter.configProperties | nindent 4 }}
+{{- end }}

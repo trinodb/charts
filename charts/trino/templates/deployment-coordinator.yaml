@@ -73,6 +73,11 @@ spec:
                 path: group.db
               {{- end }}
         {{- end }}
+        {{- if .Values.jmx.exporter.enabled }}
+        - name: jmx-exporter-config-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-jmx-exporter-config
+        {{- end }}
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
@@ -155,6 +160,19 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{- if .Values.jmx.enabled }}
+            - name: jmx-registry
+              containerPort: {{ .Values.jmx.registryPort }}
+              protocol: TCP
+            - name: jmx-server
+              containerPort: {{ .Values.jmx.serverPort }}
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.jmx.exporter.enabled }}
+            - name: jmx-exporter
+              containerPort: {{ .Values.jmx.exporter.port }}
+              protocol: TCP
+            {{- end }}
           {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
             - name: {{ $value.name }}
               containerPort: {{ $value.port }}
@@ -181,6 +199,17 @@ spec:
             {{- toYaml .Values.coordinator.lifecycle | nindent 12 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
+      {{- if .Values.jmx.exporter.enabled }}
+        - name: jmx-exporter
+          image: {{ .Values.jmx.exporter.image }}
+          imagePullPolicy: {{ .Values.jmx.exporter.pullPolicy }}
+          args:
+            - "{{ .Values.jmx.exporter.port }}"
+            - /etc/jmx-exporter/jmx-exporter-config.yaml
+          volumeMounts:
+            - mountPath: /etc/jmx-exporter/
+              name: jmx-exporter-config-volume
+      {{- end }}
       {{- if .Values.sidecarContainers.coordinator }}
         {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}
       {{- end }}

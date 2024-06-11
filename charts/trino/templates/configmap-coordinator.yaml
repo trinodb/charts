@@ -43,6 +43,9 @@ data:
   {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
+  {{- if .Values.jmx.enabled }}
+    -Dcom.sun.management.jmxremote.rmi.port={{ .Values.jmx.serverPort }}
+  {{- end }}
 
   config.properties: |
     coordinator=true
@@ -68,6 +71,10 @@ data:
     http-server.https.enabled=true
     http-server.https.port={{ .Values.server.config.https.port }}
     http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
+    {{- end }}
+    {{- if .Values.jmx.enabled }}
+    jmx.rmiregistry.port={{ .Values.jmx.registryPort }}
+    jmx.rmiserver.port={{ .Values.jmx.serverPort }}
     {{- end }}
     {{- if .Values.server.coordinatorExtraConfig }}
     {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
