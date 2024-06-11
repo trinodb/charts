@@ -1,14 +1,15 @@
-{{- if .Values.serviceMonitor.enabled -}}
+
+{{- if .Values.podMonitor.enabled -}}
 apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
+kind: PodMonitor
 metadata:
   name: {{ template "trino.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     release: prometheus-operator
     {{- include "trino.labels" . | nindent 4 }}
-    {{- if .Values.serviceMonitor.selector }}
-    {{- toYaml .Values.serviceMonitor.selector | nindent 4 }}
+    {{- if .Values.podMonitor.selector }}
+    {{- toYaml .Values.podMonitor.selector | nindent 4 }}
     {{- end }}
 spec:
   selector:

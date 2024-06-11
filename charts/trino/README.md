@@ -605,6 +605,18 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        }
      }
   ```
+* `jmx.enabled` - bool, default: `false`
+* `jmx.registryPort` - int, default: `9080`
+* `jmx.serverPort` - int, default: `9081`
+* `jmxExporter.enabled` - bool, default: `false`
+* `jmxExporter.image` - string, default: `"bitnami/jmx-exporter:latest"`
+* `jmxExporter.pullPolicy` - string, default: `"Always"`
+* `jmxExporter.port` - int, default: `5556`
+* `jmxExporter.configProperties` - list, default: `[]`
+* `podMonitor.enabled` - bool, default: `false`
+* `podMonitor.selector.prometheus` - string, default: `"kube-prometheus"`
+* `podMonitor.path` - string, default: `"/admin/metrics"`
+* `podMonitor.interval` - string, default: `"30s"`
 * `commonLabels` - object, default: `{}`  
 
   Labels that get applied to every resource's metadata

@@ -140,6 +140,44 @@ accessControl:
         ]
       }
 
+jmx:
+  enabled: true
+  registryPort: 9080
+  serverPort: 9081
+
+jmxExporter:
+  enabled: true
+  image: bitnami/jmx-exporter:latest
+  pullPolicy: Always
+  port: 5556
+  configProperties: |
+    startDelaySeconds: 0
+    hostPort: 127.0.0.1:9080
+    ssl: false
+    lowercaseOutputName: false
+    lowercaseOutputLabelNames: false
+    includeObjectNames: ["java.lang:type=Threading"]
+    autoExcludeObjectNameAttributes: true
+    excludeObjectNameAttributes:
+      "java.lang:type=OperatingSystem":
+        - "ObjectName"
+      "java.lang:type=Runtime":
+        - "ClassPath"
+        - "SystemProperties"
+    rules:
+      - pattern: 'java\.lang<type=Threading><(.*)>ThreadCount: (.*)'
+        name: java_lang_Threading_ThreadCount
+        value: '$2'
+        help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
+        type: UNTYPED
+
+podMonitor:
+  enabled: true
+  selector:
+    prometheus: kube-prometheus
+  path: /admin/metrics
+  interval: "30s"
+
 ingress:
   enabled: true
   hosts:

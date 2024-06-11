@@ -763,16 +763,15 @@ jmx:
     #         help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
     #         type: UNTYPED
 
-podMonitor:
-  # - podMonitor is a resource from prometheus-operator:
-  #   https://github.com/prometheus-operator/prometheus-operator
+serviceMonitor:
+  # serviceMonitor.enabled -- Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
   enabled: false
-  # labels for podMonitor, so that Prometheus can select it
+  # serviceMonitor.selector -- Labels for serviceMonitor, so that Prometheus can select it
   selector:
     prometheus: kube-prometheus
-  # the podMonitor web endpoint path
+  # serviceMonitor.path -- The serviceMonitor web endpoint path
   path: /admin/metrics
-  # the podMonitor web endpoint interval
+  # serviceMonitor.interval -- The serviceMonitor web endpoint interval
   interval: "30s"
 
 # -- Labels that get applied to every resource's metadata
