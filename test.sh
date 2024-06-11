@@ -19,7 +19,7 @@ function join_by {
 # default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
 NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 HELM_EXTRA_SET_ARGS=
-CT_ARGS=(--charts=charts/trino --skip-clean-up)
+CT_ARGS=(--charts=charts/trino --skip-clean-up --helm-extra-args="--timeout 2m")
 CLEANUP_NAMESPACE=true
 TEST_NAMES=(default single_node complete_values)
 
@@ -71,8 +71,18 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
     -addext "subjectAltName=DNS:localhost,DNS:*.$NAMESPACE,DNS:*.$NAMESPACE.svc,DNS:*.$NAMESPACE.svc.cluster.local,IP:127.0.0.1" \
     -keyout cert.key -out cert.crt
 
-kubectl create namespace "$NAMESPACE"
-kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key
+kubectl create namespace "$NAMESPACE" --dry-run=client --output yaml | kubectl apply --filename -
+kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
+
+# only install the Prometheus Helm chart when running the `complete_values` test
+if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
+        --version "60.0.2" \
+        --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+        --set grafana.enabled=false
+    kubectl rollout status --watch deployments -l release=prometheus-operator -n "$NAMESPACE"
+fi
 
 CT_ARGS+=(--namespace "$NAMESPACE")
 
@@ -84,13 +94,13 @@ for test_name in "${TEST_NAMES[@]}"; do
     if ! time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
         echo 1>&2 "❌ Test $test_name failed"
         echo 1>&2 "Test logs:"
-        kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test
+        kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test --all-containers=true
         result=1
     else
         echo 1>&2 "✅ Test $test_name completed"
     fi
     if [ "$CLEANUP_NAMESPACE" == "true" ]; then
-        for release in $(helm --namespace "$NAMESPACE" ls --all --short); do
+        for release in $(helm --namespace "$NAMESPACE" ls --all --short | grep -v 'prometheus-operator'); do
             echo 1>&2 "Cleaning up Helm release $release"
             helm --namespace "$NAMESPACE" delete "$release"
         done
@@ -98,7 +108,9 @@ for test_name in "${TEST_NAMES[@]}"; do
 done
 
 if [ "$CLEANUP_NAMESPACE" == "true" ]; then
+    helm -n "$NAMESPACE" uninstall prometheus-operator --ignore-not-found
     kubectl delete namespace "$NAMESPACE"
+    kubectl delete crd $(kubectl api-resources --api-group=monitoring.coreos.com --output name)
 fi
 
 exit $result

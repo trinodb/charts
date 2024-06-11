@@ -156,6 +156,12 @@ jmx:
         - pattern: 'trino.memory*'
         - pattern: 'trino.execution<name=QueryManager>*'
 
+serviceMonitor:
+  enabled: true
+  selector:
+    prometheus: default
+  interval: "30s"
+
 ingress:
   enabled: true
   hosts:

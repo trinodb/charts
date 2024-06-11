@@ -1,4 +1,4 @@
-{{- if .Values.jmx.exporter.enabled }}
+{{- if or .Values.jmx.exporter.enabled .Values.serviceMonitor.enabled }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/component: test
     test: jmx
   annotations:
-    "helm.sh/hook": test-success
+    "helm.sh/hook": test
 spec:
   containers:
     {{- if .Values.jmx.exporter.enabled }}
@@ -18,5 +18,50 @@ spec:
       args:
       - curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:5556 | grep -q trino
     {{- end }}
+    {{- if .Values.serviceMonitor.enabled }}
+    - name: service-monitor
+      image: python:3-slim
+      command: ["python", "/tests/test.py"]
+      volumeMounts:
+        - name: tests
+          mountPath: /tests
+    {{- end }}
+  volumes:
+    - name: tests
+      configMap:
+        name: {{ include "trino.fullname" . }}-test-jmx
   restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "trino.fullname" . }}-test-jmx
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: jmx
+data:
+  test.py: |
+    from urllib.request import urlopen
+    from urllib.error import URLError, HTTPError
+    import json
+
+    url = "http://prometheus-operator-kube-p-prometheus:9090/api/v1/targets?scrapePool=serviceMonitor/{{ .Release.Namespace }}/{{ include "trino.fullname" . }}/0&state=active"
+    while True:
+      try:
+        with urlopen(url) as response:
+          data = json.load(response)
+      except (URLError, HTTPError) as e:
+        print("Error fetching targets, Prometheus service might not be ready: ", e)
+        continue
+
+      try:
+        service_name = data["data"]["activeTargets"][0]["discoveredLabels"]["__meta_kubernetes_service_name"]
+      except (KeyError, IndexError) as e:
+        print("Invalid Prometheus response: ", e)
+        continue
+
+      if service_name == "{{ include "trino.fullname" . }}":
+        print("Found expected service in Prometheus targets")
+        break
 {{- end }}
