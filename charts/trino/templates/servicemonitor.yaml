@@ -1,0 +1,21 @@
+
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "trino.fullname" . }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    {{- if .Values.serviceMonitor.selector }}
+    {{- toYaml .Values.serviceMonitor.selector | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: coordinator
+  endpoints:
+    - port: jmx-exporter
+      path: {{ .Values.serviceMonitor.path }}
+      interval: {{ .Values.serviceMonitor.interval }}
+{{- end }}

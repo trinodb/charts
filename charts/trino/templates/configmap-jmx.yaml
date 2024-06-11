@@ -1,0 +1,28 @@
+{{- if .Values.jmx.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" }}-jmx-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: jmx
+data:
+  jmx-config: |
+    {{- range $configValue := .Values.jmx.configProperties }}
+        {{- $configValue }}
+    {{- end }}
+
+#   jmx-config.yaml: |
+#     startDelaySeconds: 0
+#     hostPort: 127.0.0.1:9080
+#     rules:
+#       - pattern: 'java.lang<type=Memory>(\w+): (.*)'
+#         name: jmx_jvm_memory_HeapMemoryUsed_$1
+#         help: "JVM heap memory $1"
+#         value: $2
+#         type: GAUGE
+#       - pattern: 'trino.memory*'
+#       - pattern: 'trino.execution<name=QueryManager>*'
+#       - pattern: 'iceberg*'
+{{- end }}
