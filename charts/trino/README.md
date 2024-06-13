@@ -1,6 +1,6 @@
 # trino
 
-![Version: 0.23.1](https://img.shields.io/badge/Version-0.23.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 449](https://img.shields.io/badge/AppVersion-449-informational?style=flat-square)
+![Version: 0.24.0](https://img.shields.io/badge/Version-0.24.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 449](https://img.shields.io/badge/AppVersion-449-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -605,6 +605,50 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        }
      }
   ```
+* `jmx.enabled` - bool, default: `false`  
+
+  Set to true to enable the RMI server to expose Trino's [JMX metrics](https://trino.io/docs/current/admin/jmx.html).
+* `jmx.registryPort` - int, default: `9080`
+* `jmx.serverPort` - int, default: `9081`
+* `jmx.exporter.enabled` - bool, default: `false`  
+
+  Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
+* `jmx.exporter.image` - string, default: `"bitnami/jmx-exporter:latest"`
+* `jmx.exporter.pullPolicy` - string, default: `"Always"`
+* `jmx.exporter.port` - int, default: `5556`
+* `jmx.exporter.configProperties` - list, default: `[]`  
+
+  JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+  Example:
+  ```yaml
+   configProperties: |-
+      startDelaySeconds: 0
+      ssl: false
+      lowercaseOutputName: false
+      lowercaseOutputLabelNames: false
+      includeObjectNames: ["java.lang:type=Threading"]
+      autoExcludeObjectNameAttributes: true
+      excludeObjectNameAttributes:
+        "java.lang:type=OperatingSystem":
+          - "ObjectName"
+        "java.lang:type=Runtime":
+          - "ClassPath"
+          - "SystemProperties"
+      rules:
+        - pattern: 'java\.lang<type=Threading><(.*)>ThreadCount: (.*)'
+          name: java_lang_Threading_ThreadCount
+          value: '$2'
+          help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
+          type: UNTYPED
+* `serviceMonitor.enabled` - bool, default: `false`  
+
+  Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
+* `serviceMonitor.labels` - object, default: `{"prometheus":"kube-prometheus"}`  
+
+  Labels for serviceMonitor, so that Prometheus can select it
+* `serviceMonitor.interval` - string, default: `"30s"`  
+
+  The serviceMonitor web endpoint interval
 * `commonLabels` - object, default: `{}`  
 
   Labels that get applied to every resource's metadata
