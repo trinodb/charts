@@ -110,7 +110,10 @@ done
 if [ "$CLEANUP_NAMESPACE" == "true" ]; then
     helm -n "$NAMESPACE" uninstall prometheus-operator --ignore-not-found
     kubectl delete namespace "$NAMESPACE"
-    kubectl delete crd $(kubectl api-resources --api-group=monitoring.coreos.com --output name)
+    mapfile -t crds < <(kubectl api-resources --api-group=monitoring.coreos.com --output name)
+    if [ ${#crds[@]} -ne 0 ]; then
+        kubectl delete crd "${crds[@]}"
+    fi
 fi
 
 exit $result
