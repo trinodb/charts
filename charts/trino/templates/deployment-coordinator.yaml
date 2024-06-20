@@ -33,8 +33,7 @@ spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:
-        runAsUser: {{ .runAsUser }}
-        runAsGroup: {{ .runAsGroup }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.shareProcessNamespace.coordinator }}
       shareProcessNamespace: {{ .Values.shareProcessNamespace.coordinator }}
@@ -203,6 +202,10 @@ spec:
         - name: jmx-exporter
           image: {{ .Values.jmx.exporter.image }}
           imagePullPolicy: {{ .Values.jmx.exporter.pullPolicy }}
+          {{- with .Values.jmx.exporter.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           args:
             - "{{ .Values.jmx.exporter.port }}"
             - /etc/jmx-exporter/jmx-exporter-config.yaml
