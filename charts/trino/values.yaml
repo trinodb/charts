@@ -349,6 +349,12 @@ sidecarContainers: {}
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
+# securityContext -- [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
+# @raw
+# Remove the pod security context
+# ```yaml
+# securityContext: ~
+# ```
 
 # -- [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
 containerSecurityContext:
@@ -760,6 +766,7 @@ jmx:
     pullPolicy: Always
     port: 5556
     configProperties: []
+    securityContext: {}
     # jmx.exporter.configProperties -- JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
     # @raw
     # Example:
