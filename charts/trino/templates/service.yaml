@@ -14,6 +14,12 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    {{- if .Values.server.config.https.enabled }}
+    - port: {{ .Values.server.config.https.port }}
+      targetPort: {{ .Values.server.config.https.port }}
+      protocol: TCP
+      name: https
+    {{- end }}
     {{- if .Values.jmx.exporter.enabled }}
     - port: {{ .Values.jmx.exporter.port }}
       targetPort: jmx-exporter
