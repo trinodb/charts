@@ -16,7 +16,7 @@ spec:
       image: {{ include "trino.image" . }}
       command: ["/bin/bash", "-c"]
       args:
-      - curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:5556 | grep -q trino
+      - curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:5556/metrics | grep -q trino
     {{- end }}
     {{- if .Values.serviceMonitor.enabled }}
     - name: service-monitor
