@@ -293,8 +293,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        imagePullPolicy: IfNotPresent
        command: ['sleep', '1']
   ```
-* `securityContext.runAsUser` - int, default: `1000`
-* `securityContext.runAsGroup` - int, default: `1000`
+* `securityContext` - object, default: `{"runAsGroup":1000,"runAsUser":1000}`  
+
+  [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
 * `containerSecurityContext` - object, default: `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}`  
 
   [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.

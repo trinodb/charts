@@ -327,6 +327,7 @@ sidecarContainers: {}
 #      command: ['sleep', '1']
 # ```
 
+# -- [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000

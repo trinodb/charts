@@ -33,11 +33,8 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
-      {{- with .Values.securityContext }}
       securityContext:
-        runAsUser: {{ .runAsUser }}
-        runAsGroup: {{ .runAsGroup }}
-      {{- end }}
+        {{- toYaml .Values.securityContext | nindent 8 }}
       {{- if .Values.shareProcessNamespace.worker }}
       shareProcessNamespace: {{ .Values.shareProcessNamespace.worker }}
       {{- end }}
