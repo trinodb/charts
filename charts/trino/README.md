@@ -295,6 +295,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `securityContext.runAsUser` - int, default: `1000`
 * `securityContext.runAsGroup` - int, default: `1000`
+* `securityContext.fsGroup` - int, default: `1000`
 * `containerSecurityContext` - object, default: `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}`  
 
   [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
