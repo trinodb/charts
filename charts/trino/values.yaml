@@ -350,21 +350,38 @@ service:
   port: 8080
 
 auth: {}
-# auth -- Available authentication methods.
-# @raw
-# Use username and password provided as a [password file](https://trino.io/docs/current/security/password-file.html#file-format):
-# ```yaml
-#  passwordAuth: "username:encrypted-password-with-htpasswd"
-# ```
-# Set the name of a secret containing this file in the password.db key
-# ```yaml
-#  passwordAuthSecret: "trino-password-authentication"
-# ```
-# Additionally, set [users' groups](https://trino.io/docs/current/security/group-file.html#file-format):
-# ```yaml
-#  refreshPeriod: 5s
-#  groups: "group_name:user_1,user_2,user_3"
-# ```
+  # auth -- Available authentication methods.
+  # Set the type of authentication "ldap" or "file" with authMethod
+  #```yaml
+  # authMethod: "file"
+  #```
+
+  # @raw
+  # Use username and password provided as a [password file](https://trino.io/docs/current/security/password-file.html#file-format):
+  # ```yaml
+  #  passwordAuth: "username:encrypted-password-with-htpasswd"
+  # ```
+  # Set the name of a secret containing this file in the password.db key
+  # ```yaml
+  #  passwordAuthSecret: "trino-password-authentication"
+  # ```
+
+  # LDAP
+  # https://trino.io/docs/current/security/ldap.html
+  # example
+  # authMethod: "ldap"
+  # ```yaml
+  # ldap:
+  #   url: "ldap://{ip addresss}:389"
+  #   allowInsecure: true
+  #   userBindPattern: ${USER}@corp.{domain}.com
+  # ```
+
+  # Additionally, set [users' groups](https://trino.io/docs/current/security/group-file.html#file-format):
+  # ```yaml
+  #  refreshPeriod: 5s
+  #  groups: "group_name:user_1,user_2,user_3"
+  # ```
 
 serviceAccount:
   # -- Specifies whether a service account should be created
