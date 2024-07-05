@@ -1,0 +1,137 @@
+nameOverride:
+coordinatorNameOverride:
+workerNameOverride:
+
+server:
+  workers: 1
+  autoscaling:
+    enabled: true
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 50
+    behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+      scaleUp:
+        stabilizationWindowSeconds: 0
+        policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+        selectPolicy: Max
+
+resourceGroups:
+  resourceGroupsConfig: |-
+    {
+      "rootGroups": [{
+        "name": "global",
+        "softMemoryLimit": "100%",
+        "hardConcurrencyLimit": 2,
+        "maxQueued": 100,
+        "schedulingPolicy": "weighted",
+        "jmxExport": true,
+        "subGroups": [{
+            "name": "nova",
+            "softMemoryLimit": "80%",
+            "hardConcurrencyLimit": 1,
+            "maxQueued": 50,
+            "schedulingWeight": 10,
+            "jmxExport": true
+          }, {
+            "name": "growth",
+            "softMemoryLimit": "20%",
+            "hardConcurrencyLimit": 1,
+            "maxQueued": 50,
+            "schedulingWeight": 10,
+            "jmxExport": true
+          },
+          {
+            "name": "admin",
+            "softMemoryLimit": "80%",
+            "hardConcurrencyLimit": 1,
+            "maxQueued": 50,
+            "schedulingWeight": 10,
+            "jmxExport": true
+          },
+          {
+            "name": "test",
+            "softMemoryLimit": "20%",
+            "hardConcurrencyLimit": 1,
+            "maxQueued": 50,
+            "schedulingWeight": 10,
+            "jmxExport": true
+          }
+        ]
+      }, {
+        "name": "admin",
+        "softMemoryLimit": "100%",
+        "hardConcurrencyLimit": 10,
+        "maxQueued": 50,
+        "schedulingPolicy": "query_priority",
+        "jmxExport": true
+      }],
+      "selectors": [{
+          "user": "nova",
+          "group": "global.nova"
+        },
+        {
+          "user": "nova_group",
+          "group": "global.nova"
+        },
+        {
+          "user": "growth",
+          "group": "global.growth"
+        },
+        {
+          "user": "growth_group",
+          "group": "global.growth"
+        },
+        {
+          "user": "hadoop",
+          "group": "global.admin"
+        },
+        {
+          "group": "global.test"
+        }
+      ],
+      "cpuQuotaPeriod": "1h"
+    }
+
+additionalConfigProperties:
+  - query.max-memory=10GB
+  - query.max-memory-per-node=1400MB
+
+additionalCatalogs:
+  hive: |-
+    connector.name=hive
+    hive.metastore.uri = thrift://data.emr.nb.com:9083
+    hive.metastore-refresh-interval=1m
+    hive.metastore-cache-ttl=20m
+    hive.non-managed-table-writes-enabled = true
+    hive.hdfs.impersonation.enabled = true
+    hive.recursive-directories = true
+    hive.parquet.use-column-names=true
+    fs.native-s3.enabled=true
+    s3.use-web-identity-token-credentials-provider=true
+  hudi: |-
+    connector.name=hudi
+    hive.metastore.uri=thrift://data.emr.nb.com:9083
+
+ingress:
+  enabled: true
+  hosts:
+    - host: trino.stage-data.nb-stage.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  className: nginx-internal
+
+serviceAccount:
+  create: false
+  name: presto
