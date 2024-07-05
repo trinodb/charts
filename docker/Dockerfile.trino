@@ -1,0 +1,13 @@
+FROM trinodb/trino:451
+
+USER root
+
+RUN cd /root && \
+    curl https://github.com/aakashnand/trino-ranger-demo/releases/download/trino-ranger-demo-v1.0/ranger-2.3.0-trino-plugin.tar.gz --output ranger-2.3.0-trino-plugin.tar.gz -L && \
+    tar xvf ranger-2.3.0-trino-plugin.tar.gz
+
+COPY resources/install.properties /root/ranger-2.3.0-trino-plugin/install.properties
+COPY resources/enable-trino-plugin.sh /root/ranger-2.3.0-trino-plugin/enable-trino-plugin.sh
+
+RUN chown root:root -R /root/ranger-2.3.0-trino-plugin/* && \
+    /root/ranger-2.3.0-trino-plugin/enable-trino-plugin.sh
