@@ -91,8 +91,9 @@ accessControl: {}
 # accessControl -- [System access
 # control](https://trino.io/docs/current/security/built-in-system-access-control.html)
 # configuration.
+# type can be either 'configmap' when using a local file or 'remote' when using a file from an http/https URL
 # @raw
-# Example:
+# Example with configmap:
 # ```yaml
 #  type: configmap
 #  refreshPeriod: 60s
@@ -143,6 +144,14 @@ accessControl: {}
 #          }
 #        ]
 #      }
+# ```
+# Example with remote:
+# ```yaml
+#  type: "remote"
+#  refreshPeriod: "60s"
+#  url: "http://trino-test/config"
+#  jsonPointer: "/data"
+#  # Rules file is mounted to /etc/trino/access-control
 # ```
 
 resourceGroups: {}
