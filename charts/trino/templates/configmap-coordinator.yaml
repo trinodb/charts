@@ -80,7 +80,7 @@ data:
     {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
     {{- end }}
 
-{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "ranger" }}
   access-control.properties: |
     access-control.name=file
     {{- if .Values.accessControl.refreshPeriod }}
@@ -90,7 +90,7 @@ data:
     ranger.audit_config={{ .Values.server.config.path }}/access-control/{{ .Values.ranger.audit_config | default "ranger-trino-audit.xml" }}
     ranger.policy_mgr_ssl_config={{ .Values.server.config.path }}/access-control/{{ .Values.ranger.policy_mgr_ssl_config | default "ranger-trino-policymgr-ssl.xml" }}
 {{- end }}
-{{- if eq .Values.accessControl.type "ranger" }}
+{{- if eq .Values.accessControl.type "configmap" }}
   access-control.properties: |
     access-control.name=file
     {{- if .Values.accessControl.refreshPeriod }}
