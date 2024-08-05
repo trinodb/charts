@@ -49,7 +49,7 @@ spec:
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
-        {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+        {{- if .Values.accessControl }}{{- if or eq .Values.accessControl.type "configmap" eq .Values.accessControl.type "ranger"  }}
         - name: access-control-volume
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
