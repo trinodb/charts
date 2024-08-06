@@ -1,13 +1,13 @@
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
+  rev: v4.6.0
   hooks:
   - id: trailing-whitespace
     args:
     - --markdown-linebreak-ext=md
   - id: end-of-file-fixer
 - repo: https://github.com/norwoodj/helm-docs
-  rev:  v1.13.1
+  rev:  v1.14.2
   hooks:
   - id: helm-docs-container
     args:
