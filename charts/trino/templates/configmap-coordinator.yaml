@@ -80,14 +80,27 @@ data:
     {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
     {{- end }}
 
-{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+{{ if .Values.accessControl }}
+{{- if and (eq .Values.accessControl.type "remote") (.Values.accessControl.url) }}
+  access-control.properties: |
+    access-control.name=file
+    {{- if .Values.accessControl.refreshPeriod }}
+    security.refresh-period={{ .Values.accessControl.refreshPeriod }}
+    {{- end }}
+    security.config-file={{ .Values.accessControl.url }}
+    {{- if .Values.accessControl.jsonPointer }}
+    security.json-pointer={{ .Values.accessControl.jsonPointer }}
+    {{- end }}
+{{- end }}
+{{- if eq .Values.accessControl.type "configmap" }}
   access-control.properties: |
     access-control.name=file
     {{- if .Values.accessControl.refreshPeriod }}
     security.refresh-period={{ .Values.accessControl.refreshPeriod }}
     {{- end }}
     security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
-{{- end }}{{- end }}
+{{- end }}
+{{- end }}
 
 {{- if .Values.resourceGroups }}
   resource-groups.properties: |
