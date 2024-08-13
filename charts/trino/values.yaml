@@ -348,6 +348,8 @@ service:
   annotations: {}
   type: ClusterIP
   port: 8080
+  # service.nodePort -- The port the service listens on the host, for NodePort type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+  nodePort: ""
 
 auth: {}
 # auth -- Available authentication methods.
