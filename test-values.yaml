@@ -21,6 +21,9 @@ additionalConfigProperties:
 service:
   annotations:
     custom/name: value
+  type: NodePort
+  port: 8080
+  nodePort: 30080
 
 auth:
   # created using htpasswd -B -C 10 password.db admin
