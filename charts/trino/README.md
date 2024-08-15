@@ -222,7 +222,16 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```yaml
    - io.airlift=DEBUG
   ```
-* `additionalExchangeManagerProperties` - list, default: `[]`
+* `additionalExchangeManagerProperties` - list, default: `[]`  
+
+  [Exchange manager properties](https://trino.io/docs/current/admin/fault-tolerant-execution.html#exchange-manager).
+  Example:
+  ```yaml
+   - exchange.s3.region=object-store-region
+   - exchange.s3.endpoint=your-object-store-endpoint
+   - exchange.s3.aws-access-key=your-access-key
+   - exchange.s3.aws-secret-key=your-secret-key
+  ```
 * `eventListenerProperties` - list, default: `[]`  
 
   [Event listener](https://trino.io/docs/current/develop/event-listener.html#event-listener) properties. To configure multiple event listeners, add them in `coordinator.additionalConfigFiles` and `worker.additionalConfigFiles`, and set the `event-listener.config-files` property in `additionalConfigProperties` to their locations.
