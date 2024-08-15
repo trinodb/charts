@@ -215,6 +215,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/jmx-exporter/
               name: jmx-exporter-config-volume
+          resources:
+            {{- toYaml .Values.jmx.exporter.resources | nindent 12 }}
       {{- end }}
       {{- if .Values.sidecarContainers.coordinator }}
         {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}
