@@ -86,7 +86,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `accessControl` - object, default: `{}`  
 
   [System access control](https://trino.io/docs/current/security/built-in-system-access-control.html) configuration.
-  Example:
+  Set the type property to either:
+  * `configmap`, and provide the rule file contents in `rules`,
+  * `properties`, and provide configuration properties in `properties`.
+  Properties example:
+  ```yaml
+  type: properties
+  properties: |
+      access-control.name=custom-access-control
+      access-control.custom_key=custom_value
+  ```
+  Config map example:
   ```yaml
    type: configmap
    refreshPeriod: 60s
