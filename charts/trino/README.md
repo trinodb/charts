@@ -314,11 +314,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `securityContext` - object, default: `{"runAsGroup":1000,"runAsUser":1000}`  
 
-  [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
-  Remove the pod security context
-  ```yaml
-  securityContext: ~
-  ```
+  [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration. To remove the default, set it to null (or `~`).
 * `containerSecurityContext` - object, default: `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}`  
 
   [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
