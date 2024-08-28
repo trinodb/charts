@@ -346,15 +346,11 @@ sidecarContainers: {}
 #      command: ['sleep', '1']
 # ```
 
+# -- [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
+# To remove the default, set it to null (or `~`).
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
-# securityContext -- [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
-# @raw
-# Remove the pod security context
-# ```yaml
-# securityContext: ~
-# ```
 
 # -- [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
 containerSecurityContext:
