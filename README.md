@@ -49,7 +49,7 @@ ct install
 
 To run tests with specific values:
 ```console
-ct install --helm-extra-set-args "--set image.tag=454"
+ct install --helm-extra-set-args "--set image.tag=455"
 ```
 
 Use the `test.sh` script to run a suite of tests, with different chart values.
