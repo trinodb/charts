@@ -55,9 +55,27 @@ server:
     authenticationType: ""
     query:
       maxMemory: "4GB"
-  exchangeManager:
-    name: "filesystem"
-    baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  exchangeManager: {}
+  # server.exchangeManager -- Mandatory [exchange manager
+  # configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
+  # @raw
+  # Used to set the name and location(s) of the spooling storage destination.
+  # * To enable fault-tolerant execution, you must set the `retry-policy` property in `additionalConfigProperties`.
+  # * Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  # Example:
+  # ```yaml
+  #  server:
+  #    exchangeManager:
+  #      name: "filesystem"
+  #      baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  #  additionalConfigProperties:
+  #   - retry-policy=TASK
+  # additionalExchangeManagerProperties:
+  #   - exchange.sink-buffer-pool-min-size=10
+  #   - exchange.sink-buffers-per-partition=2
+  #   - exchange.source-concurrent-readers=4
+  # ```
+
   workerExtraConfig: ""
   coordinatorExtraConfig: ""
   autoscaling:

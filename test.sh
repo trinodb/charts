@@ -8,6 +8,7 @@ declare -A testCases=(
     [complete_values]="--values test-values.yaml"
     [overrides]="--set coordinatorNameOverride=coordinator-overridden,workerNameOverride=worker-overridden,nameOverride=overridden"
     [access_control_properties_values]="--values test-access-control-properties-values.yaml"
+    [exchange_manager_values]="--values test-exchange-manager-values.yaml"
 )
 
 function join_by {
@@ -22,7 +23,7 @@ NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 HELM_EXTRA_SET_ARGS=
 CT_ARGS=(--charts=charts/trino --skip-clean-up --helm-extra-args="--timeout 2m")
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(default single_node complete_values access_control_properties_values)
+TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values)
 
 usage() {
     cat <<EOF 1>&2
@@ -74,6 +75,18 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
 
 kubectl create namespace "$NAMESPACE" --dry-run=client --output yaml | kubectl apply --filename -
 kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
+cat <<YAML | kubectl -n "$NAMESPACE" apply -f-
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: exchange-manager-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 128Mi
+YAML
 
 # only install the Prometheus Helm chart when running the `complete_values` test
 if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
