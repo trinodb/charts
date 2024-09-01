@@ -51,7 +51,7 @@ spec:
         {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
         - name: access-control-volume
           configMap:
-            name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
+            name: {{ template "trino.fullname" . }}-access-control-volume
         {{- end }}{{- end }}
         {{- if .Values.resourceGroups }}
         - name: resource-groups-volume
