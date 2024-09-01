@@ -54,8 +54,25 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   Trino supports multiple [authentication types](https://trino.io/docs/current/security/authentication-types.html): PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
 * `server.config.query.maxMemory` - string, default: `"4GB"`
-* `server.exchangeManager.name` - string, default: `"filesystem"`
-* `server.exchangeManager.baseDir` - string, default: `"/tmp/trino-local-file-system-exchange-manager"`
+* `server.exchangeManager` - object, default: `{}`  
+
+  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
+  Used to set the name and location(s) of the spooling storage destination.
+  * To enable fault-tolerant execution, you must set the `retry-policy` property in `additionalConfigProperties`.
+  * Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  Example:
+  ```yaml
+   server:
+     exchangeManager:
+       name: "filesystem"
+       baseDir: "/tmp/trino-local-file-system-exchange-manager"
+   additionalConfigProperties:
+    - retry-policy=TASK
+  additionalExchangeManagerProperties:
+    - exchange.sink-buffer-pool-min-size=10
+    - exchange.sink-buffers-per-partition=2
+    - exchange.source-concurrent-readers=4
+  ```
 * `server.workerExtraConfig` - string, default: `""`
 * `server.coordinatorExtraConfig` - string, default: `""`
 * `server.autoscaling.enabled` - bool, default: `false`
