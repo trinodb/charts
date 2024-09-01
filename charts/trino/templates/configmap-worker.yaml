@@ -83,10 +83,24 @@ data:
   {{- end }}
 {{ end }}
 
+
+{{- if .Values.accessControl }}
+  {{ include "trino.accessControlProperties" . }}
+{{- end }}
+
 {{- range $fileName, $fileContent := .Values.worker.additionalConfigFiles }}
   {{ $fileName }}: |
     {{- $fileContent | nindent 4 }}
 {{- end }}
+
+---
+
+{{- if .Values.accessControl }}
+  {{- if eq .Values.accessControl.type "configmap" }}
+  {{ include "trino.accessControlConfigMap" . }}
+  {{- end }}
+{{- end }}
+
 ---
 apiVersion: v1
 kind: ConfigMap

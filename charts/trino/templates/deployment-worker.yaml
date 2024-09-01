@@ -50,6 +50,11 @@ spec:
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-worker
+        {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+        - name: access-control-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-access-control-volume
+        {{- end }}{{- end }}
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
@@ -97,6 +102,10 @@ spec:
               name: catalog-volume
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
+            {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+            - mountPath: {{ .Values.server.config.path }}/access-control
+              name: access-control-volume
+            {{- end }}{{- end }}
             {{- range .Values.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}

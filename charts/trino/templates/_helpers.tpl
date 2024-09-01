@@ -139,3 +139,43 @@ Create the name of the file auth secret to use
 {{- end }}
 {{- end }}
 {{- end }}
+
+
+{{- define "trino.accessControlConfigMap" -}}
+{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-access-control-volume
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+data:
+  {{- range $key, $val := .Values.accessControl.rules }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+{{- end }}{{- end }}
+{{- end }}
+
+
+{{- define "trino.accessControlProperties" -}}
+{{- if .Values.accessControl }}
+  {{- if eq .Values.accessControl.type "configmap" }}
+  access-control.properties: |
+    access-control.name=file
+    {{- if .Values.accessControl.refreshPeriod }}
+    security.refresh-period={{ .Values.accessControl.refreshPeriod }}
+    {{- end }}
+    security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
+  {{- else if eq .Values.accessControl.type "properties" }}
+  access-control.properties: |
+    {{- if .Values.accessControl.properties }}
+    {{- .Values.accessControl.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "accessControl.properties is required when accessControl.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid accessControl.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
+{{- end }}
+{{- end }}
