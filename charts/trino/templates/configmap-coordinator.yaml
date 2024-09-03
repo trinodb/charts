@@ -12,7 +12,7 @@ data:
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   jvm.config: |
@@ -41,7 +41,7 @@ data:
   {{- end }}{{/* if */}}
   {{- end }}{{/* with */}}
   {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
   {{- if .Values.jmx.enabled }}
     -Dcom.sun.management.jmxremote.rmi.port={{ .Values.jmx.serverPort }}
@@ -65,7 +65,7 @@ data:
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
     {{- end }}
     {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
     {{- end }}
     {{- if .Values.server.config.https.enabled }}
     http-server.https.enabled=true
@@ -77,7 +77,7 @@ data:
     jmx.rmiserver.port={{ .Values.jmx.serverPort }}
     {{- end }}
     {{- if .Values.server.coordinatorExtraConfig }}
-    {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
+    {{- tpl .Values.server.coordinatorExtraConfig $ | nindent 4 }}
     {{- end }}
 
 {{- if .Values.accessControl }}
@@ -91,7 +91,7 @@ data:
   {{- else if eq .Values.accessControl.type "properties" }}
   access-control.properties: |
     {{- if .Values.accessControl.properties }}
-    {{- .Values.accessControl.properties | nindent 4 }}
+    {{- tpl .Values.accessControl.properties $ | nindent 4 }}
     {{- else}}
     {{- fail "accessControl.properties is required when accessControl.type is 'properties'." }}
     {{- end }}
@@ -112,13 +112,13 @@ data:
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
@@ -138,13 +138,13 @@ data:
 {{ if .Values.eventListenerProperties }}
   event-listener.properties: |
   {{- range $configValue := .Values.eventListenerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 {{ end }}
 
 {{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
   {{ $fileName }}: |
-    {{- $fileContent | nindent 4 }}
+    {{- tpl $fileContent $ | nindent 4 }}
 {{- end }}
 
 ---
@@ -160,7 +160,7 @@ metadata:
     app.kubernetes.io/component: coordinator
 data:
   {{- range $key, $val := .Values.accessControl.rules }}
-  {{ $key }}: {{ $val | quote }}
+  {{ $key }}: {{ tpl $val $ | quote }}
   {{- end }}
 {{- end }}{{- end }}
 {{- if .Values.resourceGroups }}
@@ -175,7 +175,7 @@ metadata:
     app.kubernetes.io/component: coordinator
 data:
   resource-groups.json: |-
-    {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
+    {{- tpl .Values.resourceGroups.resourceGroupsConfig $ | nindent 4 }}
 {{- end }}
 ---
 apiVersion: v1
@@ -188,5 +188,5 @@ metadata:
     app.kubernetes.io/component: coordinator
 data:
   {{- range $key, $val := .Values.kafka.tableDescriptions }}
-  {{ $key }}: {{ $val | quote }}
+  {{ $key }}: {{ tpl $val $ | quote }}
   {{- end }}

@@ -13,7 +13,7 @@ data:
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   jvm.config: |
@@ -42,7 +42,7 @@ data:
   {{- end }}{{/* if */}}
   {{- end }}{{/* with */}}
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   config.properties: |
@@ -55,10 +55,10 @@ data:
     {{- end }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
     {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
     {{- end }}
     {{- if .Values.server.workerExtraConfig }}
-    {{- .Values.server.workerExtraConfig | nindent 4 }}
+    {{- tpl .Values.server.workerExtraConfig $ | nindent 4 }}
     {{- end }}
 
   exchange-manager.properties: |
@@ -67,25 +67,25 @@ data:
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
 {{ if .Values.eventListenerProperties }}
   event-listener.properties: |
   {{- range $configValue := .Values.eventListenerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 {{ end }}
 
 {{- range $fileName, $fileContent := .Values.worker.additionalConfigFiles }}
   {{ $fileName }}: |
-    {{- $fileContent | nindent 4 }}
+    {{- tpl $fileContent $ | nindent 4 }}
 {{- end }}
 ---
 apiVersion: v1
@@ -98,6 +98,6 @@ metadata:
     app.kubernetes.io/component: worker
 data:
   {{- range $key, $val := .Values.kafka.tableDescriptions }}
-  {{ $key }}: {{ $val | quote }}
+  {{ $key }}: {{ tpl $val $ | quote }}
   {{- end }}
 {{- end }}
