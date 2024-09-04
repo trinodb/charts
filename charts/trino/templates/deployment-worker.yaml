@@ -21,6 +21,7 @@ spec:
   template:
     metadata:
       annotations:
+        checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         checksum/worker-config: {{ include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum }}
       {{- if .Values.worker.annotations }}
       {{- tpl (toYaml .Values.worker.annotations) . | nindent 8 }}
