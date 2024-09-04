@@ -61,6 +61,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.autoscaling.enabled` - bool, default: `false`
 * `server.autoscaling.maxReplicas` - int, default: `5`
 * `server.autoscaling.targetCPUUtilizationPercentage` - int, default: `50`
+* `server.autoscaling.targetMemoryUtilizationPercentage` - int, default: `80`
 * `server.autoscaling.behavior` - object, default: `{}`  
 
   Configuration for scaling up and down.

@@ -64,6 +64,7 @@ server:
     enabled: false
     maxReplicas: 5
     targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 80
     behavior: {}
     # server.autoscaling.behavior -- Configuration for scaling up and down.
     # @raw

@@ -20,6 +20,12 @@ spec:
         target:
           type: Utilization
           averageUtilization: {{ .Values.server.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.server.autoscaling.targetMemoryUtilizationPercentage }}
   {{ if .Values.server.autoscaling.behavior -}}
   behavior:
     {{- toYaml .Values.server.autoscaling.behavior | nindent 4 }}
