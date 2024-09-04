@@ -141,22 +141,6 @@ Create the name of the file auth secret to use
 {{- end }}
 
 
-{{- define "trino.accessControlConfigMap" -}}
-{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ template "trino.fullname" . }}-access-control-volume
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "trino.labels" . | nindent 4 }}
-data:
-  {{- range $key, $val := .Values.accessControl.rules }}
-  {{ $key }}: {{ $val | quote }}
-  {{- end }}
-{{- end }}{{- end }}
-{{- end }}
-
 
 {{- define "trino.accessControlProperties" -}}
 {{- if .Values.accessControl }}

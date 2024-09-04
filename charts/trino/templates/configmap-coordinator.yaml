@@ -122,37 +122,12 @@ data:
   {{- end }}
 {{ end }}
 
-{{- if .Values.accessControl }}
-  {{ include "trino.accessControlProperties" . }}
-{{- end }}
 
-{{- range $fileName, $fileContent := .Values.worker.additionalConfigFiles }}
+{{ include "trino.accessControlProperties" . }}
+
+{{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
   {{ $fileName }}: |
     {{- $fileContent | nindent 4 }}
-{{- end }}
-
----
-
-{{- if .Values.accessControl }}
-  {{- if eq .Values.accessControl.type "configmap" }}
-  {{ include "trino.accessControlConfigMap" . }}
-  {{- end }}
-{{- end }}
-
----
-{{- if .Values.resourceGroups }}
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ template "trino.fullname" . }}-resource-groups-volume-coordinator
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "trino.labels" . | nindent 4 }}
-    app.kubernetes.io/component: coordinator
-data:
-  resource-groups.json: |-
-    {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
 {{- end }}
 
 ---
