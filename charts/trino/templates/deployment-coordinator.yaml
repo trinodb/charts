@@ -17,6 +17,9 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
+        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control.yaml") . | sha256sum }}
+        {{- end }}
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
       {{- if .Values.coordinator.annotations }}
@@ -33,8 +36,7 @@ spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:
-        runAsUser: {{ .runAsUser }}
-        runAsGroup: {{ .runAsGroup }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.shareProcessNamespace.coordinator }}
       shareProcessNamespace: {{ .Values.shareProcessNamespace.coordinator }}
@@ -49,11 +51,11 @@ spec:
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
-        {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+        {{- if eq .Values.accessControl.type "configmap" }}
         - name: access-control-volume
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
-        {{- end }}{{- end }}
+        {{- end }}
         {{- if .Values.resourceGroups }}
         - name: resource-groups-volume
           configMap:
@@ -125,10 +127,10 @@ spec:
               name: catalog-volume
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
-            {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+            {{- if eq .Values.accessControl.type "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
-            {{- end }}{{- end }}
+            {{- end }}
             {{- if .Values.resourceGroups }}
             - mountPath: {{ .Values.server.config.path }}/resource-groups
               name: resource-groups-volume
@@ -203,6 +205,10 @@ spec:
         - name: jmx-exporter
           image: {{ .Values.jmx.exporter.image }}
           imagePullPolicy: {{ .Values.jmx.exporter.pullPolicy }}
+          {{- with .Values.jmx.exporter.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           args:
             - "{{ .Values.jmx.exporter.port }}"
             - /etc/jmx-exporter/jmx-exporter-config.yaml
