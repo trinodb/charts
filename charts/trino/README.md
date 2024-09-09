@@ -664,6 +664,18 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
           help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
           type: UNTYPED
 * `jmx.exporter.securityContext` - object, default: `{}`
+* `jmx.exporter.resources` - object, default: `{}`  
+
+  It is recommended not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. If you do want to specify resources, use the following example, and adjust it as necessary.
+  Example:
+  ```yaml
+   limits:
+     cpu: 100m
+     memory: 128Mi
+   requests:
+     cpu: 100m
+     memory: 128Mi
+  ```
 * `serviceMonitor.enabled` - bool, default: `false`  
 
   Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
