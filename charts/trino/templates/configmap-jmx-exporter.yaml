@@ -1,4 +1,4 @@
-{{- if .Values.jmx.exporter.enabled -}}
+{{- if .Values.jmx.exporter.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,5 +9,5 @@ metadata:
     app.kubernetes.io/component: jmx
 data:
   jmx-exporter-config.yaml: |-
-    {{- .Values.jmx.exporter.configProperties | nindent 4 }}
+    {{- tpl .Values.jmx.exporter.configProperties . | nindent 4 }}
 {{- end }}

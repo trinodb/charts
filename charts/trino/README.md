@@ -656,12 +656,13 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `jmx.exporter.image` - string, default: `"bitnami/jmx-exporter:latest"`
 * `jmx.exporter.pullPolicy` - string, default: `"Always"`
 * `jmx.exporter.port` - int, default: `5556`
-* `jmx.exporter.configProperties` - list, default: `[]`  
+* `jmx.exporter.configProperties` - string, default: `""`  
 
-  JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+  The string value is templated using `tpl`. JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
   Example:
   ```yaml
    configProperties: |-
+      hostPort: localhost:{{- .Values.jmx.registryPort }}
       startDelaySeconds: 0
       ssl: false
       lowercaseOutputName: false

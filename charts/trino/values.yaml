@@ -779,13 +779,13 @@ jmx:
     image: bitnami/jmx-exporter:latest
     pullPolicy: Always
     port: 5556
-    configProperties: []
-    securityContext: {}
-    # jmx.exporter.configProperties -- JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+    configProperties: ""
+    # jmx.exporter.configProperties -- The string value is templated using `tpl`. JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
     # @raw
     # Example:
     # ```yaml
     #  configProperties: |-
+    #     hostPort: localhost:{{- .Values.jmx.registryPort }}
     #     startDelaySeconds: 0
     #     ssl: false
     #     lowercaseOutputName: false
@@ -804,6 +804,7 @@ jmx:
     #         value: '$2'
     #         help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
     #         type: UNTYPED
+    securityContext: {}
     resources: {}
     # jmx.exporter.resources -- It is recommended not to specify default resources
     # and to leave this as a conscious choice for the user. This also increases
