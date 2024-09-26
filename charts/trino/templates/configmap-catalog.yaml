@@ -1,3 +1,4 @@
+{{- if or .Values.catalogs .Values.additionalCatalogs }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,13 +8,9 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: catalogs
 data:
-  tpch.properties: |
-    connector.name=tpch
-    tpch.splits-per-node=4
-  tpcds.properties: |
-    connector.name=tpcds
-    tpcds.splits-per-node=4
-{{- range $catalogName, $catalogProperties := .Values.additionalCatalogs }}
+{{- $merged := merge .Values.catalogs .Values.additionalCatalogs }}
+{{- range $catalogName, $catalogProperties := $merged }}
   {{ $catalogName }}.properties: |
     {{- $catalogProperties | nindent 4 }}
+{{- end }}
 {{- end }}

@@ -20,7 +20,9 @@ spec:
         {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
         checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control.yaml") . | sha256sum }}
         {{- end }}
+        {{- if or .Values.catalogs .Values.additionalCatalogs }}
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
+        {{- end }}
         checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
       {{- if .Values.coordinator.annotations }}
       {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
@@ -45,9 +47,11 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.coordinator" . }}
+        {{- if or .Values.catalogs .Values.additionalCatalogs }}
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
+        {{- end }}
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
@@ -123,8 +127,10 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
+            {{- if or .Values.catalogs .Values.additionalCatalogs }}
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
+            {{- end }}
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
             {{- if eq .Values.accessControl.type "configmap" }}
