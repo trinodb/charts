@@ -1,0 +1,6 @@
+worker:
+  gracefulShutdown:
+    enabled: true
+    gracePeriodSeconds: 60
+
+  terminationGracePeriodSeconds: 120

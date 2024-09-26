@@ -1,0 +1,120 @@
+{{- if .Values.worker.gracefulShutdown.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "trino.fullname" . }}-pod-manager
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: graceful-shutdown
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": hook-succeeded
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "pods" ]
+    verbs: [ "get", "list", "delete" ]
+  - apiGroups: [ "" ]
+    resources: [ "pods/log" ]
+    verbs: [ "get" ]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "trino.fullname" . }}-pod-manager-sa
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: graceful-shutdown
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": hook-succeeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "trino.fullname" . }}-pod-manager-binding
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: graceful-shutdown
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "trino.fullname" . }}-pod-manager-sa
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "trino.fullname" . }}-pod-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino.fullname" . }}-test-graceful-shutdown
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: graceful-shutdown
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  serviceAccountName: {{ include "trino.fullname" . }}-pod-manager-sa
+  initContainers:
+    - name: get-worker-pod
+      image: bitnami/kubectl:latest
+      command: [ "sh", "-c" ]
+      args:
+        - >-
+          kubectl get pods
+          --selector="app.kubernetes.io/name={{ include "trino.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=worker"
+          --output=jsonpath="{.items[0].metadata.name}"
+          --namespace={{ .Release.Namespace }}
+          > /pods/worker-pod.txt
+      volumeMounts:
+        - mountPath: /pods
+          name: worker-pod
+  containers:
+    - name: check-logs
+      image: bitnami/kubectl:latest
+      command: [ "sh", "-c" ]
+      args:
+        - >-
+          WORKER_POD=$(cat /pods/worker-pod.txt) &&
+          kubectl logs ${WORKER_POD}
+          --follow
+          --container=trino-worker
+          --namespace={{ .Release.Namespace }}
+          | grep --max-count=1 "Shutdown requested"
+      volumeMounts:
+        - mountPath: /pods
+          name: worker-pod
+    - name: trigger-graceful-shutdown
+      image: bitnami/kubectl:latest
+      command: [ "sh", "-c" ]
+      args:
+        - >-
+          sleep 5 &&
+          WORKER_POD=$(cat /pods/worker-pod.txt) &&
+          kubectl delete pod
+          ${WORKER_POD}
+          --namespace={{ .Release.Namespace }}
+      volumeMounts:
+        - mountPath: /pods
+          name: worker-pod
+  restartPolicy: Never
+  volumes:
+    - name: worker-pod
+      emptyDir: {}
+
+{{- end }}

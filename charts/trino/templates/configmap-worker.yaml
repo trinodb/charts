@@ -65,9 +65,18 @@ data:
     jmx.rmiregistry.port={{- $workerJmx.registryPort }}
     jmx.rmiserver.port={{- $workerJmx.serverPort }}
     {{- end }}
+    {{- if .Values.worker.gracefulShutdown.enabled }}
+    shutdown.grace-period={{- .Values.worker.gracefulShutdown.gracePeriodSeconds -}}s
+    {{- end }}
     {{- if .Values.server.workerExtraConfig }}
     {{- .Values.server.workerExtraConfig | nindent 4 }}
     {{- end }}
+
+{{- if .Values.worker.gracefulShutdown.enabled }}
+  access-control.properties: |
+    access-control.name=file
+    security.config-file={{ .Values.server.config.path }}/access-control/graceful-shutdown-rules.json
+{{- end }}
 
 {{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |

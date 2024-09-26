@@ -1,0 +1,22 @@
+{{- if .Values.worker.gracefulShutdown.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-access-control-volume-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+data:
+  graceful-shutdown-rules.json: >-
+    {
+      "system_information": [
+        {
+          "allow": [
+            "write"
+          ],
+          "user": "admin"
+        }
+      ]
+    }
+{{- end }}
