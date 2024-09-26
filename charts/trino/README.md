@@ -703,6 +703,30 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      cpu: 100m
      memory: 128Mi
   ```
+* `jmx.coordinator` - object, default: `{}`  
+
+  Override JMX configurations for the Trino coordinator.
+  Example
+  ```yaml
+  coordinator:
+    enabled: true
+    exporter:
+      enable: true
+      configProperties: |-
+        hostPort: localhost:{{- .Values.jmx.registryPort }}
+        startDelaySeconds: 0
+        ssl: false
+  ```
+* `jmx.worker` - object, default: `{}`  
+
+  Override JMX configurations for the Trino workers.
+  Example
+  ```yaml
+  worker:
+    enabled: true
+    exporter:
+      enable: true
+  ```
 * `serviceMonitor.enabled` - bool, default: `false`  
 
   Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
@@ -712,6 +736,26 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `serviceMonitor.interval` - string, default: `"30s"`  
 
   The serviceMonitor web endpoint interval
+* `serviceMonitor.coordinator` - object, default: `{}`  
+
+  Override ServiceMonitor configurations for the Trino coordinator.
+  Example
+  ```yaml
+  coordinator:
+    enabled: true
+    labels:
+      prometheus: my-prometheus
+  ```
+* `serviceMonitor.worker` - object, default: `{}`  
+
+  Override ServiceMonitor configurations for the Trino workers.
+  Example
+  ```yaml
+  worker:
+    enabled: true
+    labels:
+      prometheus: my-prometheus
+  ```
 * `commonLabels` - object, default: `{}`  
 
   Labels that get applied to every resource's metadata

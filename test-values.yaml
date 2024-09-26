@@ -154,14 +154,14 @@ jmx:
     port: 5556
     configProperties: |
       startDelaySeconds: 0
-      hostPort: 127.0.0.1:9080
+      hostPort: 127.0.0.1:{{- .Values.jmx.registryPort }}
       rules:
         - pattern: 'trino.memory*'
         - pattern: 'trino.execution<name=QueryManager>*'
 
 serviceMonitor:
   enabled: true
-  selector:
+  labels:
     prometheus: default
   interval: "30s"
 

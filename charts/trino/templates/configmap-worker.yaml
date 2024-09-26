@@ -1,3 +1,4 @@
+{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
 {{- if gt (int .Values.server.workers) 0 }}
 apiVersion: v1
 kind: ConfigMap
@@ -44,6 +45,9 @@ data:
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
+  {{- if $workerJmx.enabled }}
+    -Dcom.sun.management.jmxremote.rmi.port={{- $workerJmx.serverPort }}
+  {{- end }}
 
   config.properties: |
     coordinator=false
@@ -56,6 +60,10 @@ data:
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
     {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
+    {{- end }}
+    {{- if $workerJmx.enabled }}
+    jmx.rmiregistry.port={{- $workerJmx.registryPort }}
+    jmx.rmiserver.port={{- $workerJmx.serverPort }}
     {{- end }}
     {{- if .Values.server.workerExtraConfig }}
     {{- .Values.server.workerExtraConfig | nindent 4 }}

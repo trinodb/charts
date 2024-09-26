@@ -1,3 +1,4 @@
+{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
 {{- if gt (int .Values.server.workers) 0 }}
 apiVersion: apps/v1
 kind: Deployment
@@ -55,6 +56,11 @@ spec:
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-worker
+        {{- if $workerJmx.exporter.enabled }}
+        - name: jmx-exporter-config-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-jmx-exporter-config-worker
+        {{- end }}
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
@@ -129,6 +135,14 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{- if $workerJmx.enabled }}
+            - name: jmx-registry
+              containerPort: {{ $workerJmx.registryPort }}
+              protocol: TCP
+            - name: jmx-server
+              containerPort: {{ $workerJmx.serverPort }}
+              protocol: TCP
+            {{- end }}
           {{- range $key, $value := .Values.worker.additionalExposedPorts }}
             - name: {{ $value.name }}
               containerPort: {{ $value.port }}
@@ -155,6 +169,25 @@ spec:
             {{- toYaml .Values.worker.lifecycle | nindent 12 }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
+      {{- if $workerJmx.exporter.enabled }}
+        - name: jmx-exporter
+          image: {{ $workerJmx.exporter.image }}
+          imagePullPolicy: {{ $workerJmx.exporter.pullPolicy }}
+          securityContext:
+            {{- toYaml $workerJmx.exporter.securityContext | nindent 12 }}
+          args:
+            - "{{ $workerJmx.exporter.port }}"
+            - /etc/jmx-exporter/jmx-exporter-config.yaml
+          volumeMounts:
+            - mountPath: /etc/jmx-exporter/
+              name: jmx-exporter-config-volume
+          resources:
+            {{- toYaml $workerJmx.exporter.resources | nindent 12 }}
+          ports:
+            - name: jmx-exporter
+              containerPort: {{ $workerJmx.exporter.port }}
+              protocol: TCP
+      {{- end }}
       {{- if .Values.sidecarContainers.worker }}
         {{- toYaml .Values.sidecarContainers.worker | nindent 8 }}
       {{- end }}
