@@ -268,9 +268,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - custom-property1=custom-value1
    - custom-property2=custom-value2
   ```
-* `additionalCatalogs` - object, default: `{}`  
+* `catalogs` - object, default: `{"tpcds":"connector.name=tpcds\ntpcds.splits-per-node=4\n","tpch":"connector.name=tpch\ntpch.splits-per-node=4\n"}`  
 
-  Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties). The TPCH and TPCDS catalogs are always enabled by default, with 4 splits per node.
+  Configure [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
   Example:
   ```yaml
    objectstore: |
@@ -282,6 +282,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      connector.name=memory
      memory.max-data-per-node=128MB
   ```
+* `additionalCatalogs` - object, default: `{}`  
+
+  Deprecated, use `catalogs` instead. Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
 * `env` - list, default: `[]`  
 
   additional environment variables added to every pod, specified as a list with explicit values
