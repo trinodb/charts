@@ -77,6 +77,9 @@ data:
     jmx.rmiregistry.port={{- $coordinatorJmx.registryPort }}
     jmx.rmiserver.port={{- $coordinatorJmx.serverPort }}
     {{- end }}
+    {{- if .Values.worker.gracefulShutdown.enabled }}
+    shutdown.grace-period={{- .Values.worker.gracefulShutdown.gracePeriodSeconds -}}s
+    {{- end }}
     {{- if .Values.server.coordinatorExtraConfig }}
     {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
     {{- end }}

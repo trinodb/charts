@@ -503,9 +503,11 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   Allows mounting additional Trino configuration files from Kubernetes secrets on the coordinator node.
   Example:
+  ```yaml
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+  ```
 * `worker.jvm.maxHeapSize` - string, default: `"8G"`
 * `worker.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `worker.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
@@ -559,12 +561,21 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `worker.lifecycle` - object, default: `{}`  
 
-  To enable [graceful shutdown](https://trino.io/docs/current/admin/graceful-shutdown.html), define a lifecycle preStop like bellow, Set the `terminationGracePeriodSeconds` to a value greater than or equal to the configured `shutdown.grace-period`. Configure `shutdown.grace-period` in `additionalConfigProperties` as `shutdown.grace-period=2m` (default is 2 minutes). Also configure `accessControl` because the `default` system access control does not allow graceful shutdowns.
+  Worker container [lifecycle events](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/)  Setting `worker.lifecycle` conflicts with `worker.gracefulShutdown`.
   Example:
   ```yaml
    preStop:
      exec:
-       command: ["/bin/sh", "-c", "curl -v -X PUT -d '\"SHUTTING_DOWN\"' -H \"Content-type: application/json\" http://localhost:8081/v1/info/state"]
+       command: ["/bin/sh", "-c", "sleep 120"]
+  ```
+* `worker.gracefulShutdown` - object, default: `{"enabled":false,"gracePeriodSeconds":120}`  
+
+  Configure [graceful shutdown](https://trino.io/docs/current/admin/graceful-shutdown.html) in order to ensure that workers terminate without affecting running queries, given a sufficient grace period. When enabled, the value of `worker.terminationGracePeriodSeconds` must be at least two times greater than the configured `gracePeriodSeconds`. Enabling `worker.gracefulShutdown` conflicts with `worker.lifecycle`. When a custom `worker.lifecycle` configuration needs to be used, graceful shutdown must be configured manually.
+  Example:
+  ```yaml
+   gracefulShutdown:
+     enabled: true
+     gracePeriodSeconds: 120
   ```
 * `worker.terminationGracePeriodSeconds` - int, default: `30`
 * `worker.nodeSelector` - object, default: `{}`

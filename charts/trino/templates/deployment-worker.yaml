@@ -26,6 +26,9 @@ spec:
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         {{- end }}
         checksum/worker-config: {{ include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum }}
+      {{- if .Values.worker.gracefulShutdown.enabled }}
+        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control-worker.yaml") . | sha256sum }}
+      {{- end }}
       {{- if .Values.worker.annotations }}
       {{- tpl (toYaml .Values.worker.annotations) . | nindent 8 }}
       {{- end }}
@@ -61,6 +64,11 @@ spec:
           configMap:
             name: {{ template "trino.fullname" . }}-jmx-exporter-config-worker
         {{- end }}
+        {{- if .Values.worker.gracefulShutdown.enabled }}
+        - name: access-control-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-access-control-volume-worker
+        {{- end }}
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
@@ -92,7 +100,11 @@ spec:
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       {{- end }}
+      {{- if and .Values.worker.gracefulShutdown.enabled (gt (mulf 2.0 .Values.worker.gracefulShutdown.gracePeriodSeconds) .Values.worker.terminationGracePeriodSeconds) }}
+      {{- fail "The user must set the `worker.terminationGracePeriodSeconds` to a value of at least two times the configured `gracePeriodSeconds`." }}
+      {{- else }}
       terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}-worker
           image: {{ include "trino.image" . }}
@@ -112,6 +124,10 @@ spec:
             {{- end }}
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
+            {{- if .Values.worker.gracefulShutdown.enabled }}
+            - mountPath: {{ .Values.server.config.path }}/access-control
+              name: access-control-volume
+            {{- end }}
             {{- range .Values.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
@@ -166,7 +182,24 @@ spec:
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.worker.readinessProbe.successThreshold | default 1 }}
           lifecycle:
+            {{- if .Values.worker.lifecycle }}
+            {{- if .Values.worker.gracefulShutdown.enabled }}
+            {{- fail "The `worker.lifecycle` configuration conflicts with `worker.gracefulShutdown`. Either disable `worker.gracefulShutdown` and apply the related configurations manually, or remove `worker.lifecycle`." }}
+            {{- end }}
             {{- toYaml .Values.worker.lifecycle | nindent 12 }}
+            {{- else if .Values.worker.gracefulShutdown.enabled }}
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - >-
+                    curl -v -X PUT
+                    -d '"SHUTTING_DOWN"'
+                    -H 'Content-type: application/json'
+                    -H 'X-Trino-User: admin'
+                    http://localhost:{{- .Values.service.port -}}/v1/info/state
+            {{- end }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
       {{- if $workerJmx.exporter.enabled }}
