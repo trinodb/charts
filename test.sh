@@ -94,6 +94,7 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
         --version "60.0.2" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+        --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
         --set grafana.enabled=false
     kubectl rollout status --watch deployments -l release=prometheus-operator -n "$NAMESPACE"
 fi

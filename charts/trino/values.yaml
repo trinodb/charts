@@ -833,6 +833,30 @@ jmx:
     #    cpu: 100m
     #    memory: 128Mi
     # ```
+  coordinator: {}
+  # jmx.coordinator -- Override JMX configurations for the Trino coordinator.
+  # @raw
+  # Example
+  # ```yaml
+  # coordinator:
+  #   enabled: true
+  #   exporter:
+  #     enable: true
+  #     configProperties: |-
+  #       hostPort: localhost:{{- .Values.jmx.registryPort }}
+  #       startDelaySeconds: 0
+  #       ssl: false
+  # ```
+  worker: {}
+  # jmx.worker -- Override JMX configurations for the Trino workers.
+  # @raw
+  # Example
+  # ```yaml
+  # worker:
+  #   enabled: true
+  #   exporter:
+  #     enable: true
+  # ```
 
 serviceMonitor:
   # serviceMonitor.enabled -- Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
@@ -842,6 +866,26 @@ serviceMonitor:
     prometheus: kube-prometheus
   # serviceMonitor.interval -- The serviceMonitor web endpoint interval
   interval: "30s"
+  coordinator: {}
+  # serviceMonitor.coordinator -- Override ServiceMonitor configurations for the Trino coordinator.
+  # @raw
+  # Example
+  # ```yaml
+  # coordinator:
+  #   enabled: true
+  #   labels:
+  #     prometheus: my-prometheus
+  # ```
+  worker: {}
+  # serviceMonitor.worker -- Override ServiceMonitor configurations for the Trino workers.
+  # @raw
+  # Example
+  # ```yaml
+  # worker:
+  #   enabled: true
+  #   labels:
+  #     prometheus: my-prometheus
+  # ```
 
 # -- Labels that get applied to every resource's metadata
 commonLabels: {}
