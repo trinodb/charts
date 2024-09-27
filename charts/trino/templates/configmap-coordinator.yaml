@@ -124,13 +124,13 @@ data:
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
   password-authenticator.properties: |
     password-authenticator.name=file
-    file.password-file={{ .Values.server.config.path }}/auth/password.db
+    file.password-file={{ .Values.server.config.path }}/auth-password/password.db
   {{- end }}{{- end }}
 
   {{- if .Values.auth.groups }}{{- if not (index .Values.coordinator.additionalConfigFiles "group-provider.properties") }}
   group-provider.properties: |
     group-provider.name=file
-    file.group-file={{ .Values.server.config.path }}/auth/group.db
+    file.group-file={{ .Values.server.config.path }}/auth-group/group.db
     {{- if .Values.auth.refreshPeriod }}
     file.refresh-period={{ .Values.auth.refreshPeriod }}
     {{- end }}

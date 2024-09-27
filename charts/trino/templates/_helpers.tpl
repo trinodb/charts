@@ -125,17 +125,33 @@ Code is inspired from bitnami/common
 {{- end -}}
 
 {{/*
-Create the name of the file auth secret to use
+Create the name of the file password auth secret to use
 */}}
-{{- define "trino.fileAuthSecretName" -}}
+{{- define "trino.filePasswordAuthSecretName" -}}
 {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
 {{- .Values.auth.passwordAuthSecret | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
 {{- if hasPrefix .Release.Name $name }}
-{{- printf "%s-%s" $name "file-authentication" | trunc 63 | trimSuffix "-" }}
+{{- printf "%s-%s" $name "file-password-authentication" | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- printf "%s-%s-%s" .Release.Name $name "file-authentication" | trunc 63 | trimSuffix "-" }}
+{{- printf "%s-%s-%s" .Release.Name $name "file-password-authentication" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create the name of the file group auth secret to use
+*/}}
+{{- define "trino.fileGroupAuthSecretName" -}}
+{{- if and .Values.auth .Values.auth.groupAuthSecret }}
+{{- .Values.auth.groupAuthSecret | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if hasPrefix .Release.Name $name }}
+{{- printf "%s-%s" $name "file-group-authentication" | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s-%s" .Release.Name $name "file-group-authentication" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 {{- end }}

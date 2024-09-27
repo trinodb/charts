@@ -368,6 +368,11 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    refreshPeriod: 5s
    groups: "group_name:user_1,user_2,user_3"
   ```
+  Set the name of a secret containing this file in the group.db key
+  ```yaml
+   groupAuthSecret: "trino-group-authentication"
+  ```
+
 * `serviceAccount.create` - bool, default: `false`  
 
   Specifies whether a service account should be created

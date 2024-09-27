@@ -414,6 +414,10 @@ auth: {}
 #  refreshPeriod: 5s
 #  groups: "group_name:user_1,user_2,user_3"
 # ```
+# Set the name of a secret containing this file in the group.db key
+# ```yaml
+#  groupAuthSecret: "trino-group-authentication"
+# ```
 
 serviceAccount:
   # -- Specifies whether a service account should be created

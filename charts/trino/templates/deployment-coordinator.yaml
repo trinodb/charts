@@ -65,20 +65,22 @@ spec:
           configMap:
             name: {{ template "trino.fullname" . }}-resource-groups-volume-coordinator
         {{- end }}
-        {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret .Values.auth.groups }}
-        - name: file-authentication-volume
+        {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
+        - name: file-password-authentication-volume
           secret:
-            secretName: {{ template "trino.fileAuthSecretName" . }}
+            secretName: {{ template "trino.filePasswordAuthSecretName" . }}
             items:
-              {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
               - key: password.db
                 path: password.db
-              {{- end }}
-              {{- if .Values.auth.groups }}
+        {{- end }}
+        {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}
+        - name: file-groups-authentication-volume
+          secret:
+            secretName: {{ template "trino.fileGroupAuthSecretName" . }}
+            items:
               - key: group.db
                 path: group.db
-              {{- end }}
-        {{- end }}
+        {{- end }}        
         {{- if .Values.jmx.exporter.enabled }}
         - name: jmx-exporter-config-volume
           configMap:
@@ -157,10 +159,14 @@ spec:
             - name: {{ .name }}
               mountPath: {{ .path }}
             {{- end }}
-            {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret .Values.auth.groups }}
-            - mountPath: {{ .Values.server.config.path }}/auth
-              name: file-authentication-volume
+            {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
+            - mountPath: {{ .Values.server.config.path }}/auth/password
+              name: file-password-authentication-volume
             {{- end }}
+            {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}
+            - mountPath: {{ .Values.server.config.path }}/auth/group
+              name: file-group-authentication-volume
+            {{- end }}            
             {{- with .Values.coordinator.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}
             {{- end }}
