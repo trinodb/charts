@@ -80,14 +80,25 @@ data:
     {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
     {{- end }}
 
-{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+{{- if .Values.accessControl }}
+  {{- if eq .Values.accessControl.type "configmap" }}
   access-control.properties: |
     access-control.name=file
     {{- if .Values.accessControl.refreshPeriod }}
     security.refresh-period={{ .Values.accessControl.refreshPeriod }}
     {{- end }}
     security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
-{{- end }}{{- end }}
+  {{- else if eq .Values.accessControl.type "properties" }}
+  access-control.properties: |
+    {{- if .Values.accessControl.properties }}
+    {{- .Values.accessControl.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "accessControl.properties is required when accessControl.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid accessControl.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
+{{- end }}
 
 {{- if .Values.resourceGroups }}
   resource-groups.properties: |
@@ -95,14 +106,14 @@ data:
     resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
 {{- end }}
 
+{{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-  {{ if eq .Values.server.exchangeManager.name "filesystem" }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
-  {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
+{{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
@@ -110,11 +121,12 @@ data:
     {{ $configValue }}
   {{- end }}
 
-  {{- if contains "PASSWORD" .Values.server.config.authenticationType }}
+  {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
   password-authenticator.properties: |
     password-authenticator.name=file
     file.password-file={{ .Values.server.config.path }}/auth/password.db
-  {{- end }}
+  {{- end }}{{- end }}
+
   {{- if .Values.auth.groups }}{{- if not (index .Values.coordinator.additionalConfigFiles "group-provider.properties") }}
   group-provider.properties: |
     group-provider.name=file
@@ -135,23 +147,6 @@ data:
   {{ $fileName }}: |
     {{- $fileContent | nindent 4 }}
 {{- end }}
-
----
-
-{{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "trino.labels" . | nindent 4 }}
-    app.kubernetes.io/component: coordinator
-data:
-  {{- range $key, $val := .Values.accessControl.rules }}
-  {{ $key }}: {{ $val | quote }}
-  {{- end }}
-{{- end }}{{- end }}
 {{- if .Values.resourceGroups }}
 ---
 apiVersion: v1

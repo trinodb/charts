@@ -1,6 +1,6 @@
 # trino
 
-![Version: 0.26.0](https://img.shields.io/badge/Version-0.26.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 453](https://img.shields.io/badge/AppVersion-453-informational?style=flat-square)
+![Version: 0.29.0](https://img.shields.io/badge/Version-0.29.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 458](https://img.shields.io/badge/AppVersion-458-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -54,8 +54,25 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   Trino supports multiple [authentication types](https://trino.io/docs/current/security/authentication-types.html): PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
 * `server.config.query.maxMemory` - string, default: `"4GB"`
-* `server.exchangeManager.name` - string, default: `"filesystem"`
-* `server.exchangeManager.baseDir` - string, default: `"/tmp/trino-local-file-system-exchange-manager"`
+* `server.exchangeManager` - object, default: `{}`  
+
+  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
+  Used to set the name and location(s) of the spooling storage destination.
+  * To enable fault-tolerant execution, you must set the `retry-policy` property in `additionalConfigProperties`.
+  * Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  Example:
+  ```yaml
+   server:
+     exchangeManager:
+       name: "filesystem"
+       baseDir: "/tmp/trino-local-file-system-exchange-manager"
+   additionalConfigProperties:
+    - retry-policy=TASK
+  additionalExchangeManagerProperties:
+    - exchange.sink-buffer-pool-min-size=10
+    - exchange.sink-buffers-per-partition=2
+    - exchange.source-concurrent-readers=4
+  ```
 * `server.workerExtraConfig` - string, default: `""`
 * `server.coordinatorExtraConfig` - string, default: `""`
 * `server.autoscaling.enabled` - bool, default: `false`
@@ -86,7 +103,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `accessControl` - object, default: `{}`  
 
   [System access control](https://trino.io/docs/current/security/built-in-system-access-control.html) configuration.
-  Example:
+  Set the type property to either:
+  * `configmap`, and provide the rule file contents in `rules`,
+  * `properties`, and provide configuration properties in `properties`.
+  Properties example:
+  ```yaml
+  type: properties
+  properties: |
+      access-control.name=custom-access-control
+      access-control.custom_key=custom_value
+  ```
+  Config map example:
   ```yaml
    type: configmap
    refreshPeriod: 60s
@@ -241,9 +268,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - custom-property1=custom-value1
    - custom-property2=custom-value2
   ```
-* `additionalCatalogs` - object, default: `{}`  
+* `catalogs` - object, default: `{"tpcds":"connector.name=tpcds\ntpcds.splits-per-node=4\n","tpch":"connector.name=tpch\ntpch.splits-per-node=4\n"}`  
 
-  Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties). The TPCH and TPCDS catalogs are always enabled by default, with 4 splits per node.
+  Configure [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
   Example:
   ```yaml
    objectstore: |
@@ -255,6 +282,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      connector.name=memory
      memory.max-data-per-node=128MB
   ```
+* `additionalCatalogs` - object, default: `{}`  
+
+  Deprecated, use `catalogs` instead. Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
 * `env` - list, default: `[]`  
 
   additional environment variables added to every pod, specified as a list with explicit values
@@ -302,8 +332,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        imagePullPolicy: IfNotPresent
        command: ['sleep', '1']
   ```
-* `securityContext.runAsUser` - int, default: `1000`
-* `securityContext.runAsGroup` - int, default: `1000`
+* `securityContext` - object, default: `{"runAsGroup":1000,"runAsUser":1000}`  
+
+  [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration. To remove the default, set it to null (or `~`).
 * `containerSecurityContext` - object, default: `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]}}`  
 
   [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
@@ -628,12 +659,13 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `jmx.exporter.image` - string, default: `"bitnami/jmx-exporter:latest"`
 * `jmx.exporter.pullPolicy` - string, default: `"Always"`
 * `jmx.exporter.port` - int, default: `5556`
-* `jmx.exporter.configProperties` - list, default: `[]`  
+* `jmx.exporter.configProperties` - string, default: `""`  
 
-  JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+  The string value is templated using `tpl`. JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
   Example:
   ```yaml
    configProperties: |-
+      hostPort: localhost:{{- .Values.jmx.registryPort }}
       startDelaySeconds: 0
       ssl: false
       lowercaseOutputName: false
@@ -652,6 +684,19 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
           value: '$2'
           help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
           type: UNTYPED
+* `jmx.exporter.securityContext` - object, default: `{}`
+* `jmx.exporter.resources` - object, default: `{}`  
+
+  It is recommended not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. If you do want to specify resources, use the following example, and adjust it as necessary.
+  Example:
+  ```yaml
+   limits:
+     cpu: 100m
+     memory: 128Mi
+   requests:
+     cpu: 100m
+     memory: 128Mi
+  ```
 * `serviceMonitor.enabled` - bool, default: `false`  
 
   Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).

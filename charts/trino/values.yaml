@@ -55,9 +55,27 @@ server:
     authenticationType: ""
     query:
       maxMemory: "4GB"
-  exchangeManager:
-    name: "filesystem"
-    baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  exchangeManager: {}
+  # server.exchangeManager -- Mandatory [exchange manager
+  # configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
+  # @raw
+  # Used to set the name and location(s) of the spooling storage destination.
+  # * To enable fault-tolerant execution, you must set the `retry-policy` property in `additionalConfigProperties`.
+  # * Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  # Example:
+  # ```yaml
+  #  server:
+  #    exchangeManager:
+  #      name: "filesystem"
+  #      baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  #  additionalConfigProperties:
+  #   - retry-policy=TASK
+  # additionalExchangeManagerProperties:
+  #   - exchange.sink-buffer-pool-min-size=10
+  #   - exchange.sink-buffers-per-partition=2
+  #   - exchange.source-concurrent-readers=4
+  # ```
+
   workerExtraConfig: ""
   coordinatorExtraConfig: ""
   autoscaling:
@@ -92,7 +110,17 @@ accessControl: {}
 # control](https://trino.io/docs/current/security/built-in-system-access-control.html)
 # configuration.
 # @raw
-# Example:
+# Set the type property to either:
+# * `configmap`, and provide the rule file contents in `rules`,
+# * `properties`, and provide configuration properties in `properties`.
+# Properties example:
+# ```yaml
+# type: properties
+# properties: |
+#     access-control.name=custom-access-control
+#     access-control.custom_key=custom_value
+# ```
+# Config map example:
 # ```yaml
 #  type: configmap
 #  refreshPeriod: 60s
@@ -263,11 +291,15 @@ eventListenerProperties: []
 #  - custom-property2=custom-value2
 # ```
 
-additionalCatalogs: {}
-# additionalCatalogs -- Configure additional
+catalogs:
+  tpch: |
+    connector.name=tpch
+    tpch.splits-per-node=4
+  tpcds: |
+    connector.name=tpcds
+    tpcds.splits-per-node=4
+# catalogs -- Configure
 # [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
-# The TPCH and TPCDS catalogs are always enabled by default, with 4 splits per
-# node.
 # @raw
 # Example:
 # ```yaml
@@ -280,6 +312,10 @@ additionalCatalogs: {}
 #    connector.name=memory
 #    memory.max-data-per-node=128MB
 # ```
+
+additionalCatalogs: {}
+# additionalCatalogs -- Deprecated, use `catalogs` instead. Configure additional
+# [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
 
 env: []
 # env -- additional environment variables added to every pod, specified as a list with explicit values
@@ -336,6 +372,8 @@ sidecarContainers: {}
 #      command: ['sleep', '1']
 # ```
 
+# -- [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
+# To remove the default, set it to null (or `~`).
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
@@ -749,12 +787,13 @@ jmx:
     image: bitnami/jmx-exporter:latest
     pullPolicy: Always
     port: 5556
-    configProperties: []
-    # jmx.exporter.configProperties -- JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+    configProperties: ""
+    # jmx.exporter.configProperties -- The string value is templated using `tpl`. JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
     # @raw
     # Example:
     # ```yaml
     #  configProperties: |-
+    #     hostPort: localhost:{{- .Values.jmx.registryPort }}
     #     startDelaySeconds: 0
     #     ssl: false
     #     lowercaseOutputName: false
@@ -773,6 +812,23 @@ jmx:
     #         value: '$2'
     #         help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
     #         type: UNTYPED
+    securityContext: {}
+    resources: {}
+    # jmx.exporter.resources -- It is recommended not to specify default resources
+    # and to leave this as a conscious choice for the user. This also increases
+    # chances charts run on environments with little resources, such as Minikube.
+    # If you do want to specify resources, use the following example, and adjust
+    # it as necessary.
+    # @raw
+    # Example:
+    # ```yaml
+    #  limits:
+    #    cpu: 100m
+    #    memory: 128Mi
+    #  requests:
+    #    cpu: 100m
+    #    memory: 128Mi
+    # ```
 
 serviceMonitor:
   # serviceMonitor.enabled -- Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).

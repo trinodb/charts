@@ -17,7 +17,12 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
+        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control.yaml") . | sha256sum }}
+        {{- end }}
+        {{- if or .Values.catalogs .Values.additionalCatalogs }}
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
+        {{- end }}
         checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
       {{- if .Values.coordinator.annotations }}
       {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
@@ -33,8 +38,7 @@ spec:
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:
-        runAsUser: {{ .runAsUser }}
-        runAsGroup: {{ .runAsGroup }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- if .Values.shareProcessNamespace.coordinator }}
       shareProcessNamespace: {{ .Values.shareProcessNamespace.coordinator }}
@@ -43,17 +47,19 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.coordinator" . }}
+        {{- if or .Values.catalogs .Values.additionalCatalogs }}
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
+        {{- end }}
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
-        {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+        {{- if eq .Values.accessControl.type "configmap" }}
         - name: access-control-volume
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
-        {{- end }}{{- end }}
+        {{- end }}
         {{- if .Values.resourceGroups }}
         - name: resource-groups-volume
           configMap:
@@ -121,14 +127,16 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
+            {{- if or .Values.catalogs .Values.additionalCatalogs }}
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
+            {{- end }}
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
-            {{- if .Values.accessControl }}{{- if eq .Values.accessControl.type "configmap" }}
+            {{- if eq .Values.accessControl.type "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
-            {{- end }}{{- end }}
+            {{- end }}
             {{- if .Values.resourceGroups }}
             - mountPath: {{ .Values.server.config.path }}/resource-groups
               name: resource-groups-volume
@@ -160,18 +168,15 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-            {{- if .Values.jmx.enabled }}
+            {{- with .Values.jmx }}
+            {{- if .enabled }}
             - name: jmx-registry
-              containerPort: {{ .Values.jmx.registryPort }}
+              containerPort: {{ .registryPort }}
               protocol: TCP
             - name: jmx-server
-              containerPort: {{ .Values.jmx.serverPort }}
+              containerPort: {{ .serverPort }}
               protocol: TCP
             {{- end }}
-            {{- if .Values.jmx.exporter.enabled }}
-            - name: jmx-exporter
-              containerPort: {{ .Values.jmx.exporter.port }}
-              protocol: TCP
             {{- end }}
           {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
             - name: {{ $value.name }}
@@ -199,16 +204,30 @@ spec:
             {{- toYaml .Values.coordinator.lifecycle | nindent 12 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
-      {{- if .Values.jmx.exporter.enabled }}
+      {{- with .Values.jmx.exporter }}
+      {{- if .enabled }}
         - name: jmx-exporter
-          image: {{ .Values.jmx.exporter.image }}
-          imagePullPolicy: {{ .Values.jmx.exporter.pullPolicy }}
+          image: {{ .image }}
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- with .securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           args:
-            - "{{ .Values.jmx.exporter.port }}"
+            - "{{ .port }}"
             - /etc/jmx-exporter/jmx-exporter-config.yaml
           volumeMounts:
             - mountPath: /etc/jmx-exporter/
               name: jmx-exporter-config-volume
+          {{- with .resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: jmx-exporter
+              containerPort: {{ .port }}
+              protocol: TCP
+      {{- end }}
       {{- end }}
       {{- if .Values.sidecarContainers.coordinator }}
         {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}

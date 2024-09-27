@@ -61,14 +61,14 @@ data:
     {{- .Values.server.workerExtraConfig | nindent 4 }}
     {{- end }}
 
+{{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-  {{ if eq .Values.server.exchangeManager.name "filesystem" }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
-  {{- end }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
+{{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
