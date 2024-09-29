@@ -42,8 +42,6 @@ server:
       level: INFO
   config:
     path: /etc/trino
-    http:
-      port: 8080
     https:
       enabled: false
       port: 8443
