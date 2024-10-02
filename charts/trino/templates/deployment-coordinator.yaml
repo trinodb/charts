@@ -10,6 +10,16 @@ metadata:
     {{- tpl (toYaml .Values.coordinator.labels) . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if .Values.coordinator.deployment.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{ .Values.coordinator.deployment.progressDeadlineSeconds }}
+  {{- end }}
+  {{- if or .Values.coordinator.deployment.revisionHistoryLimit (eq 0 .Values.coordinator.deployment.revisionHistoryLimit) }}
+  revisionHistoryLimit: {{ .Values.coordinator.deployment.revisionHistoryLimit }}
+  {{- end }}
+  {{- if .Values.coordinator.deployment.strategy }}
+  strategy:
+    {{- toYaml .Values.coordinator.deployment.strategy | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "trino.selectorLabels" . | nindent 6 }}

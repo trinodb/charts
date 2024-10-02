@@ -11,6 +11,16 @@ metadata:
     {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
     {{- end }}
 spec:
+  {{- if .Values.worker.deployment.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{ .Values.worker.deployment.progressDeadlineSeconds }}
+  {{- end }}
+  {{- if or .Values.worker.deployment.revisionHistoryLimit (eq 0 .Values.worker.deployment.revisionHistoryLimit) }}
+  revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
+  {{- end }}
+  {{- if .Values.worker.deployment.strategy }}
+  strategy:
+    {{- toYaml .Values.worker.deployment.strategy | nindent 4 }}
+  {{- end }}
   {{- if not .Values.server.autoscaling.enabled }}
   replicas: {{ .Values.server.workers }}
   {{- end }}

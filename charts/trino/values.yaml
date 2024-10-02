@@ -447,6 +447,15 @@ secretMounts: []
 # ```
 
 coordinator:
+  deployment:
+    progressDeadlineSeconds: ~
+    revisionHistoryLimit: ~
+    strategy: {}
+    #  rollingUpdate:
+    #    maxSurge: 25%
+    #    maxUnavailable: 25%
+    #  type: RollingUpdate
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
@@ -587,6 +596,15 @@ coordinator:
   #    path: /secrets/sample.json
 
 worker:
+  deployment:
+    progressDeadlineSeconds: ~
+    revisionHistoryLimit: ~
+    strategy: {}
+    #  rollingUpdate:
+    #    maxSurge: 25%
+    #    maxUnavailable: 25%
+    #  type: RollingUpdate
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
