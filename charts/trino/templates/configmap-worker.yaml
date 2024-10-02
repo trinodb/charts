@@ -1,3 +1,4 @@
+{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
 {{- if gt (int .Values.server.workers) 0 }}
 apiVersion: v1
 kind: ConfigMap
@@ -44,6 +45,9 @@ data:
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
     {{ $configValue }}
   {{- end }}
+  {{- if $workerJmx.enabled }}
+    -Dcom.sun.management.jmxremote.rmi.port={{- $workerJmx.serverPort }}
+  {{- end }}
 
   config.properties: |
     coordinator=false
@@ -57,9 +61,22 @@ data:
     {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
     {{- end }}
+    {{- if $workerJmx.enabled }}
+    jmx.rmiregistry.port={{- $workerJmx.registryPort }}
+    jmx.rmiserver.port={{- $workerJmx.serverPort }}
+    {{- end }}
+    {{- if .Values.worker.gracefulShutdown.enabled }}
+    shutdown.grace-period={{- .Values.worker.gracefulShutdown.gracePeriodSeconds -}}s
+    {{- end }}
     {{- if .Values.server.workerExtraConfig }}
     {{- .Values.server.workerExtraConfig | nindent 4 }}
     {{- end }}
+
+{{- if .Values.worker.gracefulShutdown.enabled }}
+  access-control.properties: |
+    access-control.name=file
+    security.config-file={{ .Values.server.config.path }}/access-control/graceful-shutdown-rules.json
+{{- end }}
 
 {{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
@@ -85,7 +102,7 @@ data:
 
 {{- range $fileName, $fileContent := .Values.worker.additionalConfigFiles }}
   {{ $fileName }}: |
-    {{- $fileContent | nindent 4 }}
+    {{- tpl $fileContent $ | nindent 4 }}
 {{- end }}
 ---
 apiVersion: v1

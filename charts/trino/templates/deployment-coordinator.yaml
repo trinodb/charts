@@ -1,3 +1,4 @@
+{{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,10 +7,15 @@ metadata:
   labels:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator
+    trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
     {{- if .Values.coordinator.labels }}
     {{- tpl (toYaml .Values.coordinator.labels) . | nindent 4 }}
     {{- end }}
 spec:
+  progressDeadlineSeconds: {{ .Values.coordinator.deployment.progressDeadlineSeconds }}
+  revisionHistoryLimit: {{ .Values.coordinator.deployment.revisionHistoryLimit }}
+  strategy:
+    {{- toYaml .Values.coordinator.deployment.strategy | nindent 4 }}
   selector:
     matchLabels:
       {{- include "trino.selectorLabels" . | nindent 6 }}
@@ -18,7 +24,7 @@ spec:
     metadata:
       annotations:
         {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
-        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control.yaml") . | sha256sum }}
+        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum }}
         {{- end }}
         {{- if or .Values.catalogs .Values.additionalCatalogs }}
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
@@ -31,6 +37,7 @@ spec:
       labels:
         {{- include "trino.labels" . | nindent 8 }}
         app.kubernetes.io/component: coordinator
+        trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
         {{- if .Values.coordinator.labels }}
         {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
         {{- end }}
@@ -79,10 +86,10 @@ spec:
                 path: group.db
               {{- end }}
         {{- end }}
-        {{- if .Values.jmx.exporter.enabled }}
+        {{- if $coordinatorJmx.exporter.enabled }}
         - name: jmx-exporter-config-volume
           configMap:
-            name: {{ template "trino.fullname" . }}-jmx-exporter-config
+            name: {{ template "trino.fullname" . }}-jmx-exporter-config-coordinator
         {{- end }}
         {{- range .Values.configMounts }}
         - name: {{ .name }}
@@ -111,8 +118,10 @@ spec:
       initContainers:
       {{- tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
       {{- end }}
+      {{- if .Values.imagePullSecrets}}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.coordinator.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}-coordinator
@@ -168,15 +177,13 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-            {{- with .Values.jmx }}
-            {{- if .enabled }}
+            {{- if $coordinatorJmx.enabled }}
             - name: jmx-registry
-              containerPort: {{ .registryPort }}
+              containerPort: {{ $coordinatorJmx.registryPort }}
               protocol: TCP
             - name: jmx-server
-              containerPort: {{ .serverPort }}
+              containerPort: {{ $coordinatorJmx.serverPort }}
               protocol: TCP
-            {{- end }}
             {{- end }}
           {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
             - name: {{ $value.name }}
@@ -204,30 +211,24 @@ spec:
             {{- toYaml .Values.coordinator.lifecycle | nindent 12 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
-      {{- with .Values.jmx.exporter }}
-      {{- if .enabled }}
+      {{- if $coordinatorJmx.exporter.enabled }}
         - name: jmx-exporter
-          image: {{ .image }}
-          imagePullPolicy: {{ .pullPolicy }}
-          {{- with .securityContext }}
+          image: {{ $coordinatorJmx.exporter.image }}
+          imagePullPolicy: {{ $coordinatorJmx.exporter.pullPolicy }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- toYaml $coordinatorJmx.exporter.securityContext | nindent 12 }}
           args:
-            - "{{ .port }}"
+            - "{{ $coordinatorJmx.exporter.port }}"
             - /etc/jmx-exporter/jmx-exporter-config.yaml
           volumeMounts:
             - mountPath: /etc/jmx-exporter/
               name: jmx-exporter-config-volume
-          {{- with .resources }}
           resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            {{- toYaml $coordinatorJmx.exporter.resources | nindent 12 }}
           ports:
             - name: jmx-exporter
-              containerPort: {{ .port }}
+              containerPort: {{ $coordinatorJmx.exporter.port }}
               protocol: TCP
-      {{- end }}
       {{- end }}
       {{- if .Values.sidecarContainers.coordinator }}
         {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}

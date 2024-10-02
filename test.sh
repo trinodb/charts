@@ -9,6 +9,7 @@ declare -A testCases=(
     [overrides]="--set coordinatorNameOverride=coordinator-overridden,workerNameOverride=worker-overridden,nameOverride=overridden"
     [access_control_properties_values]="--values test-access-control-properties-values.yaml"
     [exchange_manager_values]="--values test-exchange-manager-values.yaml"
+    [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
 )
 
 function join_by {
@@ -23,7 +24,7 @@ NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 HELM_EXTRA_SET_ARGS=
 CT_ARGS=(--charts=charts/trino --skip-clean-up --helm-extra-args="--timeout 2m")
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values)
+TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown)
 
 usage() {
     cat <<EOF 1>&2
@@ -94,6 +95,7 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
         --version "60.0.2" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+        --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
         --set grafana.enabled=false
     kubectl rollout status --watch deployments -l release=prometheus-operator -n "$NAMESPACE"
 fi

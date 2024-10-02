@@ -1,0 +1,27 @@
+{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "trino.fullname" . }}-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    {{- if $workerJmx.exporter.enabled }}
+    - port: {{$workerJmx.exporter.port }}
+      targetPort: jmx-exporter
+      protocol: TCP
+      name: jmx-exporter
+    {{- end }}
+  selector:
+    {{- include "trino.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: worker

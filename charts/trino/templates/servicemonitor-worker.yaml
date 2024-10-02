@@ -1,0 +1,24 @@
+{{- $workerServiceMonitor := merge .Values.serviceMonitor.worker (omit .Values.serviceMonitor "coordinator" "worker") -}}
+{{- if $workerServiceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "trino.fullname" . }}-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    {{- if $workerServiceMonitor.labels }}
+    {{- toYaml $workerServiceMonitor.labels | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: jmx-exporter
+      interval: {{ $workerServiceMonitor.interval }}
+{{- end }}

@@ -3,6 +3,7 @@
 # Declare variables to be passed into your templates.
 
 server:
+  workers: 2
   config:
     https:
       enabled: true
@@ -12,6 +13,8 @@ server:
   coordinatorExtraConfig: |
     query.client.timeout=5m
     query.execution-policy=phased
+  autoscaling:
+    enabled: true
 
 additionalConfigProperties:
   - internal-communication.shared-secret=random-value-999
@@ -21,9 +24,7 @@ additionalConfigProperties:
 service:
   annotations:
     custom/name: value
-  type: NodePort
   port: 8080
-  nodePort: 30080
 
 auth:
   # created using htpasswd -B -C 10 password.db admin
@@ -44,6 +45,15 @@ secretMounts:
     path: /etc/trino/certificates
 
 coordinator:
+  deployment:
+    progressDeadlineSeconds: 500
+    revisionHistoryLimit: 5
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 50%
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
@@ -73,6 +83,15 @@ coordinator:
       protocol: TCP
 
 worker:
+  deployment:
+    progressDeadlineSeconds: 500
+    revisionHistoryLimit: 5
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 50%
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
@@ -154,14 +173,14 @@ jmx:
     port: 5556
     configProperties: |
       startDelaySeconds: 0
-      hostPort: 127.0.0.1:9080
+      hostPort: 127.0.0.1:{{- .Values.jmx.registryPort }}
       rules:
         - pattern: 'trino.memory*'
         - pattern: 'trino.execution<name=QueryManager>*'
 
 serviceMonitor:
   enabled: true
-  selector:
+  labels:
     prometheus: default
   interval: "30s"
 
@@ -172,3 +191,13 @@ ingress:
       paths:
         - path: /
           pathType: ImplementationSpecific
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: test
+                operator: NotIn
+                values: [network-policy]
