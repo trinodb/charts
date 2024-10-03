@@ -3,6 +3,7 @@
 # Declare variables to be passed into your templates.
 
 server:
+  workers: 2
   config:
     https:
       enabled: true
@@ -12,6 +13,8 @@ server:
   coordinatorExtraConfig: |
     query.client.timeout=5m
     query.execution-policy=phased
+  autoscaling:
+    enabled: true
 
 additionalConfigProperties:
   - internal-communication.shared-secret=random-value-999
