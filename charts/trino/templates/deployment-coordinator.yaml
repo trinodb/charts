@@ -111,8 +111,10 @@ spec:
       initContainers:
       {{- tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
       {{- end }}
+      {{- if .Values.imagePullSecrets}}
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.coordinator.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}-coordinator

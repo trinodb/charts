@@ -39,7 +39,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   When true, only the content in `repository` is used as image reference
 * `image.pullPolicy` - string, default: `"IfNotPresent"`
-* `imagePullSecrets[0].name` - string, default: `"registry-credentials"`
+* `imagePullSecrets` - object, default: `{}`  
+
+  An optional list of references to secrets in the same namespace to use for pulling images.
+  Example:
+  ```yaml
+  imagePullSecrets:
+    - name: registry-credentials
+  ```
 * `server.workers` - int, default: `2`
 * `server.node.environment` - string, default: `"production"`
 * `server.node.dataDir` - string, default: `"/data/trino"`
