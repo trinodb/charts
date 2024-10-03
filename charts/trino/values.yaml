@@ -35,7 +35,7 @@ image:
 # imagePullSecrets:
 #   - name: registry-credentials
 # ```
-imagePullSecrets: {}
+imagePullSecrets: []
 
 server:
   workers: 2
