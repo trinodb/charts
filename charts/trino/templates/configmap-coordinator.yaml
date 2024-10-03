@@ -149,7 +149,7 @@ data:
 
 {{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
   {{ $fileName }}: |
-    {{- $fileContent | nindent 4 }}
+    {{- tpl $fileContent $ | nindent 4 }}
 {{- end }}
 {{- if .Values.resourceGroups }}
 ---

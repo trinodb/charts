@@ -467,11 +467,11 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.affinity` - object, default: `{}`
 * `coordinator.additionalConfigFiles` - object, default: `{}`  
 
-  Additional config files placed in the default configuration directory.
+  Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
   Example:
   ```yaml
   secret.txt: |
-    secret-value
+    secret-value={{- .Values.someValue }}
   ```
 * `coordinator.additionalVolumes` - list, default: `[]`  
 
@@ -583,11 +583,11 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.affinity` - object, default: `{}`
 * `worker.additionalConfigFiles` - object, default: `{}`  
 
-  Additional config files placed in the default configuration directory.
+  Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
   Example:
   ```yaml
   secret.txt: |
-    secret-value
+    secret-value={{- .Values.someValue }}
   ```
 * `worker.additionalVolumes` - list, default: `[]`  
 

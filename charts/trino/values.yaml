@@ -542,11 +542,12 @@ coordinator:
 
   additionalConfigFiles: {}
   # coordinator.additionalConfigFiles -- Additional config files placed in the default configuration directory.
+  # Supports templating the files' contents with `tpl`.
   # @raw
   # Example:
   # ```yaml
   # secret.txt: |
-  #   secret-value
+  #   secret-value={{- .Values.someValue }}
   # ```
 
   additionalVolumes: []
@@ -705,11 +706,12 @@ worker:
 
   additionalConfigFiles: {}
   # worker.additionalConfigFiles -- Additional config files placed in the default configuration directory.
+  # Supports templating the files' contents with `tpl`.
   # @raw
   # Example:
   # ```yaml
   # secret.txt: |
-  #   secret-value
+  #   secret-value={{- .Values.someValue }}
   # ```
 
   additionalVolumes: []
