@@ -85,7 +85,10 @@ server:
   autoscaling:
     enabled: false
     maxReplicas: 5
+    # -- Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU, set to an empty string.
     targetCPUUtilizationPercentage: 50
+    # -- Target average memory utilization, represented as a percentage of requested memory. To disable scaling based on memory, set to an empty string.
+    targetMemoryUtilizationPercentage: 80
     behavior: {}
     # server.autoscaling.behavior -- Configuration for scaling up and down.
     # @raw

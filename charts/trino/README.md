@@ -83,7 +83,12 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.coordinatorExtraConfig` - string, default: `""`
 * `server.autoscaling.enabled` - bool, default: `false`
 * `server.autoscaling.maxReplicas` - int, default: `5`
-* `server.autoscaling.targetCPUUtilizationPercentage` - int, default: `50`
+* `server.autoscaling.targetCPUUtilizationPercentage` - int, default: `50`  
+
+  Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU, set to an empty string.
+* `server.autoscaling.targetMemoryUtilizationPercentage` - int, default: `80`  
+
+  Target average memory utilization, represented as a percentage of requested memory. To disable scaling based on memory, set to an empty string.
 * `server.autoscaling.behavior` - object, default: `{}`  
 
   Configuration for scaling up and down.
