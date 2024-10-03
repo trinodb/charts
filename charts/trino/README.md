@@ -46,7 +46,6 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.node.pluginDir` - string, default: `"/usr/lib/trino/plugin"`
 * `server.log.trino.level` - string, default: `"INFO"`
 * `server.config.path` - string, default: `"/etc/trino"`
-* `server.config.http.port` - int, default: `8080`
 * `server.config.https.enabled` - bool, default: `false`
 * `server.config.https.port` - int, default: `8443`
 * `server.config.https.keystore.path` - string, default: `""`
