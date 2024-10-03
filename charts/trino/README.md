@@ -39,7 +39,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   When true, only the content in `repository` is used as image reference
 * `image.pullPolicy` - string, default: `"IfNotPresent"`
-* `imagePullSecrets` - object, default: `{}`  
+* `imagePullSecrets` - list, default: `[]`  
 
   An optional list of references to secrets in the same namespace to use for pulling images.
   Example:
