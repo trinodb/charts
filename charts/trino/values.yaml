@@ -28,8 +28,14 @@ image:
   useRepositoryAsSoleImageReference: false
   pullPolicy: IfNotPresent
 
-imagePullSecrets:
-  - name: registry-credentials
+# -- An optional list of references to secrets in the same namespace to use for pulling images.
+# @raw
+# Example:
+# ```yaml
+# imagePullSecrets:
+#   - name: registry-credentials
+# ```
+imagePullSecrets: {}
 
 server:
   workers: 2
