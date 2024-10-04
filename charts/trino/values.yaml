@@ -62,17 +62,17 @@ server:
   exchangeManager: {}
   # server.exchangeManager -- Mandatory [exchange manager
   # configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
+  # Used to set the name and location(s) of the spooling storage destination. To enable fault-tolerant execution,
+  # set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be
+  # added to `additionalExchangeManagerProperties`.
   # @raw
-  # Used to set the name and location(s) of the spooling storage destination.
-  # * To enable fault-tolerant execution, you must set the `retry-policy` property in `additionalConfigProperties`.
-  # * Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   # Example:
   # ```yaml
-  #  server:
-  #    exchangeManager:
-  #      name: "filesystem"
-  #      baseDir: "/tmp/trino-local-file-system-exchange-manager"
-  #  additionalConfigProperties:
+  # server:
+  #   exchangeManager:
+  #     name: "filesystem"
+  #     baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  # additionalConfigProperties:
   #   - retry-policy=TASK
   # additionalExchangeManagerProperties:
   #   - exchange.sink-buffer-pool-min-size=10
@@ -85,9 +85,11 @@ server:
   autoscaling:
     enabled: false
     maxReplicas: 5
-    # -- Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU, set to an empty string.
+    # -- Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU,
+    # set to an empty string.
     targetCPUUtilizationPercentage: 50
-    # -- Target average memory utilization, represented as a percentage of requested memory. To disable scaling based on memory, set to an empty string.
+    # -- Target average memory utilization, represented as a percentage of requested memory. To disable scaling
+    # based on memory, set to an empty string.
     targetMemoryUtilizationPercentage: 80
     behavior: {}
     # server.autoscaling.behavior -- Configuration for scaling up and down.
@@ -334,7 +336,8 @@ env: []
 # ```
 
 envFrom: []
-# envFrom -- additional environment variables added to every pod, specified as a list of either ConfigMap or Secret references
+# envFrom -- additional environment variables added to every pod, specified as a list of either `ConfigMap`
+# or `Secret` references
 # @raw
 # Example:
 # ```yaml
@@ -390,7 +393,9 @@ containerSecurityContext:
   # -- Control whether a process can gain more privileges than its parent process.
   allowPrivilegeEscalation: false
   capabilities:
-    # -- A list of the Linux kernel capabilities that are dropped from every container. Valid values are listed at https://man7.org/linux/man-pages/man7/capabilities.7.html Ensure to remove the "CAP_" prefix which the kernel attaches to the names of permissions.
+    # -- A list of the Linux kernel capabilities that are dropped from every container. Valid values are listed in
+    # [the capabilities manual page](https://man7.org/linux/man-pages/man7/capabilities.7.html). Ensure # to remove
+    # the "CAP_" prefix which the kernel attaches to the names of permissions.
     drop:
       - ALL
 
@@ -402,7 +407,9 @@ service:
   annotations: {}
   type: ClusterIP
   port: 8080
-  # service.nodePort -- The port the service listens on the host, for NodePort type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+  # service.nodePort -- The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will
+  # [allocate a port
+  # automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
   nodePort: ""
 
 auth: {}
@@ -684,12 +691,11 @@ worker:
     enabled: false
     gracePeriodSeconds: 120
   # worker.gracefulShutdown -- Configure [graceful
-  # shutdown](https://trino.io/docs/current/admin/graceful-shutdown.html)
-  # in order to ensure that workers terminate without affecting running queries,
-  # given a sufficient grace period.
-  # When enabled, the value of `worker.terminationGracePeriodSeconds` must be at least two times greater than the configured `gracePeriodSeconds`.
-  # Enabling `worker.gracefulShutdown` conflicts with `worker.lifecycle`. When a custom
-  # `worker.lifecycle` configuration needs to be used, graceful shutdown must be configured manually.
+  # shutdown](https://trino.io/docs/current/admin/graceful-shutdown.html) in order to ensure that workers terminate
+  # without affecting running queries, given a sufficient grace period. When enabled, the value of
+  # `worker.terminationGracePeriodSeconds` must be at least two times greater than the configured `gracePeriodSeconds`.
+  # Enabling `worker.gracefulShutdown` conflicts with `worker.lifecycle`. When a custom `worker.lifecycle` configuration
+  # needs to be used, graceful shutdown must be configured manually.
   #
   # @raw
   # Example:
@@ -815,7 +821,8 @@ jmx:
     pullPolicy: Always
     port: 5556
     configProperties: ""
-    # jmx.exporter.configProperties -- The string value is templated using `tpl`. JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+    # jmx.exporter.configProperties -- The string value is templated using `tpl`. The JMX config properties file
+    # is mounted to `/etc/jmx-exporter/jmx-exporter-config.yaml`.
     # @raw
     # Example:
     # ```yaml
@@ -839,6 +846,7 @@ jmx:
     #         value: '$2'
     #         help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
     #         type: UNTYPED
+    # ```
     securityContext: {}
     resources: {}
     # jmx.exporter.resources -- It is recommended not to specify default resources
@@ -882,7 +890,8 @@ jmx:
   # ```
 
 serviceMonitor:
-  # serviceMonitor.enabled -- Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
+  # serviceMonitor.enabled -- Set to true to create resources for the
+  # [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
   enabled: false
   # serviceMonitor.labels -- Labels for serviceMonitor, so that Prometheus can select it
   labels:
