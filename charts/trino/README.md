@@ -1,6 +1,6 @@
 # trino
 
-![Version: 0.30.0](https://img.shields.io/badge/Version-0.30.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 459](https://img.shields.io/badge/AppVersion-459-informational?style=flat-square)
+![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 460](https://img.shields.io/badge/AppVersion-460-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -62,17 +62,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.config.query.maxMemory` - string, default: `"4GB"`
 * `server.exchangeManager` - object, default: `{}`  
 
-  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
-  Used to set the name and location(s) of the spooling storage destination.
-  * To enable fault-tolerant execution, you must set the `retry-policy` property in `additionalConfigProperties`.
-  * Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of the spooling storage destination. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   Example:
   ```yaml
-   server:
-     exchangeManager:
-       name: "filesystem"
-       baseDir: "/tmp/trino-local-file-system-exchange-manager"
-   additionalConfigProperties:
+  server:
+    exchangeManager:
+      name: "filesystem"
+      baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  additionalConfigProperties:
     - retry-policy=TASK
   additionalExchangeManagerProperties:
     - exchange.sink-buffer-pool-min-size=10
@@ -306,7 +303,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `envFrom` - list, default: `[]`  
 
-  additional environment variables added to every pod, specified as a list of either ConfigMap or Secret references
+  additional environment variables added to every pod, specified as a list of either `ConfigMap` or `Secret` references
   Example:
   ```yaml
     - secretRef:
@@ -354,7 +351,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   Control whether a process can gain more privileges than its parent process.
 * `containerSecurityContext.capabilities.drop` - list, default: `["ALL"]`  
 
-  A list of the Linux kernel capabilities that are dropped from every container. Valid values are listed at https://man7.org/linux/man-pages/man7/capabilities.7.html Ensure to remove the "CAP_" prefix which the kernel attaches to the names of permissions.
+  A list of the Linux kernel capabilities that are dropped from every container. Valid values are listed in [the capabilities manual page](https://man7.org/linux/man-pages/man7/capabilities.7.html). Ensure # to remove the "CAP_" prefix which the kernel attaches to the names of permissions.
 * `shareProcessNamespace.coordinator` - bool, default: `false`
 * `shareProcessNamespace.worker` - bool, default: `false`
 * `service.annotations` - object, default: `{}`
@@ -362,7 +359,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `service.port` - int, default: `8080`
 * `service.nodePort` - string, default: `""`  
 
-  The port the service listens on the host, for NodePort type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+  The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
 * `auth` - object, default: `{}`  
 
   Available authentication methods.
@@ -683,7 +680,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `jmx.exporter.port` - int, default: `5556`
 * `jmx.exporter.configProperties` - string, default: `""`  
 
-  The string value is templated using `tpl`. JMX Config Properties is mounted to /etc/jmx-exporter/jmx-exporter-config.yaml
+  The string value is templated using `tpl`. The JMX config properties file is mounted to `/etc/jmx-exporter/jmx-exporter-config.yaml`.
   Example:
   ```yaml
    configProperties: |-
@@ -706,6 +703,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
           value: '$2'
           help: 'ThreadCount (java.lang<type=Threading><>ThreadCount)'
           type: UNTYPED
+  ```
 * `jmx.exporter.securityContext` - object, default: `{}`
 * `jmx.exporter.resources` - object, default: `{}`  
 
