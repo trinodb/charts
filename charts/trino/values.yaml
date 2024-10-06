@@ -948,3 +948,51 @@ ingress:
   #    hosts:
   #      - chart-example.local
   # ```
+
+networkPolicy:
+  # networkPolicy.enabled -- Set to true to enable Trino pod protection with a
+  # [NetworkPolicy](https://kubernetes.io/docs/concepts/services-networking/network-policies/).
+  # By default, the NetworkPolicy will only allow Trino pods to communicate with each other.
+  # @raw
+  # > [!NOTE]
+  # > - NetworkPolicies cannot block the ingress traffic coming directly
+  # > from the Kubernetes node on which the Pod is running,
+  # > and are thus incompatible with services of type `NodePort`.
+  # > - When using NetworkPolicies together with JMX metrics export,
+  # > additional ingress rules might be required to allow metric scraping.
+  enabled: false
+  # networkPolicy.ingress -- Additional ingress rules to apply to the Trino pods.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - from:
+  #      - ipBlock:
+  #          cidr: 172.17.0.0/16
+  #          except:
+  #            - 172.17.1.0/24
+  #      - namespaceSelector:
+  #          matchLabels:
+  #            kubernetes.io/metadata.name: prometheus
+  #      - podSelector:
+  #          matchLabels:
+  #            role: backend-app
+  #    ports:
+  #      - protocol: TCP
+  #        port: 8080
+  #      - protocol: TCP
+  #        port: 5556
+  # ```
+  ingress: []
+  # networkPolicy.egress -- Egress rules to apply to the Trino pods.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - to:
+  #      - podSelector:
+  #          matchLabels:
+  #            role: log-ingestor
+  #    ports:
+  #      - protocol: TCP
+  #        port: 9999
+  # ```
+  egress: []

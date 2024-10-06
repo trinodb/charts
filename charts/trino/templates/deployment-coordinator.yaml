@@ -7,6 +7,7 @@ metadata:
   labels:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator
+    trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
     {{- if .Values.coordinator.labels }}
     {{- tpl (toYaml .Values.coordinator.labels) . | nindent 4 }}
     {{- end }}
@@ -32,6 +33,7 @@ spec:
       labels:
         {{- include "trino.labels" . | nindent 8 }}
         app.kubernetes.io/component: coordinator
+        trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
         {{- if .Values.coordinator.labels }}
         {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
         {{- end }}
