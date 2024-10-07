@@ -45,6 +45,15 @@ secretMounts:
     path: /etc/trino/certificates
 
 coordinator:
+  deployment:
+    progressDeadlineSeconds: 500
+    revisionHistoryLimit: 5
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 50%
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
@@ -74,6 +83,15 @@ coordinator:
       protocol: TCP
 
 worker:
+  deployment:
+    progressDeadlineSeconds: 500
+    revisionHistoryLimit: 5
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 50%
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
