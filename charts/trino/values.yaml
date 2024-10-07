@@ -461,6 +461,23 @@ secretMounts: []
 # ```
 
 coordinator:
+  deployment:
+    progressDeadlineSeconds: 600
+    # coordinator.deployment.progressDeadlineSeconds -- The maximum time in seconds for a deployment to make progress before it
+    # is considered failed. The deployment controller continues to
+    # process failed deployments and a condition with a ProgressDeadlineExceeded
+    # reason is surfaced in the deployment status.
+
+    revisionHistoryLimit: 10
+    # coordinator.deployment.revisionHistoryLimit -- The number of old ReplicaSets to retain to allow rollback.
+
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+    # coordinator.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
@@ -604,6 +621,23 @@ coordinator:
   # ```
 
 worker:
+  deployment:
+    progressDeadlineSeconds: 600
+    # worker.deployment.progressDeadlineSeconds -- The maximum time in seconds for a deployment to make progress before it
+    # is considered failed. The deployment controller continues to
+    # process failed deployments and a condition with a ProgressDeadlineExceeded
+    # reason is surfaced in the deployment status.
+
+    revisionHistoryLimit: 10
+    # worker.deployment.revisionHistoryLimit -- The number of old ReplicaSets to retain to allow rollback.
+
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+    # worker.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:

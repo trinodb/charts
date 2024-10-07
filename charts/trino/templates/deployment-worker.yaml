@@ -13,6 +13,10 @@ metadata:
     {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
     {{- end }}
 spec:
+  progressDeadlineSeconds: {{ .Values.worker.deployment.progressDeadlineSeconds }}
+  revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
+  strategy:
+    {{- toYaml .Values.worker.deployment.strategy | nindent 4 }}
   {{- if not .Values.server.autoscaling.enabled }}
   replicas: {{ .Values.server.workers }}
   {{- end }}
