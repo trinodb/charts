@@ -24,12 +24,18 @@ spec:
       targetPort: jmx-exporter
       protocol: TCP
       name: jmx-exporter
+      {{- if $coordinatorJmx.exporter.nodePort }}
+      nodePort: {{ $coordinatorJmx.exporter.nodePort }}
+      {{- end }}
     {{- end }}
     {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
     - port: {{ $value.servicePort }}
       name: {{ $value.name }}
       targetPort: {{ $value.port }}
       protocol: {{ $value.protocol }}
+      {{- if $value.nodePort }}
+      nodePort: {{ $value.nodePort }}
+      {{- end }}
     {{- end }}
   selector:
     {{- include "trino.selectorLabels" . | nindent 4 }}
