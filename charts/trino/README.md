@@ -403,6 +403,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      secretName: sample-secret
      path: /secrets/sample.json
   ```
+* `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
+
+  The maximum time in seconds for a deployment to make progress before it is considered failed. The deployment controller continues to process failed deployments and a condition with a ProgressDeadlineExceeded reason is surfaced in the deployment status.
+* `coordinator.deployment.revisionHistoryLimit` - int, default: `10`  
+
+  The number of old ReplicaSets to retain to allow rollback.
+* `coordinator.deployment.strategy` - object, default: `{"rollingUpdate":{"maxSurge":"25%","maxUnavailable":"25%"},"type":"RollingUpdate"}`  
+
+  The deployment strategy to use to replace existing pods with new ones.
 * `coordinator.jvm.maxHeapSize` - string, default: `"8G"`
 * `coordinator.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `coordinator.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
@@ -510,6 +519,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      secretName: sample-secret
      path: /secrets/sample.json
   ```
+* `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
+
+  The maximum time in seconds for a deployment to make progress before it is considered failed. The deployment controller continues to process failed deployments and a condition with a ProgressDeadlineExceeded reason is surfaced in the deployment status.
+* `worker.deployment.revisionHistoryLimit` - int, default: `10`  
+
+  The number of old ReplicaSets to retain to allow rollback.
+* `worker.deployment.strategy` - object, default: `{"rollingUpdate":{"maxSurge":"25%","maxUnavailable":"25%"},"type":"RollingUpdate"}`  
+
+  The deployment strategy to use to replace existing pods with new ones.
 * `worker.jvm.maxHeapSize` - string, default: `"8G"`
 * `worker.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `worker.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
