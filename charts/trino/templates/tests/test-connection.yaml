@@ -9,6 +9,23 @@ metadata:
   annotations:
     "helm.sh/hook": test
 spec:
+  {{- if eq .Values.resourceGroups.type "properties" }}
+  initContainers:
+    - name: postgresql-client
+      image: bitnami/postgresql:17.1.0
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Inserting resource groups data";
+          PGUSER=trino PGPASSWORD=pass0000 psql -h trino-resource-groups-db-postgresql.postgresql.svc.cluster.local resource_groups <<SQL
+          -- create a root group 'admin' with NULL parent
+          INSERT INTO resource_groups (name, soft_memory_limit, hard_concurrency_limit, max_queued, scheduling_policy, environment)
+          VALUES ('admin', '100%', 50, 100, 'query_priority', 'production');
+          -- use ID of 'admin' resource group for selector
+          INSERT INTO selectors (resource_group_id, user_regex, priority) VALUES ((SELECT resource_group_id FROM resource_groups WHERE name = 'admin'), 'admin', 6);
+          SQL
+  {{- end }}
   containers:
     - name: cli
       image: {{ include "trino.image" . }}

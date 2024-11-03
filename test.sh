@@ -11,6 +11,7 @@ declare -A testCases=(
     [exchange_manager_values]="--values test-exchange-manager-values.yaml"
     [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
     [gateway]=""
+    [resource_groups_properties]="--values test-resource-groups-properties-values.yaml"
 )
 
 declare -A testCaseCharts=(
@@ -22,6 +23,7 @@ declare -A testCaseCharts=(
     [exchange_manager_values]="charts/trino"
     [graceful_shutdown]="charts/trino"
     [gateway]="charts/gateway"
+    [resource_groups_properties]="charts/trino"
 )
 
 function join_by {
@@ -33,13 +35,14 @@ function join_by {
 
 # default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
 NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
+DB_NAMESPACE=postgresql
 HELM_EXTRA_SET_ARGS=
 CT_ARGS=(
     --skip-clean-up
     --helm-extra-args="--timeout 2m"
 )
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown)
+TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown resource_groups_properties)
 
 usage() {
     cat <<EOF 1>&2
@@ -115,6 +118,18 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     kubectl rollout status --watch deployments -l release=prometheus-operator -n "$NAMESPACE"
 fi
 
+# only install the PostgreSQL Helm chart when running the `resource_groups_properties` test
+if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz resource_groups_properties; then
+    helm upgrade --install trino-resource-groups-db oci://registry-1.docker.io/bitnamicharts/postgresql -n "$DB_NAMESPACE" \
+        --create-namespace \
+        --version "16.2.1" \
+        --set auth.username=trino \
+        --set auth.password=pass0000 \
+        --set auth.database=resource_groups \
+        --set primary.persistence.enabled=false
+    kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql --timeout=300s -n "$DB_NAMESPACE"
+fi
+
 CT_ARGS+=(--namespace "$NAMESPACE")
 
 result=0
@@ -139,6 +154,8 @@ for test_name in "${TEST_NAMES[@]}"; do
 done
 
 if [ "$CLEANUP_NAMESPACE" == "true" ]; then
+    helm -n "$DB_NAMESPACE" uninstall trino-resource-groups-db --ignore-not-found
+    kubectl delete namespace "$DB_NAMESPACE" --ignore-not-found
     helm -n "$NAMESPACE" uninstall prometheus-operator --ignore-not-found
     kubectl delete namespace "$NAMESPACE"
     mapfile -t crds < <(kubectl api-resources --api-group=monitoring.coreos.com --output name)

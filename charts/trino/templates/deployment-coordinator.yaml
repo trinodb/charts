@@ -69,7 +69,7 @@ spec:
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
         {{- end }}
-        {{- if .Values.resourceGroups }}
+        {{- if eq .Values.resourceGroups.type "configmap" }}
         - name: resource-groups-volume
           configMap:
             name: {{ template "trino.fullname" . }}-resource-groups-volume-coordinator
@@ -150,7 +150,7 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}
-            {{- if .Values.resourceGroups }}
+            {{- if eq .Values.resourceGroups.type "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/resource-groups
               name: resource-groups-volume
             {{- end }}
