@@ -172,6 +172,66 @@ accessControl:
         ]
       }
 
+resourceGroups:
+  type: configmap
+  resourceGroupsConfig: |-
+    {
+      "rootGroups": [
+        {
+          "name": "global",
+          "softMemoryLimit": "80%",
+          "hardConcurrencyLimit": 100,
+          "maxQueued": 100,
+          "schedulingPolicy": "fair",
+          "jmxExport": true,
+          "subGroups": [
+            {
+              "name": "admin",
+              "softMemoryLimit": "30%",
+              "hardConcurrencyLimit": 20,
+              "maxQueued": 10
+            },
+            {
+              "name": "finance_human_resources",
+              "softMemoryLimit": "20%",
+              "hardConcurrencyLimit": 15,
+              "maxQueued": 10
+            },
+            {
+              "name": "general",
+              "softMemoryLimit": "30%",
+              "hardConcurrencyLimit": 20,
+              "maxQueued": 10
+            },
+            {
+              "name": "readonly",
+              "softMemoryLimit": "10%",
+              "hardConcurrencyLimit": 5,
+              "maxQueued": 5
+            }
+          ]
+        }
+      ],
+      "selectors": [
+        {
+          "user": "admin",
+          "group": "global.admin"
+        },
+        {
+          "group": "finance|human_resources",
+          "group": "global.finance_human_resources"
+        },
+        {
+          "user": "alice",
+          "group": "global.readonly"
+        },
+        {
+          "group": "global.general"
+        }
+      ]
+    }
+
+
 jmx:
   enabled: true
   registryPort: 9080

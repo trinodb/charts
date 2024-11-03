@@ -105,9 +105,20 @@ data:
 {{- end }}
 
 {{- if .Values.resourceGroups }}
+  {{- if eq .Values.resourceGroups.type "configmap" }}
   resource-groups.properties: |
     resource-groups.configuration-manager=file
     resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
+  {{- else if eq .Values.resourceGroups.type "properties" }}
+  resource-groups.properties: |
+    {{- if .Values.resourceGroups.properties }}
+    {{- .Values.resourceGroups.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "resourceGroups.properties is required when resourceGroups.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid resourceGroups.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
 {{- end }}
 
 {{- if .Values.server.exchangeManager }}
@@ -151,7 +162,7 @@ data:
   {{ $fileName }}: |
     {{- tpl $fileContent $ | nindent 4 }}
 {{- end }}
-{{- if .Values.resourceGroups }}
+{{- if eq .Values.resourceGroups.type "configmap" }}
 ---
 apiVersion: v1
 kind: ConfigMap
