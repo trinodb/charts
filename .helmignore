@@ -14,10 +14,12 @@
 *.swp
 *.bak
 *.tmp
+*.orig
 *~
 # Various IDEs
 .project
 .idea/
 *.tmproj
+.vscode/
 # helm-doc template
 README.md.gotmpl
