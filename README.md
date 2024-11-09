@@ -33,7 +33,9 @@ helm template my-trino trino/trino --namespace <YOUR_NAMESPACE>
 
 ## Documentation
 
-You can find documentation about the chart [here](./charts/trino/README.md).
+You can find documentation about the charts:
+* [Trino](./charts/trino/README.md).
+* [Trino Gateway](./charts/gateway/README.md).
 
 ## Development
 

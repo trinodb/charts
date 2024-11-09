@@ -10,6 +10,18 @@ declare -A testCases=(
     [access_control_properties_values]="--values test-access-control-properties-values.yaml"
     [exchange_manager_values]="--values test-exchange-manager-values.yaml"
     [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
+    [gateway]=""
+)
+
+declare -A testCaseCharts=(
+    [default]="charts/trino"
+    [single_node]="charts/trino"
+    [complete_values]="charts/trino"
+    [overrides]="charts/trino"
+    [access_control_properties_values]="charts/trino"
+    [exchange_manager_values]="charts/trino"
+    [graceful_shutdown]="charts/trino"
+    [gateway]="charts/gateway"
 )
 
 function join_by {
@@ -22,7 +34,10 @@ function join_by {
 # default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
 NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 HELM_EXTRA_SET_ARGS=
-CT_ARGS=(--charts=charts/trino --skip-clean-up --helm-extra-args="--timeout 2m")
+CT_ARGS=(
+    --skip-clean-up
+    --helm-extra-args="--timeout 2m"
+)
 CLEANUP_NAMESPACE=true
 TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown)
 
@@ -107,7 +122,7 @@ for test_name in "${TEST_NAMES[@]}"; do
     echo 1>&2 ""
     echo 1>&2 "🧪 Running test $test_name"
     echo 1>&2 ""
-    if ! time ct install "${CT_ARGS[@]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
+    if ! time ct install "${CT_ARGS[@]}" --charts="${testCaseCharts[$test_name]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
         echo 1>&2 "❌ Test $test_name failed"
         echo 1>&2 "Test logs:"
         kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test --all-containers=true

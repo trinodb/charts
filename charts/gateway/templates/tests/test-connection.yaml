@@ -4,6 +4,8 @@ metadata:
   name: "{{ include "trino-gateway.fullname" . }}-test-connection"
   labels:
     {{- include "trino-gateway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: connection
   annotations:
     "helm.sh/hook": test
 spec:

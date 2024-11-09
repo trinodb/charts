@@ -42,6 +42,7 @@ jobs:
           - { label: 435, args: '-a "--set image.tag=435"' }
           # skip cleanup to test deploying multiple releases in a single namespace
           - { label: overrides, args: '-s -t default,overrides' }
+          - { label: gateway, args: '-t gateway' }
     steps:
       - uses: actions/checkout@v4
       - name: Set up Helm
