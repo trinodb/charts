@@ -1,15 +1,15 @@
 replicaCount: 1
 
 image:
-    repository: "trinodb/trino-gateway"
-    pullPolicy: IfNotPresent
-    # Override the image tag whose default is the chart appVersion.
-    #tag: "10-SNAPSHOT"
+  repository: "trinodb/trino-gateway"
+  pullPolicy: IfNotPresent
+  # Override the image tag whose default is the chart appVersion.
+  #tag: "10-SNAPSHOT"
 
-    # For local testing
-    #repository: "trino-gateway"
-    #pullPolicy: IfNotPresent
-    #tag: "8-SNAPSHOT"
+  # For local testing
+  #repository: "trino-gateway"
+  #pullPolicy: IfNotPresent
+  #tag: "8-SNAPSHOT"
 
 imagePullSecrets: []
 
@@ -17,40 +17,40 @@ imagePullSecrets: []
 # be left undefined if dataStore is defined under the config node. For production deployments
 # sensitive values should be stored in a Secret
 dataStoreSecret:
-    name: ""
-    key: ""
+  name: ""
+  key: ""
 
 # Provide configuration for the Trino Gateway backendState in backendStateSecret. This should
 # be used with health check configurations that require backend credentials. This node can
 # be left undefined if dataStore is defined under the config node.
 backendStateSecret:
-    name: ""
-    key: ""
+  name: ""
+  key: ""
 
 # Provide configuration for the Trino Gateway authentication configuration in authenticationSecret.
 # This node can be left undefined if dataStore is defined under the config node.
 authenticationSecret:
-    name: ""
-    key: ""
+  name: ""
+  key: ""
 
 config:
-    serverConfig:
-        node.environment: test
-        http-server.http.port: 8080
-    dataStore:
-        # The connection details for the backend database for Trino Gateway and Trino query history
-        jdbcUrl: jdbc:postgresql://localhost:5432/gateway
-        user: postgres
-        password: mysecretpassword
-        driver: org.postgresql.Driver
-    clusterStatsConfiguration:
-        monitorType: INFO_API
-    modules:
-        - io.trino.gateway.ha.module.HaGatewayProviderModule
-        - io.trino.gateway.ha.module.ClusterStateListenerModule
-        - io.trino.gateway.ha.module.ClusterStatsMonitorModule
-    managedApps:
-        - io.trino.gateway.ha.clustermonitor.ActiveClusterMonitor
+  serverConfig:
+    node.environment: test
+    http-server.http.port: 8080
+  dataStore:
+    # The connection details for the backend database for Trino Gateway and Trino query history
+    jdbcUrl: jdbc:postgresql://localhost:5432/gateway
+    user: postgres
+    password: mysecretpassword
+    driver: org.postgresql.Driver
+  clusterStatsConfiguration:
+    monitorType: INFO_API
+  modules:
+    - io.trino.gateway.ha.module.HaGatewayProviderModule
+    - io.trino.gateway.ha.module.ClusterStateListenerModule
+    - io.trino.gateway.ha.module.ClusterStatsMonitorModule
+  managedApps:
+    - io.trino.gateway.ha.clustermonitor.ActiveClusterMonitor
 
 # Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
 command:
@@ -69,8 +69,8 @@ ingress:
   enabled: false
   className: ""
   annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
   hosts:
     - host: chart-example.local
       paths:
@@ -140,12 +140,12 @@ securityContext: {}
 # runAsUser: 1000
 
 serviceAccount:
-    # Specifies whether a service account should be created
-    create: true
-    # Automatically mount a ServiceAccount's API credentials?
-    automount: true
-    # Annotations to add to the service account
-    annotations: {}
-    # The name of the service account to use.
-    # If not set and create is true, a name is generated using the fullname template
-    name: ""
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
