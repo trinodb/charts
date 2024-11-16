@@ -568,6 +568,18 @@ coordinator:
 
   affinity: {}
 
+  hostAliases:
+  # coordinator.hostAliases -- [Adding entries to Pod /etc/hosts with HostAliases] (https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/).
+  # @raw
+  # Example:
+  # ```yaml
+  #  - hostnames:
+  #    - name-1
+  #    - name-2
+  #    - name-3
+  #    ip: 1.1.1.1
+  # ```
+
   additionalConfigFiles: {}
   # coordinator.additionalConfigFiles -- Additional config files placed in the default configuration directory.
   # Supports templating the files' contents with `tpl`.
@@ -747,6 +759,18 @@ worker:
   tolerations: []
 
   affinity: {}
+
+  hostAliases: []
+  # worker.hostAliases -- [Adding entries to Pod /etc/hosts with HostAliases] (https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/).
+  # @raw
+  # Example:
+  # ```yaml
+  #  - hostnames:
+  #    - name-1
+  #    - name-2
+  #    - name-3
+  #    ip: 1.1.1.1
+  # ```
 
   additionalConfigFiles: {}
   # worker.additionalConfigFiles -- Additional config files placed in the default configuration directory.
