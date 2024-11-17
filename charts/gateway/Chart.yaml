@@ -2,7 +2,7 @@ apiVersion: v2
 name: trino-gateway
 description: A Helm chart for Trino Gateway
 type: application
-version: "12.0.0"
+version: "0.12.0"
 appVersion: "12"
 
 icon: https://trino.io/assets/images/logos/trino-gateway-small.png
