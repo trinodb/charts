@@ -175,9 +175,23 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `resourceGroups` - object, default: `{}`  
 
-  Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
-  Example:
+  [Resource groups control](https://trino.io/docs/current/admin/resource-groups.html)
+  Set the type property to either:
+  * `configmap`, and provide the Resource groups file contents in `resourceGroupsConfig`,
+  * `properties`, and provide configuration properties in `properties`.
+  Properties example:
   ```yaml
+   type: properties
+   properties: |
+     resource-groups.configuration-manager=db
+     resource-groups.config-db-url=jdbc:postgresql://trino-postgresql.postgresql.svc.cluster.local:3306/resource_groups
+     resource-groups.config-db-user=username
+     resource-groups.config-db-password=password
+  ```
+  Config map example:
+  ```yaml
+   type: configmap
+   # Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
    resourceGroupsConfig: |-
        {
          "rootGroups": [
