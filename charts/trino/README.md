@@ -403,6 +403,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      secretName: sample-secret
      path: /secrets/sample.json
   ```
+* `coordinator.deployment.annotations` - object, default: `{}`
 * `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
 
   The maximum time in seconds for a deployment to make progress before it is considered failed. The deployment controller continues to process failed deployments and a condition with a ProgressDeadlineExceeded reason is surfaced in the deployment status.
@@ -520,6 +521,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      secretName: sample-secret
      path: /secrets/sample.json
   ```
+* `worker.deployment.annotations` - object, default: `{}`
 * `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
 
   The maximum time in seconds for a deployment to make progress before it is considered failed. The deployment controller continues to process failed deployments and a condition with a ProgressDeadlineExceeded reason is surfaced in the deployment status.
