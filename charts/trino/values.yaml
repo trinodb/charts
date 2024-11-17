@@ -462,6 +462,7 @@ secretMounts: []
 
 coordinator:
   deployment:
+    annotations: {}
     progressDeadlineSeconds: 600
     # coordinator.deployment.progressDeadlineSeconds -- The maximum time in seconds for a deployment to make progress before it
     # is considered failed. The deployment controller continues to
@@ -623,6 +624,7 @@ coordinator:
 
 worker:
   deployment:
+    annotations: {}
     progressDeadlineSeconds: 600
     # worker.deployment.progressDeadlineSeconds -- The maximum time in seconds for a deployment to make progress before it
     # is considered failed. The deployment controller continues to

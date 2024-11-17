@@ -46,6 +46,8 @@ secretMounts:
 
 coordinator:
   deployment:
+    annotations:
+      custom/name: value
     progressDeadlineSeconds: 500
     revisionHistoryLimit: 5
     strategy:
@@ -82,8 +84,13 @@ coordinator:
       port: 8443
       protocol: TCP
 
+  annotations:
+    custom/name: value
+
 worker:
   deployment:
+    annotations:
+      custom/name: value
     progressDeadlineSeconds: 500
     revisionHistoryLimit: 5
     strategy:
@@ -103,6 +110,9 @@ worker:
       heapHeadroomPerNode: "2GB"
     query:
       maxMemoryPerNode: "2GB"
+
+  annotations:
+    custom/name: value
 
 commonLabels:
   extra-label: extra-value
