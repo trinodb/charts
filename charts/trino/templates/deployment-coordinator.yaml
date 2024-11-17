@@ -11,6 +11,8 @@ metadata:
     {{- if .Values.coordinator.labels }}
     {{- tpl (toYaml .Values.coordinator.labels) . | nindent 4 }}
     {{- end }}
+  annotations:
+    {{- toYaml .Values.coordinator.deployment.annotations | nindent 4 }}
 spec:
   progressDeadlineSeconds: {{ .Values.coordinator.deployment.progressDeadlineSeconds }}
   revisionHistoryLimit: {{ .Values.coordinator.deployment.revisionHistoryLimit }}

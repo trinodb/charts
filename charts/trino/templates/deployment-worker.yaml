@@ -12,6 +12,8 @@ metadata:
     {{- if .Values.worker.labels }}
     {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
     {{- end }}
+  annotations:
+    {{- toYaml .Values.worker.deployment.annotations | nindent 4 }}
 spec:
   progressDeadlineSeconds: {{ .Values.worker.deployment.progressDeadlineSeconds }}
   revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
