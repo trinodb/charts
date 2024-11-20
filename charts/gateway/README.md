@@ -55,6 +55,7 @@ A Helm chart for Trino Gateway
   Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
 * `service.type` - string, default: `"ClusterIP"`
 * `service.port` - int, default: `8080`
+* `service.annotations` - object, default: `{}`
 * `ingress.enabled` - bool, default: `false`
 * `ingress.className` - string, default: `""`
 * `ingress.annotations` - object, default: `{}`
