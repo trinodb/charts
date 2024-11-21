@@ -20,25 +20,15 @@ image:
 # ```
 imagePullSecrets: []
 
-# -- Provide configuration for the Trino Gateway `dataStore` in `dataStoreSecret`. This node can
-# be left undefined if `dataStore` is defined under the config node. For production deployments
-# sensitive values should be stored in a Secret
-dataStoreSecret:
-  name: ""
-  key: ""
-
-# -- Provide configuration for the Trino Gateway `backendState` in `backendStateSecret`. This should
-# be used with health check configurations that require backend credentials. This node can
-# be left undefined if `dataStore` is defined under the config node.
-backendStateSecret:
-  name: ""
-  key: ""
-
-# -- Provide configuration for the Trino Gateway authentication configuration in `authenticationSecret`.
-# This node can be left undefined if `dataStore` is defined under the config node.
-authenticationSecret:
-  name: ""
-  key: ""
+# -- A list of secrets and configmaps to mount into the init container as environment variables.
+# @raw
+# Example:
+# ```yaml
+# envFrom:
+#   - secretRef:
+#       name: password-secret
+# ```
+envFrom: []
 
 config:
   serverConfig:
