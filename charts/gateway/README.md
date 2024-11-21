@@ -28,15 +28,15 @@ A Helm chart for Trino Gateway
   imagePullSecrets:
     - name: registry-credentials
   ```
-* `dataStoreSecret` - object, default: `{"key":"","name":""}`  
+* `envFrom` - list, default: `[]`  
 
-  Provide configuration for the Trino Gateway `dataStore` in `dataStoreSecret`. This node can be left undefined if `dataStore` is defined under the config node. For production deployments sensitive values should be stored in a Secret
-* `backendStateSecret` - object, default: `{"key":"","name":""}`  
-
-  Provide configuration for the Trino Gateway `backendState` in `backendStateSecret`. This should be used with health check configurations that require backend credentials. This node can be left undefined if `dataStore` is defined under the config node.
-* `authenticationSecret` - object, default: `{"key":"","name":""}`  
-
-  Provide configuration for the Trino Gateway authentication configuration in `authenticationSecret`. This node can be left undefined if `dataStore` is defined under the config node.
+  A list of secrets and configmaps to mount into the init container as environment variables.
+  Example:
+  ```yaml
+  envFrom:
+    - secretRef:
+        name: password-secret
+  ```
 * `config.serverConfig."node.environment"` - string, default: `"test"`
 * `config.serverConfig."http-server.http.port"` - int, default: `8080`
 * `config.dataStore.jdbcUrl` - string, default: `"jdbc:postgresql://localhost:5432/gateway"`  
