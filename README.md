@@ -22,7 +22,7 @@ You can then run `helm search repo trino` to see the charts.
 Then you can install chart using:
 
 ```console
-helm install my-trino trino/trino --version 0.33.0
+helm install my-trino trino/trino --version 0.34.0
 ```
 
 Also, you can check the manifests using:
@@ -51,7 +51,7 @@ ct install
 
 To run tests with specific values:
 ```console
-ct install --helm-extra-set-args "--set image.tag=464"
+ct install --helm-extra-set-args "--set image.tag=465"
 ```
 
 Use the `test.sh` script to run a suite of tests, with different chart values.
