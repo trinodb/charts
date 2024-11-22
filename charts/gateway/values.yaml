@@ -104,12 +104,12 @@ ingress:
   # ```
 
 resources:
- limits:
-   cpu: 2
-   memory: 4Gi
- requests:
-   cpu: 2
-   memory: 4Gi
+  limits:
+    cpu: 2
+    memory: 4Gi
+  requests:
+    cpu: 2
+    memory: 4Gi
 
 autoscaling:
   enabled: false
