@@ -10,7 +10,6 @@ declare -A testCases=(
     [access_control_properties_values]="--values test-access-control-properties-values.yaml"
     [exchange_manager_values]="--values test-exchange-manager-values.yaml"
     [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
-    [gateway]=""
     [resource_groups_properties]="--values test-resource-groups-properties-values.yaml"
 )
 
@@ -22,7 +21,6 @@ declare -A testCaseCharts=(
     [access_control_properties_values]="charts/trino"
     [exchange_manager_values]="charts/trino"
     [graceful_shutdown]="charts/trino"
-    [gateway]="charts/gateway"
     [resource_groups_properties]="charts/trino"
 )
 

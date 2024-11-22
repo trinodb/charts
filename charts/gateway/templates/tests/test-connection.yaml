@@ -9,9 +9,45 @@ metadata:
   annotations:
     "helm.sh/hook": test
 spec:
+  initContainers:
+    - name: extract-persistence-sql
+      image: "trinodb/trino-gateway"
+      command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          cd /etc/persistence && \
+          jar -xvf /usr/lib/trino/gateway-ha-jar-with-dependencies.jar \
+          gateway-ha-persistence-postgres.sql
+      volumeMounts:
+        - name: persistence-sql
+          mountPath: /etc/persistence
+    - name: initialize-db
+      image: bitnami/postgresql:17.1.0
+      command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          echo "Initialize gateway schema";
+          PGPASSWORD=pass0000 psql \
+          -h gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local \
+          -U gateway -d gateway \
+          -f /etc/persistence/gateway-ha-persistence-postgres.sql
+      volumeMounts:
+        - name: persistence-sql
+          mountPath: /etc/persistence
   containers:
     - name: wget
       image: busybox
-      command: ['wget']
-      args: ['{{ include "trino-gateway.fullname" . }}:{{ .Values.service.port }}']
+      # Get the list of backends, which should return an empty list, "[]". For this test to pass
+      # the gateway must successfully connect to an initialized backend database
+      command:
+        - "sh"
+        - "-c"
+        - '[ "$(wget {{ include "trino-gateway.fullname" . }}:{{ .Values.service.port }}/entity/GATEWAY_BACKEND -O -)" = "[]" ]'
+  volumes:
+    - name: persistence-sql
+      emptyDir:
+        sizeLimit: 10Mi
+
   restartPolicy: Never
