@@ -783,6 +783,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `serviceMonitor.enabled` - bool, default: `false`  
 
   Set to true to create resources for the [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
+* `serviceMonitor.apiVersion` - string, default: `"monitoring.coreos.com/v1"`
 * `serviceMonitor.labels` - object, default: `{"prometheus":"kube-prometheus"}`  
 
   Labels for serviceMonitor, so that Prometheus can select it

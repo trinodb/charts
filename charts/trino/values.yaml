@@ -948,6 +948,8 @@ serviceMonitor:
   # serviceMonitor.enabled -- Set to true to create resources for the
   # [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
   enabled: false
+
+  apiVersion: monitoring.coreos.com/v1
   # serviceMonitor.labels -- Labels for serviceMonitor, so that Prometheus can select it
   labels:
     prometheus: kube-prometheus

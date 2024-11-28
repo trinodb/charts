@@ -1,6 +1,6 @@
 {{- $coordinatorServiceMonitor := merge .Values.serviceMonitor.coordinator (omit .Values.serviceMonitor "coordinator" "worker") -}}
 {{- if $coordinatorServiceMonitor.enabled -}}
-apiVersion: monitoring.coreos.com/v1
+apiVersion: {{ $coordinatorServiceMonitor.apiVersion }}
 kind: ServiceMonitor
 metadata:
   name: {{ template "trino.fullname" . }}
