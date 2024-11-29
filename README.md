@@ -3,13 +3,16 @@ Trino Community Kubernetes Helm Charts
 ===========
 [![CI/CD](https://github.com/trinodb/charts/actions/workflows/ci-cd.yaml/badge.svg?branch=main)](https://github.com/trinodb/charts/actions/workflows/ci-cd.yaml)
 
-Fast distributed SQL query engine for big data analytics that helps you explore your data universe
+A repository of Helm charts for the Trino community. The following charts are
+included:
 
+* [Trino](https://trino.io/)
+* [Trino Gateway](https://trinodb.github.io/trino-gateway)
 
 ## Usage
 
 [Helm](https://helm.sh) must be installed to use the charts.
-Please refer to Helm's [documentation](https://helm.sh/docs/) to get started.
+Refer to Helm's [documentation](https://helm.sh/docs/) to get started.
 
 Once Helm is set up properly, add the repo as follows:
 
@@ -33,9 +36,16 @@ helm template my-trino trino/trino --namespace <YOUR_NAMESPACE>
 
 ## Documentation
 
-You can find documentation about the charts:
-* [Trino](./charts/trino/README.md).
-* [Trino Gateway](./charts/gateway/README.md).
+Documentation about the chart values:
+
+* [Trino](./charts/trino/README.md)
+* [Trino Gateway](./charts/gateway/README.md)
+
+Other chart-related user documentation with more information about the specific
+project:
+
+* [Trino](https://trino.io/docs/current/installation/kubernetes.html)
+* [Trino Gateway](https://trinodb.github.io/trino-gateway/installation/#helm)
 
 ## Development
 
