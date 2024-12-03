@@ -38,13 +38,20 @@ spec:
           mountPath: /etc/persistence
   containers:
     - name: wget
-      image: busybox
+      image: alpine
       # Get the list of backends, which should return an empty list, "[]". For this test to pass
       # the gateway must successfully connect to an initialized backend database
       command:
         - "sh"
         - "-c"
-        - '[ "$(wget {{ include "trino-gateway.fullname" . }}:{{ .Values.service.port }}/entity/GATEWAY_BACKEND -O -)" = "[]" ]'
+        - |
+          [ 1 = 1 ]
+          {{- if index .Values "config" "serverConfig" "http-server.https.enabled" -}}
+             && [ "$(wget --no-check-certificate https://{{ include "trino-gateway.fullname" . }}:{{ index .Values "config" "serverConfig" "http-server.https.port"}}/entity/GATEWAY_BACKEND -O -)" = "[]" ]
+          {{- end }}
+          {{- if index .Values "config" "serverConfig" "http-server.http.enabled" -}}
+             && [ "$(wget http://{{ include "trino-gateway.fullname" . }}:{{ index .Values "config" "serverConfig" "http-server.http.port"}}/entity/GATEWAY_BACKEND -O -)" = "[]" ]
+          {{- end }}
   volumes:
     - name: persistence-sql
       emptyDir:
