@@ -39,6 +39,7 @@ A Helm chart for Trino Gateway
   ```
 * `config.serverConfig."node.environment"` - string, default: `"test"`
 * `config.serverConfig."http-server.http.port"` - int, default: `8080`
+* `config.serverConfig."http-server.http.enabled"` - bool, default: `true`
 * `config.dataStore.jdbcUrl` - string, default: `"jdbc:postgresql://localhost:5432/gateway"`  
 
   The connection details for the backend database for Trino Gateway and Trino query history
@@ -53,9 +54,27 @@ A Helm chart for Trino Gateway
 * `command` - list, default: `["java","-XX:MinRAMPercentage=80.0","-XX:MaxRAMPercentage=80.0","-jar","/usr/lib/trino/gateway-ha-jar-with-dependencies.jar","/etc/gateway/config.yaml"]`  
 
   Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
-* `service.type` - string, default: `"ClusterIP"`
-* `service.port` - int, default: `8080`
-* `service.annotations` - object, default: `{}`
+* `service` - object, default: `{"ports":[{"name":"gateway","protocol":"TCP"}],"type":"ClusterIP"}`  
+
+  Service for accessing the gateway. The contents of this dictionary are used  for the [service spec](https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport). The `port` and `targetPort` of the first element of the ports list will automatically be set to the value of `config.serverConfig."http-server.http[s].port"`. If both https and http ports are defined the https port is used. In this case, an additional service for the http port must be configured manually. Additional ports, such as for JMX or a Java Agent can be configured by adding elements to the ports list. The selector is also automatically configured. All other values are passed through as is.  Example configuration for exposing both https and http:
+  ```yaml
+   service:
+     type: NodePort
+     ports:
+       - protocol: TCP
+         name: request
+         nodePort: 30443
+         # targetPort and port will automatically pulled from serverConfig.http-server.https.port
+       - protocol: TCP
+         name: gateway-http
+         nodePort: 30080
+         port: 8080
+         # targetPort must be explicitly set to the same value as serverConfig.http-server.http.port
+         targetPort: 8080
+  ```
+* `serviceName` - string, default: `"trino-gateway"`  
+
+  Set a custom name for the gateway service
 * `ingress.enabled` - bool, default: `false`
 * `ingress.className` - string, default: `""`
 * `ingress.annotations` - object, default: `{}`

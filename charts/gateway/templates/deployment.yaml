@@ -1,3 +1,15 @@
+{{- $probePort := -1 }}
+{{- $probeScheme := "" }}
+{{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+{{- $probePort =  index .Values "config" "serverConfig" "http-server.http.port" }}
+{{- $probeScheme = "HTTP" }}
+{{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+{{  $probePort =  index .Values "config" "serverConfig" "http-server.https.port" }}
+{{- $probeScheme = "HTTPS" }}
+{{- else }}
+  {{- fail "Error: Either https or http must be enabled in serverConfig!" }}
+{{- end }}
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,21 +53,30 @@ spec:
           envFrom:
             {{- toYaml .Values.envFrom | nindent 12}}
           ports:
-            - name: request
+            {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+            - name: http
               containerPort: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
               protocol: TCP
+            {{- end }}
+            {{- if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+            - name: https
+              containerPort: {{ index .Values "config" "serverConfig" "http-server.https.port" }}
+              protocol: TCP
+            {{- end }}
           livenessProbe:
             httpGet:
-                path: /trino-gateway
-                port: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
+              path: /trino-gateway
+              port: {{ $probePort }}
+              scheme: {{ $probeScheme }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
           readinessProbe:
             httpGet:
-                path: /trino-gateway
-                port: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
+              path: /trino-gateway
+              port: {{ $probePort }}
+              scheme: {{ $probeScheme }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}

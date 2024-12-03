@@ -37,14 +37,29 @@ spec:
         - name: persistence-sql
           mountPath: /etc/persistence
   containers:
-    - name: wget
-      image: busybox
+    - name: curl
+      image: alpine
+      env:
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
       # Get the list of backends, which should return an empty list, "[]". For this test to pass
       # the gateway must successfully connect to an initialized backend database
       command:
         - "sh"
         - "-c"
-        - '[ "$(wget {{ include "trino-gateway.fullname" . }}:{{ .Values.service.port }}/entity/GATEWAY_BACKEND -O -)" = "[]" ]'
+        - |
+          apk add curl
+          {{- if eq .Values.service.type "NodePort" -}}
+             && [ "$(curl -k --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 https://${NODE_IP}:30443/entity/GATEWAY_BACKEND )" = "[]" ] && [ "$(curl --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 http://${NODE_IP}:30080/entity/GATEWAY_BACKEND )" = "[]" ]
+          {{- end }}
+          {{- if index .Values "config" "serverConfig" "http-server.https.enabled" -}}
+             && [ "$(curl -k --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 -v https://{{ .Values.serviceName }}:8443/entity/GATEWAY_BACKEND )" = "[]" ]
+          {{- end }}
+          {{- if index .Values "config" "serverConfig" "http-server.http.enabled" -}}
+             && [ "$(curl --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 -v http://{{ .Values.serviceName }}:8080/entity/GATEWAY_BACKEND )" = "[]" ]
+          {{- end }}
   volumes:
     - name: persistence-sql
       emptyDir:

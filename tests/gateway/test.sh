@@ -5,12 +5,18 @@ set -euo pipefail
 declare -A testCases=(
     [complete_values]="--values test-values.yaml"
     [env_from]="--values test-values-with-env.yaml"
+    [nodeport]="--values test-values.yaml --values test-https.yaml --values test-nodeport.yaml"
+    [https]="--values test-values.yaml --values test-https.yaml"
 )
 
 declare -A testCaseCharts=(
     [complete_values]="../../charts/gateway"
     [env_from]="../../charts/gateway"
+    [nodeport]="../../charts/gateway"
+    [https]="../../charts/gateway"
 )
+
+TEST_NAMES=(complete_values env_from nodeport https)
 
 function join_by {
     local d=${1-} f=${2-}
@@ -24,13 +30,21 @@ NAMESPACE=trino-gateway-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || 
 DB_NAMESPACE=postgres-gateway
 kubectl create namespace "${NAMESPACE}" --dry-run=client --output yaml | kubectl apply --filename -
 kubectl create namespace "${DB_NAMESPACE}" --dry-run=client --output yaml | kubectl apply --filename -
+
+echo 1>&2 "Generating a self-signed TLS certificate"
+NODE_IP=$(kubectl get nodes -o json  -o jsonpath='{.items[0].status.addresses[0].address}')
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+    -subj "/O=Trino Software Foundation" \
+    -addext "subjectAltName=DNS:trino-gateway,DNS:localhost,DNS:*.$NAMESPACE,DNS:*.$NAMESPACE.svc,DNS:*.$NAMESPACE.svc.cluster.local,IP:127.0.0.1,IP:${NODE_IP}" \
+    -keyout cert.key -out cert.crt
+kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
+
 HELM_EXTRA_SET_ARGS=
 CT_ARGS=(
     --skip-clean-up
-    --helm-extra-args="--timeout 2m"
+    --helm-extra-args="--timeout 4m"
 )
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(complete_values env_from)
 
 usage() {
     cat <<EOF 1>&2
@@ -96,6 +110,7 @@ for test_name in "${TEST_NAMES[@]}"; do
     echo 1>&2 ""
     echo 1>&2 "🧪 Running test $test_name"
     echo 1>&2 ""
+    HELM_EXTRA_SET_ARGS="$HELM_EXTRA_SET_ARGS --set=serviceName=trino-gateway-${test_name//_/-}"
     if ! time ct install "${CT_ARGS[@]}" --charts="${testCaseCharts[$test_name]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
         echo 1>&2 "❌ Test $test_name failed"
         echo 1>&2 "Test logs:"

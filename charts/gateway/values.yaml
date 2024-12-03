@@ -34,6 +34,7 @@ config:
   serverConfig:
     node.environment: test
     http-server.http.port: 8080
+    http-server.http.enabled: true
   dataStore:
     # -- The connection details for the backend database for Trino Gateway and Trino query history
     jdbcUrl: jdbc:postgresql://localhost:5432/gateway
@@ -58,10 +59,42 @@ command:
   - "/usr/lib/trino/gateway-ha-jar-with-dependencies.jar"
   - "/etc/gateway/config.yaml"
 
+# -- Service for accessing the gateway. The contents of this dictionary are used
+#  for the [service spec](https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport).
+# The `port` and `targetPort` of the first element
+# of the ports list will automatically be set to the value of
+# `config.serverConfig."http-server.http[s].port"`. If both https and http ports are defined
+# the https port is used. In this case, an additional service for the http port must be
+# configured manually. Additional ports, such as for JMX or a Java Agent
+# can be configured by adding elements to the ports list. The selector is
+# also automatically configured. All other values are passed through as is.
+#
+# Example configuration for exposing both https and http:
+# @raw
+# ```yaml
+#  service:
+#    type: NodePort
+#    ports:
+#      - protocol: TCP
+#        name: request
+#        nodePort: 30443
+#        # targetPort and port will automatically pulled from serverConfig.http-server.https.port
+#      - protocol: TCP
+#        name: gateway-http
+#        nodePort: 30080
+#        port: 8080
+#        # targetPort must be explicitly set to the same value as serverConfig.http-server.http.port
+#        targetPort: 8080
+# ```
+
 service:
   type: ClusterIP
-  port: 8080
-  annotations: {}
+  ports:
+    - protocol: TCP
+      name: gateway
+
+# -- Set a custom name for the gateway service
+serviceName: trino-gateway
 
 ingress:
   enabled: false

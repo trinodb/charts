@@ -1,18 +1,28 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "trino-gateway.fullname" . }}
+  name: {{ .Values.serviceName }}
   labels:
     {{- include "trino-gateway.labels" . | nindent 4 }}
-  {{- with .Values.service.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
-      protocol: TCP
-      name: request
-  selector:
-    {{- include "trino-gateway.selectorLabels" . | nindent 4 }}
+{{- $gatewayPort := "" }}
+{{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+    {{- $gatewayPort = index .Values "config" "serverConfig" "http-server.http.port" }}
+{{- end }}
+{{- if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+{{- $gatewayPort = index .Values "config" "serverConfig" "http-server.https.port" }}
+{{- end }}
+{{- if empty $gatewayPort }}
+{{- fail "Error: No port defined in serverConfig!" $gatewayPort }}
+{{- end}}
+{{- $portDefault := dict "port" $gatewayPort "targetPort" $gatewayPort }}
+{{- $portValues := .Values.service.ports | default list | first | default $portDefault}}
+{{- $_0 := set $portValues "port" $gatewayPort}}
+{{- $_1 := set $portValues "targetPort" $gatewayPort}}
+{{- $ports := list $portValues }}
+{{- $additionalPorts := .Values.service.ports | default list | rest }}
+{{- $allPorts := concat $ports $additionalPorts}}
+{{- $spec := .Values.service }}
+{{- $_2 := set $spec "ports" $allPorts }}
+{{- $selectorLabels := include "trino-gateway.selectorLabels" . | fromYaml }}
+{{- $_3 := set $spec "selector" $selectorLabels }}
+spec: {{ $spec | toYaml | nindent 2}}
