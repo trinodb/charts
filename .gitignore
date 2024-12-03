@@ -1,3 +1,3 @@
 .idea/*
-cert.key
-cert.crt
+tests/trino/cert.key
+tests/trino/cert.crt

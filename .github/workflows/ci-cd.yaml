@@ -55,7 +55,7 @@ jobs:
         with:
           version: v0.24.0
       - name: Run tests
-        run: ./test.sh ${{ matrix.args }}
+        run: ./tests/trino/test.sh ${{ matrix.args }}
 
   test-gateway:
     runs-on: ubuntu-latest

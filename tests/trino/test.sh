@@ -14,14 +14,14 @@ declare -A testCases=(
 )
 
 declare -A testCaseCharts=(
-    [default]="charts/trino"
-    [single_node]="charts/trino"
-    [complete_values]="charts/trino"
-    [overrides]="charts/trino"
-    [access_control_properties_values]="charts/trino"
-    [exchange_manager_values]="charts/trino"
-    [graceful_shutdown]="charts/trino"
-    [resource_groups_properties]="charts/trino"
+    [default]="../../charts/trino"
+    [single_node]="../../charts/trino"
+    [complete_values]="../../charts/trino"
+    [overrides]="../../charts/trino"
+    [access_control_properties_values]="../../charts/trino"
+    [exchange_manager_values]="../../charts/trino"
+    [graceful_shutdown]="../../charts/trino"
+    [resource_groups_properties]="../../charts/trino"
 )
 
 function join_by {
