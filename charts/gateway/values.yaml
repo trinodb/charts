@@ -68,9 +68,16 @@ command:
   - "/usr/lib/trino/gateway-ha-jar-with-dependencies.jar"
   - "/etc/gateway/config.yaml"
 
+# -- service for accessing the gateway. The `port` and `targetPort` of the first element of the ports list will
+# automatically be set to the value of `config.serverConfig."http-server.http.port"`. Additional ports (for JMX
+# or a Java Agent for example) can be configured by adding additional elements to the ports list. The selector is
+# also automatically configured. All other values are passed through as is.
 service:
-  type: ClusterIP
-  port: 8080
+  spec:
+    type: ClusterIP
+    ports:
+      - protocol: TCP
+        name: request
 
 ingress:
   enabled: false
