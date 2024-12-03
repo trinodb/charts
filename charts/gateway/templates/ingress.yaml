@@ -1,6 +1,16 @@
+
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "trino-gateway.fullname" . -}}
-{{- $svcPort := .Values.service.port -}}
+{{- $fullName := .Values.serviceName -}}
+{{- $svcPort := -1 }}
+{{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+  {{- $svcPort =  index .Values "config" "serverConfig" "http-server.http.port" }}
+{{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+  {{  $svcPort =  index .Values "config" "serverConfig" "http-server.https.port" }}
+{{- else }}
+  {{- fail "Error: Either https or http must be enabled in serverConfig!" }}
+{{- end }}
+
+(index .Values "config" "serverConfig" "http-server.http.port") -}}
 {{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}
