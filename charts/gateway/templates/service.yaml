@@ -4,11 +4,16 @@ metadata:
   name: {{ include "trino-gateway.fullname" . }}
   labels:
     {{- include "trino-gateway.labels" . | nindent 4 }}
-spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
-      protocol: TCP
-      name: request
-  selector:
-    {{- include "trino-gateway.selectorLabels" . | nindent 4 }}
+{{- $httpPort := index .Values "config" "serverConfig" "http-server.http.port" }}
+{{- $portDefault := dict "port" $httpPort "targetPort" $httpPort }}
+{{- $portValues := .Values.service.spec.ports | default list | first | default $portDefault}}
+{{- $_0 := set $portValues "port" $httpPort}}
+{{- $_1 := set $portValues "targetPort" $httpPort}}
+{{- $ports := list $portValues }}
+{{- $additionalPorts := .Values.service.spec.ports | default list | rest }}
+{{- $allPorts := concat $ports $additionalPorts}}
+{{- $spec := .Values.service.spec }}
+{{- $_2 := set $spec "ports" $allPorts }}
+{{- $selectorLabels := include "trino-gateway.selectorLabels" . | fromYaml }}
+{{- $_3 := set $spec "selector" $selectorLabels }}
+spec: {{ $spec | toYaml | nindent 2}}

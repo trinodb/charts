@@ -13,5 +13,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "trino-gateway.fullname" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "trino-gateway.fullname" . }}:{{ index .Values.config.serverConfig "http-server.http.port" }}']
   restartPolicy: Never
