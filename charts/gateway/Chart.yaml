@@ -7,10 +7,10 @@ appVersion: "12"
 
 icon: https://trino.io/assets/images/logos/trino-gateway-small.png
 
-home: https://trino.io/
+home: https://trinodb.github.io/trino-gateway/
 sources:
   - https://github.com/trinodb/charts
-  - https://github.com/trinodb/trino-gateway/tree/master/docker
+  - https://github.com/trinodb/trino-gateway
 
 maintainers:
   - name: Trino community

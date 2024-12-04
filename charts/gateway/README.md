@@ -4,12 +4,12 @@
 
 A Helm chart for Trino Gateway
 
-**Homepage:** <https://trino.io/>
+**Homepage:** <https://trinodb.github.io/trino-gateway/>
 
 ## Source Code
 
 * <https://github.com/trinodb/charts>
-* <https://github.com/trinodb/trino-gateway/tree/master/docker>
+* <https://github.com/trinodb/trino-gateway>
 
 ## Values
 * `replicaCount` - int, default: `1`
