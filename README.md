@@ -6,8 +6,8 @@ Trino Community Kubernetes Helm Charts
 A repository of Helm charts for the Trino community. The following charts are
 included:
 
-* [Trino](https://trino.io/)
-* [Trino Gateway](https://trinodb.github.io/trino-gateway)
+* `trino/trino` for [Trino](https://trino.io/)
+* `trino/trino-gateway` for [Trino Gateway](https://trinodb.github.io/trino-gateway)
 
 ## Usage
 
@@ -20,9 +20,19 @@ Once Helm is set up properly, add the repo as follows:
 helm repo add trino https://trinodb.github.io/charts/
 ```
 
-You can then run `helm search repo trino` to see the charts.
+Run `helm search repo trino` to see the latest charts with the string `trino` in
+the name to get an output similar to the following:
 
-Then you can install chart using:
+```
+NAME               	CHART VERSION	APP VERSION	DESCRIPTION
+trino/trino        	0.34.0       	465        	Fast distributed SQL query engine for big data ...
+trino/trino-gateway	1.13.0       	13         	A Helm chart for Trino Gateway
+```
+
+Use `helm search repo trino -l` for information about all available versions.
+
+After configuring your Kubernetes cluster, you can install Trino with the chart
+`trino/trino` using:
 
 ```console
 helm install my-trino trino/trino --version 0.34.0
@@ -34,18 +44,19 @@ Also, you can check the manifests using:
 helm template my-trino trino/trino --namespace <YOUR_NAMESPACE>
 ```
 
+Similarly install Trino Gateway with the `trino/trino-gateway` chart.
+
 ## Documentation
 
-Documentation about the chart values:
+More information about Trino, Trino Gateway, and the charts is available in the
+following resources:
 
-* [Trino](./charts/trino/README.md)
-* [Trino Gateway](./charts/gateway/README.md)
-
-Other chart-related user documentation with more information about the specific
-project:
-
-* [Trino](https://trino.io/docs/current/installation/kubernetes.html)
-* [Trino Gateway](https://trinodb.github.io/trino-gateway/installation/#helm)
+* [Trino Kubernetes documentation](https://trino.io/docs/current/installation/kubernetes.html)
+* [trino/trino chart configuration](./charts/trino/README.md)
+* [Trino documentation](https://trino.io/docs/current/index.html)
+* [Trino Gateway Kubernetes documentation](https://trinodb.github.io/trino-gateway/installation/#helm)
+* [trino/trino-gatewa chart configuration](./charts/gateway/README.md)
+* [Trino Gateway documentation](https://trinodb.github.io/trino-gateway)
 
 ## Development
 
