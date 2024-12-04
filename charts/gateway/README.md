@@ -1,15 +1,15 @@
 # trino-gateway
 
-![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 12](https://img.shields.io/badge/AppVersion-12-informational?style=flat-square)
+![Version: 1.13.0](https://img.shields.io/badge/Version-1.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 13](https://img.shields.io/badge/AppVersion-13-informational?style=flat-square)
 
 A Helm chart for Trino Gateway
 
-**Homepage:** <https://trino.io/>
+**Homepage:** <https://trinodb.github.io/trino-gateway/>
 
 ## Source Code
 
 * <https://github.com/trinodb/charts>
-* <https://github.com/trinodb/trino-gateway/tree/master/docker>
+* <https://github.com/trinodb/trino-gateway>
 
 ## Values
 * `replicaCount` - int, default: `1`
