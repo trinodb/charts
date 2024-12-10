@@ -4,10 +4,12 @@ set -euo pipefail
 
 declare -A testCases=(
     [complete_values]="--values test-values.yaml"
+    [env_from]="--values test-values-with-env.yaml"
 )
 
 declare -A testCaseCharts=(
     [complete_values]="../../charts/gateway"
+    [env_from]="../../charts/gateway"
 )
 
 function join_by {
@@ -28,7 +30,7 @@ CT_ARGS=(
     --helm-extra-args="--timeout 2m"
 )
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(complete_values)
+TEST_NAMES=(complete_values env_from)
 
 usage() {
     cat <<EOF 1>&2
@@ -86,6 +88,8 @@ helm upgrade --install ${DB_INSTALLATION_NAME} oci://registry-1.docker.io/bitnam
     --set auth.database=gateway \
     --set primary.persistence.enabled=false
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql --timeout=300s -n "$DB_NAMESPACE"
+
+kubectl --namespace "$NAMESPACE" create secret generic db-credentials --from-literal=PG_USER='gateway' --from-literal=PG_PASSWORD='pass0000'
 
 result=0
 for test_name in "${TEST_NAMES[@]}"; do

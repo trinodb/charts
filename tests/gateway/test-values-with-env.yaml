@@ -1,0 +1,37 @@
+replicaCount: 1
+
+image:
+  # -- Repository location of the Trino Gateway image, typically `organization/imagename`
+  repository: "trinodb/trino-gateway"
+  pullPolicy: IfNotPresent
+
+config:
+  serverConfig:
+    node.environment: test
+    http-server.http.port: 8080
+  dataStore:
+    # The connection details for the backend database for Trino Gateway and Trino query history
+    jdbcUrl: jdbc:postgresql://gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local:5432/gateway
+    user: "${ENV:PG_USER}"
+    password: "${ENV:PG_PASSWORD}"
+    driver: org.postgresql.Driver
+  clusterStatsConfiguration:
+    monitorType: INFO_API
+  modules:
+    - io.trino.gateway.ha.module.HaGatewayProviderModule
+    - io.trino.gateway.ha.module.ClusterStateListenerModule
+    - io.trino.gateway.ha.module.ClusterStatsMonitorModule
+  managedApps:
+    - io.trino.gateway.ha.clustermonitor.ActiveClusterMonitor
+
+envFrom:
+  - secretRef:
+      name: db-credentials
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
