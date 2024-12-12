@@ -764,7 +764,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   coordinator:
     enabled: true
     exporter:
-      enable: true
+      enabled: true
       configProperties: |-
         hostPort: localhost:{{- .Values.jmx.registryPort }}
         startDelaySeconds: 0
@@ -778,7 +778,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   worker:
     enabled: true
     exporter:
-      enable: true
+      enabled: true
   ```
 * `serviceMonitor.enabled` - bool, default: `false`  
 

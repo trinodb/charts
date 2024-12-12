@@ -927,7 +927,7 @@ jmx:
   # coordinator:
   #   enabled: true
   #   exporter:
-  #     enable: true
+  #     enabled: true
   #     configProperties: |-
   #       hostPort: localhost:{{- .Values.jmx.registryPort }}
   #       startDelaySeconds: 0
@@ -941,7 +941,7 @@ jmx:
   # worker:
   #   enabled: true
   #   exporter:
-  #     enable: true
+  #     enabled: true
   # ```
 
 serviceMonitor:
