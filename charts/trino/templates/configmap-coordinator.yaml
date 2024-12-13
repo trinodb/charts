@@ -50,7 +50,7 @@ data:
 
   config.properties: |
     coordinator=true
-    {{- if gt (int .Values.server.workers) 0 }}
+    {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
     node-scheduler.include-coordinator=false
     {{- else }}
     node-scheduler.include-coordinator=true

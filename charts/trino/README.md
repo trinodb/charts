@@ -78,8 +78,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `server.workerExtraConfig` - string, default: `""`
 * `server.coordinatorExtraConfig` - string, default: `""`
-* `server.autoscaling.enabled` - bool, default: `false`
-* `server.autoscaling.maxReplicas` - int, default: `5`
+* `server.autoscaling` - object, default: `{"behavior":{},"enabled":false,"maxReplicas":5,"targetCPUUtilizationPercentage":50,"targetMemoryUtilizationPercentage":80}`  
+
+  Configure [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) for workers (`server.keda.enabled` must be `false`).
 * `server.autoscaling.targetCPUUtilizationPercentage` - int, default: `50`  
 
   Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU, set to an empty string.
@@ -107,6 +108,70 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        value: 4
        periodSeconds: 15
      selectPolicy: Max
+  ```
+* `server.keda` - object, default: `{"advanced":{},"annotations":{},"cooldownPeriod":300,"enabled":false,"fallback":{},"initialCooldownPeriod":0,"maxReplicaCount":5,"minReplicaCount":0,"pollingInterval":30,"triggers":[]}`  
+
+  Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers (overrides Horizontal Pod Autoscaling configured by `server.autoscaling`).
+* `server.keda.cooldownPeriod` - int, default: `300`  
+
+  Period to wait after the last trigger reported active before scaling the resource back to 0
+* `server.keda.initialCooldownPeriod` - int, default: `0`  
+
+  The delay before the `cooldownPeriod` starts after the initial creation of the `ScaledObject`.
+* `server.keda.minReplicaCount` - int, default: `0`  
+
+  Minimum number of replicas KEDA will scale the resource down to. By default, it’s scale to zero, but you can use it with some other value as well.
+* `server.keda.maxReplicaCount` - int, default: `5`  
+
+  This setting is passed to the HPA definition that KEDA will create for a given resource and holds the maximum number of replicas of the target resource.
+* `server.keda.fallback` - object, default: `{}`  
+
+  Defines a number of replicas to fall back to if a scaler is in an error state.
+  Example:
+  ```yaml
+  fallback:             # Optional. Section to specify fallback options
+    failureThreshold: 3 # Mandatory if fallback section is included
+    replicas: 6         # Mandatory if fallback section is included
+  ```
+* `server.keda.advanced` - object, default: `{}`  
+
+  Specifies HPA related options
+  Example:
+  ```yaml
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 15
+  ```
+* `server.keda.triggers` - list, default: `[]`  
+
+  List of triggers to activate scaling of the target resource
+  Example:
+  ```yaml
+  triggers:
+    - type: prometheus
+      metricType: Value
+      metadata:
+        serverAddress: "http://prometheus.example.com"
+        threshold: "1"
+        metricName: required_workers
+          query: >-
+            sum by (service)
+            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+  ```
+* `server.keda.annotations` - object, default: `{}`  
+
+  Annotations to apply to the ScaledObject CRD.
+  Example:
+  ```yaml
+  annotations:
+    autoscaling.keda.sh/paused-replicas: "0"
+    autoscaling.keda.sh/paused: "true"
   ```
 * `accessControl` - object, default: `{}`  
 
