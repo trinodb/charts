@@ -112,7 +112,22 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
         --version "60.0.2" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
         --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
-        --set grafana.enabled=false
+        --set grafana.enabled=false \
+        --set alertmanager.enabled=false \
+        --set kubeApiServer.enabled=false \
+        --set kubelet.enabled=false \
+        --set kubeControllerManager.enabled=false \
+        --set coreDns.enabled=false \
+        --set kubeEtcd.enabled=false \
+        --set kubeScheduler.enabled=false \
+        --set kubeProxy.enabled=false \
+        --set kubeStateMetrics.enabled=false \
+        --set nodeExporter.enabled=false \
+        --set prometheusOperator.admissionWebhooks.enabled=false \
+        --set prometheusOperator.kubeletService.enabled=false \
+        --set prometheusOperator.tls.enabled=false \
+        --set prometheusOperator.serviceMonitor.selfMonitor=false \
+        --set prometheus.serviceMonitor.selfMonitor=false
     kubectl rollout status --watch deployments -l release=prometheus-operator -n "$NAMESPACE"
 fi
 
