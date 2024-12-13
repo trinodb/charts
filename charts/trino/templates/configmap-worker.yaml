@@ -1,5 +1,5 @@
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
-{{- if gt (int .Values.server.workers) 0 }}
+{{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
