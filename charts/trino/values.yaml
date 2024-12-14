@@ -1001,9 +1001,9 @@ ingress:
   # @raw
   # Example:
   # ```yaml
-  #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+  #    secretName: chart-example-tls
   # ```
 
 networkPolicy:
