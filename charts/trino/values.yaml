@@ -114,6 +114,70 @@ server:
     #    selectPolicy: Max
     # ```
 
+  # -- Configure [KEDA](https://keda.sh/) for workers.
+  keda:
+    enabled: false
+    pollingInterval: 30
+    # -- Period to wait after the last trigger reported active before scaling the resource back to 0
+    cooldownPeriod: 300
+    # -- The delay before the `cooldownPeriod` starts after the initial creation of the `ScaledObject`.
+    initialCooldownPeriod: 0
+    # -- Minimum number of replicas KEDA will scale the resource down to.
+    # By default, it’s scale to zero, but you can use it with some other value as well.
+    minReplicaCount: 0
+    # -- This setting is passed to the HPA definition that KEDA will create for a given resource and
+    # holds the maximum number of replicas of the target resource.
+    maxReplicaCount: 5
+    fallback: {}
+    # server.keda.fallback -- Defines a number of replicas to fall back to if a scaler is in an error state.
+    # @raw
+    # Example:
+    # ```yaml
+    # fallback:             # Optional. Section to specify fallback options
+    #   failureThreshold: 3 # Mandatory if fallback section is included
+    #   replicas: 6         # Mandatory if fallback section is included
+    # ```
+    advanced: {}
+    # server.keda.advanced -- Specifies HPA related options
+    # @raw
+    # Example:
+    # ```yaml
+    # advanced:
+    #   horizontalPodAutoscalerConfig:
+    #     behavior:
+    #       scaleDown:
+    #         stabilizationWindowSeconds: 300
+    #         policies:
+    #           - type: Percent
+    #             value: 100
+    #             periodSeconds: 15
+    # ```
+    triggers: []
+    # server.keda.triggers -- List of triggers to activate scaling of the target resource
+    # @raw
+    # Example:
+    # ```yaml
+    # triggers:
+    #   - type: prometheus
+    #     metricType: Value
+    #     metadata:
+    #       serverAddress: "http://prometheus.example.com"
+    #       threshold: "1"
+    #       metricName: required_workers
+    #         query: >-
+    #           sum by (service)
+    #           (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+    # ```
+    annotations: {}
+    # server.keda.annotations -- Annotations to apply to the ScaledObject CRD.
+    # @raw
+    # Example:
+    # ```yaml
+    # annotations:
+    #   autoscaling.keda.sh/paused-replicas: "0"
+    #   autoscaling.keda.sh/paused: "true"
+    # ```
+
 accessControl: {}
 # accessControl -- [System access
 # control](https://trino.io/docs/current/security/built-in-system-access-control.html)
