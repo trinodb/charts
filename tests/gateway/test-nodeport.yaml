@@ -1,0 +1,19 @@
+config:
+  serverConfig:
+    http-server.http.enabled: true
+    http-server.http.port: 8080
+    http-server.https.enabled: true
+    http-server.https.port: 8443
+    http-server.https.keystore.path: /etc/scratch/tls.pem
+
+service:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      name: request
+      nodePort: 30443
+    - protocol: TCP
+      name: gateway-http
+      nodePort: 30080
+      port: 8080
+      targetPort: 8080

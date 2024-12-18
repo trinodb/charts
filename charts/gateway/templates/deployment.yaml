@@ -41,21 +41,34 @@ spec:
           envFrom:
             {{- toYaml .Values.envFrom | nindent 12}}
           ports:
-            - name: request
+            {{- if index .Values "config" "serverConfig" "http-server.http.port" }}
+            - name: http
               containerPort: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
               protocol: TCP
+            {{- end }}
+            {{- if index .Values "config" "serverConfig" "http-server.https.port" }}
+            - name: https
+              containerPort: {{ index .Values "config" "serverConfig" "http-server.https.port" }}
+              protocol: TCP
+            {{- end }}
           livenessProbe:
             httpGet:
-                path: /trino-gateway
-                port: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
+              path: /trino-gateway
+              port: {{ coalesce (index .Values "config" "serverConfig" "http-server.https.port") (index .Values "config" "serverConfig" "http-server.http.port") }}
+              {{- if index .Values "config" "serverConfig" "http-server.https.port" }}
+              scheme: HTTPS
+              {{- end }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
           readinessProbe:
             httpGet:
-                path: /trino-gateway
-                port: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
+              path: /trino-gateway
+              port: {{ coalesce (index .Values "config" "serverConfig" "http-server.https.port") (index .Values "config" "serverConfig" "http-server.http.port") }}
+              {{- if index .Values "config" "serverConfig" "http-server.https.port" }}
+              scheme: HTTPS
+              {{- end }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
