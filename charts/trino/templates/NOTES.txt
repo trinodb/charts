@@ -8,3 +8,6 @@ Get the application URL by running these commands:
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl port-forward $POD_NAME 8080:8080
 {{- end }}
+{{- if and .Values.server.autoscaling.enabled .Values.server.keda.enabled }}
+WARNING: The worker Kubernetes Event-driven Autoscaling configuration (`server.keda`) will take precedence over the worker Horizontal Pod Autoscaling configuration (`server.autoscaling`).
+{{- end }}
