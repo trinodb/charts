@@ -38,6 +38,8 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             {{- toYaml .Values.command | nindent 12}}
+          env:
+            {{- toYaml .Values.env | nindent 12}}
           envFrom:
             {{- toYaml .Values.envFrom | nindent 12}}
           ports:
