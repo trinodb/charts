@@ -234,7 +234,7 @@ spec:
             failureThreshold: {{ .Values.coordinator.readinessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
           lifecycle:
-            {{- toYaml .Values.coordinator.lifecycle | nindent 12 }}
+            {{- tpl (toYaml .Values.coordinator.lifecycle) . | nindent 12 }}
           resources:
             {{- toYaml .Values.coordinator.resources | nindent 12 }}
       {{- if $coordinatorJmx.exporter.enabled }}
