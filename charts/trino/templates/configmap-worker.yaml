@@ -14,7 +14,7 @@ data:
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 
   jvm.config: |
@@ -43,7 +43,7 @@ data:
   {{- end }}{{/* if */}}
   {{- end }}{{/* with */}}
   {{- range $configValue := .Values.worker.additionalJVMConfig }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
   {{- if $workerJmx.enabled }}
     -Dcom.sun.management.jmxremote.rmi.port={{- $workerJmx.serverPort }}
@@ -59,7 +59,7 @@ data:
     {{- end }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
     {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
     {{- end }}
     {{- if $workerJmx.enabled }}
     jmx.rmiregistry.port={{- $workerJmx.registryPort }}
@@ -69,7 +69,7 @@ data:
     shutdown.grace-period={{- .Values.worker.gracefulShutdown.gracePeriodSeconds -}}s
     {{- end }}
     {{- if .Values.server.workerExtraConfig }}
-    {{- .Values.server.workerExtraConfig | nindent 4 }}
+    {{- tpl (.Values.server.workerExtraConfig | nindent 4) . }}
     {{- end }}
 
 {{- if .Values.worker.gracefulShutdown.enabled }}
@@ -83,20 +83,20 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 
 {{ if .Values.eventListenerProperties }}
   event-listener.properties: |
   {{- range $configValue := .Values.eventListenerProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 {{ end }}
 
