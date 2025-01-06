@@ -13,7 +13,7 @@ data:
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 
   jvm.config: |
@@ -42,7 +42,7 @@ data:
   {{- end }}{{/* if */}}
   {{- end }}{{/* with */}}
   {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
   {{- if $coordinatorJmx.enabled }}
     -Dcom.sun.management.jmxremote.rmi.port={{- $coordinatorJmx.serverPort }}
@@ -66,7 +66,7 @@ data:
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
     {{- end }}
     {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
     {{- end }}
     {{- if .Values.server.config.https.enabled }}
     http-server.https.enabled=true
@@ -81,7 +81,7 @@ data:
     shutdown.grace-period={{- .Values.worker.gracefulShutdown.gracePeriodSeconds -}}s
     {{- end }}
     {{- if .Values.server.coordinatorExtraConfig }}
-    {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
+    {{- tpl (.Values.server.coordinatorExtraConfig | nindent 4) . }}
     {{- end }}
 
 {{- if .Values.accessControl }}
@@ -95,7 +95,7 @@ data:
   {{- else if eq .Values.accessControl.type "properties" }}
   access-control.properties: |
     {{- if .Values.accessControl.properties }}
-    {{- .Values.accessControl.properties | nindent 4 }}
+    {{- tpl (.Values.accessControl.properties | nindent 4) . }}
     {{- else}}
     {{- fail "accessControl.properties is required when accessControl.type is 'properties'." }}
     {{- end }}
@@ -126,14 +126,14 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
     exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
@@ -154,7 +154,7 @@ data:
 {{ if .Values.eventListenerProperties }}
   event-listener.properties: |
   {{- range $configValue := .Values.eventListenerProperties }}
-    {{ $configValue }}
+    {{- tpl $configValue . }}
   {{- end }}
 {{ end }}
 
