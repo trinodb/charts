@@ -81,7 +81,7 @@ data:
 {{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
