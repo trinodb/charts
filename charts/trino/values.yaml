@@ -465,6 +465,7 @@ configMounts: []
 #  - name: sample-config-mount
 #    configMap: sample-config-map
 #    path: /config-map/sample.json
+#    subPath: sample.json
 # ```
 
 secretMounts: []
@@ -476,6 +477,7 @@ secretMounts: []
 #  - name: sample-secret
 #    secretName: sample-secret
 #    path: /secrets/sample.json
+#    subPath: sample.json
 # ```
 
 coordinator:
@@ -627,6 +629,7 @@ coordinator:
   #  - name: sample-config-mount
   #    configMap: sample-config-mount
   #    path: /config-mount/sample.json
+  #    subPath: sample.json
   # ```
 
   secretMounts: []
@@ -638,6 +641,7 @@ coordinator:
   #  - name: sample-secret
   #    secretName: sample-secret
   #    path: /secrets/sample.json
+  #    subPath: sample.json
   # ```
 
 worker:
@@ -810,6 +814,7 @@ worker:
   # - name: sample-config-mount
   #   configMap: sample-config-mount
   #   path: /config-mount/sample.json
+  #   subPath: sample.json
   # ```
 
   secretMounts: []
@@ -821,6 +826,7 @@ worker:
   #  - name: sample-secret
   #    secretName: sample-secret
   #    path: /secrets/sample.json
+  #    subPath: sample.json
   # ```
 
 kafka:
