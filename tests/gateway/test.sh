@@ -99,7 +99,7 @@ for test_name in "${TEST_NAMES[@]}"; do
     if ! time ct install "${CT_ARGS[@]}" --charts="${testCaseCharts[$test_name]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
         echo 1>&2 "❌ Test $test_name failed"
         echo 1>&2 "Test logs:"
-        kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test --all-containers=true
+        kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test --all-containers=true --prefix=true
         result=1
     else
         echo 1>&2 "✅ Test $test_name completed"
