@@ -79,8 +79,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `server.workerExtraConfig` - string, default: `""`
 * `server.coordinatorExtraConfig` - string, default: `""`
-* `server.autoscaling.enabled` - bool, default: `false`
-* `server.autoscaling.maxReplicas` - int, default: `5`
+* `server.autoscaling` - object, default: `{"behavior":{},"enabled":false,"maxReplicas":5,"targetCPUUtilizationPercentage":50,"targetMemoryUtilizationPercentage":80}`  
+
+  Configure [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) for workers (`server.keda.enabled` must be `false`).
 * `server.autoscaling.targetCPUUtilizationPercentage` - int, default: `50`  
 
   Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU, set to an empty string.
@@ -108,6 +109,70 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        value: 4
        periodSeconds: 15
      selectPolicy: Max
+  ```
+* `server.keda` - object, default: `{"advanced":{},"annotations":{},"cooldownPeriod":300,"enabled":false,"fallback":{},"initialCooldownPeriod":0,"maxReplicaCount":5,"minReplicaCount":0,"pollingInterval":30,"triggers":[]}`  
+
+  Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers (`server.autoscaling.enabled` must be `false`).
+* `server.keda.cooldownPeriod` - int, default: `300`  
+
+  Period (in seconds) to wait after the last trigger reported active before scaling the resource back to 0
+* `server.keda.initialCooldownPeriod` - int, default: `0`  
+
+  The delay (in seconds) before the `cooldownPeriod` starts after the initial creation of the `ScaledObject`.
+* `server.keda.minReplicaCount` - int, default: `0`  
+
+  Minimum number of replicas KEDA will scale the resource down to. By default, it’s scale to zero, but you can use it with some other value as well.
+* `server.keda.maxReplicaCount` - int, default: `5`  
+
+  This setting is passed to the HPA definition that KEDA will create for a given resource and holds the maximum number of replicas of the target resource.
+* `server.keda.fallback` - object, default: `{}`  
+
+  Defines a number of replicas to fall back to if a scaler is in an error state.
+  Example:
+  ```yaml
+  fallback:             # Optional. Section to specify fallback options
+    failureThreshold: 3 # Mandatory if fallback section is included
+    replicas: 6         # Mandatory if fallback section is included
+  ```
+* `server.keda.advanced` - object, default: `{}`  
+
+  Specifies HPA related options
+  Example:
+  ```yaml
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 15
+  ```
+* `server.keda.triggers` - list, default: `[]`  
+
+  List of triggers to activate scaling of the target resource
+  Example:
+  ```yaml
+  triggers:
+    - type: prometheus
+      metricType: Value
+      metadata:
+        serverAddress: "http://prometheus.example.com"
+        threshold: "1"
+        metricName: required_workers
+          query: >-
+            sum by (service)
+            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+  ```
+* `server.keda.annotations` - object, default: `{}`  
+
+  Annotations to apply to the ScaledObject CRD.
+  Example:
+  ```yaml
+  annotations:
+    autoscaling.keda.sh/paused-replicas: "0"
+    autoscaling.keda.sh/paused: "true"
   ```
 * `accessControl` - object, default: `{}`  
 
@@ -438,6 +503,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `coordinator.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
 * `coordinator.config.memory.heapHeadroomPerNode` - string, default: `""`
+* `coordinator.config.nodeScheduler.includeCoordinator` - bool, default: `false`  
+
+  Allows scheduling work on the coordinator so that a single machine can function as both coordinator and worker. For large clusters, processing work on the coordinator can negatively impact query performance because the machine's resources are not available for the critical coordinator tasks of scheduling, managing, and monitoring query execution.
 * `coordinator.config.query.maxMemoryPerNode` - string, default: `"1GB"`
 * `coordinator.additionalJVMConfig` - list, default: `[]`
 * `coordinator.additionalExposedPorts` - object, default: `{}`  

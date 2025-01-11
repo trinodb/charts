@@ -1,5 +1,5 @@
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
-{{- if gt (int .Values.server.workers) 0 }}
+{{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,7 +19,7 @@ spec:
   revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
   strategy:
     {{- toYaml .Values.worker.deployment.strategy | nindent 4 }}
-  {{- if not .Values.server.autoscaling.enabled }}
+  {{- if and (not .Values.server.autoscaling.enabled) (not .Values.server.keda.enabled) }}
   replicas: {{ .Values.server.workers }}
   {{- end }}
   selector:
