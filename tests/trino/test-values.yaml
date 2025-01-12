@@ -41,7 +41,7 @@ auth:
 
 secretMounts:
   - name: certificates
-    secretName: certificates
+    secretName: '{{ .Release.Namespace }}-certificates'
     path: /etc/trino/certificates
 
 coordinator:
