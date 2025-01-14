@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   trino:
   - apiVersion: v2
+    appVersion: "468"
+    created: "2025-01-14T09:01:16.001688119Z"
+    description: Fast distributed SQL query engine for big data analytics that helps
+      you explore your data universe
+    digest: 80ad90241a02aa93021cac47e0c0b97f8093cdeea75d29033952b30bf8b079a5
+    home: https://trino.io/
+    icon: https://trino.io/assets/trino.png
+    maintainers:
+    - name: Trino community
+    name: trino
+    sources:
+    - https://github.com/trinodb/charts
+    - https://github.com/trinodb/trino/tree/master/core/docker
+    type: application
+    urls:
+    - https://github.com/trinodb/charts/releases/download/trino-1.36.0/trino-1.36.0.tgz
+    version: 1.36.0
+  - apiVersion: v2
     appVersion: "467"
     created: "2024-12-07T16:58:35.68680952Z"
     description: Fast distributed SQL query engine for big data analytics that helps
@@ -667,6 +685,23 @@ entries:
   trino-gateway:
   - apiVersion: v2
     appVersion: "13"
+    created: "2025-01-14T09:01:16.201046278Z"
+    description: A Helm chart for Trino Gateway
+    digest: 7c6d3aeea3f638b95bb64545f8eef847296799575371e16ec80eec49d7c52226
+    home: https://trinodb.github.io/trino-gateway/
+    icon: https://trino.io/assets/images/logos/trino-gateway-small.png
+    maintainers:
+    - name: Trino community
+    name: trino-gateway
+    sources:
+    - https://github.com/trinodb/charts
+    - https://github.com/trinodb/trino-gateway
+    type: application
+    urls:
+    - https://github.com/trinodb/charts/releases/download/trino-gateway-1.13.1/trino-gateway-1.13.1.tgz
+    version: 1.13.1
+  - apiVersion: v2
+    appVersion: "13"
     created: "2024-12-04T15:57:14.051328868Z"
     description: A Helm chart for Trino Gateway
     digest: b0f66c9844feffc8b08f8c82a288a9c022316999ba331f979300f5b3409b8c6e
@@ -699,4 +734,4 @@ entries:
     urls:
     - https://github.com/trinodb/charts/releases/download/trino-gateway-0.12.0/trino-gateway-0.12.0.tgz
     version: 0.12.0
-generated: "2024-12-07T16:58:35.803629033Z"
+generated: "2025-01-14T09:01:16.201486036Z"
