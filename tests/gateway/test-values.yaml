@@ -24,6 +24,9 @@ config:
   managedApps:
     - io.trino.gateway.ha.clustermonitor.ActiveClusterMonitor
 
+ingress:
+  enabled: true
+
 resources:
   limits:
     cpu: 500m
