@@ -12,6 +12,9 @@ config:
     http-server.https.port: 8443
     http-server.https.keystore.path: /etc/scratch/tls.pem
 
+ingress:
+  enabled: true
+
 volumes:
   - name: certificates
     secret:
