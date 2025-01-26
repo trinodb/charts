@@ -101,7 +101,7 @@ serviceName: trino-gateway
 
 ingress:
   enabled: false
-  className: ""
+  className: "g"
   annotations: {}
   hosts:
     - host: chart-example.local
