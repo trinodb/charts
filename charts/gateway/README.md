@@ -57,7 +57,7 @@ A Helm chart for Trino Gateway
 * `image.repository` - string, default: `"trinodb/trino-gateway"`  
 
   Repository location of the Trino Gateway image, typically `organization/imagename`
-* `image.tag` - string, default: `"f"`  
+* `image.tag` - string, default: `""`  
 
   Override the image tag whose default is the chart appVersion.
 * `imagePullSecrets` - list, default: `[]`  
