@@ -69,7 +69,7 @@ A Helm chart for Trino Gateway
     - name: registry-credentials
   ```
 * `ingress.annotations` - object, default: `{}`
-* `ingress.className` - string, default: `""`
+* `ingress.className` - string, default: `"s"`
 * `ingress.enabled` - bool, default: `false`
 * `ingress.hosts` - list, default: `[{"host":"chart-example.local","paths":[{"path":"/","pathType":"ImplementationSpecific"}]}]`  
 
