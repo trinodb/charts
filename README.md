@@ -55,7 +55,7 @@ following resources:
 * [trino/trino chart configuration](./charts/trino/README.md)
 * [Trino documentation](https://trino.io/docs/current/index.html)
 * [Trino Gateway Kubernetes documentation](https://trinodb.github.io/trino-gateway/installation/#helm)
-* [trino/trino-gatewa chart configuration](./charts/gateway/README.md)
+* [trino/trino-gateway chart configuration](./charts/gateway/README.md)
 * [Trino Gateway documentation](https://trinodb.github.io/trino-gateway)
 
 ## Development
