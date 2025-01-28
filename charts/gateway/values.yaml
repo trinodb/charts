@@ -31,6 +31,9 @@ imagePullSecrets: []
 envFrom: []
 
 config:
+  routingRules:
+    rulesEngineEnabled: false
+    rulesConfigPath: "/opt/gateway/routing_rules/routing_rules.yml"
   serverConfig:
     node.environment: test
     http-server.http.port: 8080
@@ -203,3 +206,14 @@ serviceAccount:
   # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
+
+routingRules:
+  enabled: false
+  config:
+    routing_rules.yml: |-
+    #---
+    #name: "default"
+    #description: "route any other query to the default adhoc resource group"
+    #condition: 'true'
+    #actions:
+    #  - 'result.put("routingGroup", "adhoc")'
