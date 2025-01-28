@@ -43,12 +43,6 @@ config:
     driver: org.postgresql.Driver
   clusterStatsConfiguration:
     monitorType: INFO_API
-  modules:
-    - io.trino.gateway.ha.module.HaGatewayProviderModule
-    - io.trino.gateway.ha.module.ClusterStateListenerModule
-    - io.trino.gateway.ha.module.ClusterStatsMonitorModule
-  managedApps:
-    - io.trino.gateway.ha.clustermonitor.ActiveClusterMonitor
 
 # -- Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
 command:
