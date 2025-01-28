@@ -477,6 +477,12 @@ secretMounts: []
 #  - name: sample-secret
 #    secretName: sample-secret
 #    path: /secrets/sample.json
+#  - name: catalogs
+#    secretName: catalogs
+#    path: /etc/trino/catalog
+#  - name: ldap
+#    secretName: ldap
+#    path: /etc/trino/ldap
 # ```
 
 coordinator:
@@ -1054,3 +1060,29 @@ networkPolicy:
   #        port: 9999
   # ```
   egress: []
+
+catalogsSecrets: []
+  # - name: catalogs
+  #   value:
+  #     mariadb.properties: |
+  #       connector.name=mariadb
+  #       connection-user=
+  #       connection-url=
+  #       connection-password=
+  #     postgresql.properties: |
+  #       connector.name=postgresql
+  #       connection-user=
+  #       connection-url=
+  #       postgresql.array-mapping=
+  #       connection-password=
+ldapSecrets: []
+  #  - name: ldap
+  #    value:
+  #      ldap.properties: |
+  #        password-authenticator.name=ldap
+  #        ldap.bind-dn=uid=
+  #        ldap.url=
+  #        ldap.bind-password=
+  #        ldap.user-bind-pattern=
+  #        ldap.group-auth-pattern=
+  #        ldap.user-base-dn=
