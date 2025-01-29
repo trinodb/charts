@@ -157,18 +157,30 @@ spec:
             {{- range .Values.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.coordinator.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.coordinator.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
             - mountPath: {{ .Values.server.config.path }}/auth/password
