@@ -91,7 +91,7 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
     -keyout cert.key -out cert.crt
 
 kubectl create namespace "$NAMESPACE" --dry-run=client --output yaml | kubectl apply --filename -
-kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
+kubectl -n "$NAMESPACE" create secret tls "$NAMESPACE"-certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
 cat <<YAML | kubectl -n "$NAMESPACE" apply -f-
 apiVersion: v1
 kind: PersistentVolumeClaim
