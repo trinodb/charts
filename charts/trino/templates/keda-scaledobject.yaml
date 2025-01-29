@@ -1,0 +1,40 @@
+{{- if .Values.server.keda.enabled }}
+{{- if .Values.server.autoscaling.enabled }}
+{{- fail "The worker Kubernetes Event-driven Autoscaling configuration (`server.keda`) conflicts with the worker Horizontal Pod Autoscaling (`server.autoscaling`). They cannot be both enabled at the same time!" }}
+{{- end }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ template "trino.worker" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+  {{- with .Values.server.keda.annotations }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ template "trino.worker" . }}
+  pollingInterval: {{ .Values.server.keda.pollingInterval }}
+  cooldownPeriod: {{ .Values.server.keda.cooldownPeriod }}
+  initialCooldownPeriod: {{ .Values.server.keda.initialCooldownPeriod }}
+  minReplicaCount: {{ .Values.server.keda.minReplicaCount }}
+  maxReplicaCount: {{ .Values.server.keda.maxReplicaCount }}
+  {{- with .Values.server.keda.fallback }}
+  fallback:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.server.keda.advanced }}
+  advanced:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.server.keda.triggers }}
+  triggers:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- else }}
+    {{- fail "At least one element in `.Values.server.keda.triggers` is required!" }}
+  {{- end }}
+{{- end }}

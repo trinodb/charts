@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 server:
-  workers: 2
+  workers: 0
   config:
     https:
       enabled: true
@@ -14,7 +14,24 @@ server:
     query.client.timeout=5m
     query.execution-policy=phased
   autoscaling:
+    enabled: false
+  keda:
     enabled: true
+    pollingInterval: 5
+    minReplicaCount: 0
+    maxReplicaCount: 2
+    cooldownPeriod: 300
+    triggers:
+      - type: prometheus
+        metricType: Value
+        metadata:
+          serverAddress: http://prometheus-operator-kube-p-prometheus.{{ .Release.Namespace }}:9090
+          threshold: "1"
+          metricName: required_workers
+          query: >-
+            sum by (service)
+            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+
 
 additionalConfigProperties:
   - internal-communication.shared-secret=random-value-999
@@ -247,12 +264,13 @@ jmx:
       rules:
         - pattern: 'trino.memory*'
         - pattern: 'trino.execution<name=QueryManager>*'
+        - pattern: 'trino.execution<name=ClusterSizeMonitor>*'
 
 serviceMonitor:
   enabled: true
   labels:
     prometheus: default
-  interval: "30s"
+  interval: "1s"
 
 ingress:
   enabled: true
@@ -271,3 +289,8 @@ networkPolicy:
               - key: test
                 operator: NotIn
                 values: [network-policy]
+
+catalogs:
+  tpch: |
+    connector.name=tpch
+    tpch.splits-per-node=4
