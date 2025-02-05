@@ -62,7 +62,7 @@ data:
     memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
     {{- end }}
     {{- if .Values.server.config.https.internal }}
-    discovery.uri=https://localhost:{{ .Values.service.port }}
+    discovery.uri=https://localhost:{{ .Values.service.tlsPort }}
     {{- else }}
     discovery.uri=http://localhost:{{ .Values.service.port }}
     {{- end }}
