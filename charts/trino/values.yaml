@@ -54,12 +54,12 @@ server:
       port: 8443
       keystore:
         path: ""
-	key: ""
+        key: ""
       keymanager:
-	password: ""
+        password: ""
       truststore:
-	path: ""
-	key: ""
+        path: ""
+        key: ""
     # -- Trino supports multiple [authentication
     # types](https://trino.io/docs/current/security/authentication-types.html):
     # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
