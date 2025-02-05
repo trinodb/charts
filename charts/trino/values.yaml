@@ -50,6 +50,7 @@ server:
     path: /etc/trino
     https:
       enabled: false
+      internal: false
       port: 8443
       keystore:
         path: ""
