@@ -61,7 +61,11 @@ data:
     {{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
     {{- end }}
+    {{- if .Values.server.config.https.internal }}
+    discovery.uri=https://localhost:{{ .Values.service.port }}
+    {{- else }}
     discovery.uri=http://localhost:{{ .Values.service.port }}
+    {{- end }}
     {{- if .Values.server.config.authenticationType }}
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
     {{- end }}
@@ -72,6 +76,13 @@ data:
     http-server.https.enabled=true
     http-server.https.port={{ .Values.server.config.https.port }}
     http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
+    http-server.https.keystore.key={{ .Values.server.config.https.keystore.key }}
+    http-server.https.keymanager.password={{ .Values.server.config.https.keymanager.password }}
+    http-server.https.truststore.path={{ .Values.server.config.https.truststore.path }}
+    http-server.https.truststore.key={{ .Values.server.config.https.truststore.key }}
+    {{- if .Values.server.config.https.internal }}
+    internal-communication.https.required=true
+    {{- end }}
     {{- end }}
     {{- if $coordinatorJmx.enabled }}
     jmx.rmiregistry.port={{- $coordinatorJmx.registryPort }}
