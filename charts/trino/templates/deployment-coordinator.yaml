@@ -134,7 +134,9 @@ spec:
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           env:
+            {{- if .Values.env }}
             {{- toYaml .Values.env | nindent 12 }}
+            {{- end }}
             {{- if .Values.server.config.https.enabled }}
             - name: TRINO_HTTPS_TRUSTSTORE_SECRET
               valueFrom:
