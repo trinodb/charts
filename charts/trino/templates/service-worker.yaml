@@ -14,13 +14,13 @@ spec:
   ports:
     {{- if not .Values.server.config.https.only }}
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.port }}
+      targetPort: http
       protocol: TCP
       name: http
     {{- end }}
     {{- if .Values.server.config.https.internal }}
     - port: {{ .Values.service.tlsPort }}
-      targetPort: {{ .Values.service.tlsPort }}
+      targetPort: https
       protocol: TCP
       name: https
     {{- end }}

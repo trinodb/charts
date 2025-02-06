@@ -208,7 +208,11 @@ spec:
           livenessProbe:
             httpGet:
               path: /v1/info
+              {{- if .Values.server.config.https.only }}
+              port: https
+              {{- else }}
               port: http
+              {{- end }}
             initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.coordinator.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.coordinator.livenessProbe.timeoutSeconds | default 5 }}

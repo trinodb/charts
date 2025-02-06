@@ -182,7 +182,11 @@ spec:
           livenessProbe:
             httpGet:
               path: /v1/info
+              {{- if .Values.server.config.https.only }}
+              port: https
+              {{- else }}
               port: http
+              {{- end }}
             initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds | default 5 }}
@@ -213,7 +217,11 @@ spec:
                     -d '"SHUTTING_DOWN"'
                     -H 'Content-type: application/json'
                     -H 'X-Trino-User: admin'
+                    {{- if .Values.server.config.https.only }}
+                    https://localhost:{{- .Values.service.tlsPort -}}/v1/info/state
+                    {{- else }}
                     http://localhost:{{- .Values.service.port -}}/v1/info/state
+                    {{- end }}
             {{- end }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
