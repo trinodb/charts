@@ -993,6 +993,8 @@ ingress:
   enabled: false
   className: ""
   annotations: {}
+  # -- Use the TLS service backend instead of the plaintext one
+  tlsService: false
   hosts: []
   # ingress.hosts -- [Ingress
   # rules](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
