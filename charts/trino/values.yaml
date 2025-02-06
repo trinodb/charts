@@ -49,7 +49,9 @@ server:
   config:
     path: /etc/trino
     https:
+      # -- Enable https support
       enabled: false
+      # -- Enable communications between coordinator and workers through https. It depends on https being enabled
       internal: false
       keystore:
         path: ""
