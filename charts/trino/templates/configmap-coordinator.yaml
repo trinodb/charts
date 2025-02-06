@@ -74,14 +74,14 @@ data:
     node-manager.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
     scheduler.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
     workerInfo.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
-    discovery.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
-    dynamic.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
-    exchange.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
-    failure-detector.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
-    memoryManager.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
-    node-manager.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
-    scheduler.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
-    workerInfo.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    discovery.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    dynamic.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    exchange.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    failure-detector.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    memoryManager.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    node-manager.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    scheduler.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    workerInfo.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
     discovery.http-client.https.hostname-verification=false
     dynamic.http-client.https.hostname-verification=false
     exchange.http-client.https.hostname-verification=false
@@ -97,10 +97,10 @@ data:
     http-server.https.enabled=true
     http-server.https.port={{ .Values.service.tlsPort }}
     http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
-    http-server.https.keystore.key={{ .Values.server.config.https.keystore.key }}
-    http-server.https.keymanager.password={{ .Values.server.config.https.keymanager.password }}
+    http-server.https.keystore.key=${ENV:TRINO_HTTPS_KEYSTORE_SECRET}
+    http-server.https.keymanager.password=${ENV:TRINO_HTTPS_KEYMANAGER_SECRET}
     http-server.https.truststore.path={{ .Values.server.config.https.truststore.path }}
-    http-server.https.truststore.key={{ .Values.server.config.https.truststore.key }}
+    http-server.https.truststore.key=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
     {{- end }}
     {{- if .Values.ingress.enabled }}
     http-server.process-forwarded=true

@@ -52,19 +52,37 @@ server:
       # -- Enable https support
       enabled: false
       # -- Enable communications between coordinator and workers through https. It depends on https being enabled.
-      # Be aware that when enabled, keystore, keymanager and truststore infos must also be valid for workers
+      # Be aware that when enabled, truststore infos must also be valid for workers
       # TLS certificates must also have serverAuth and clientAuth usages
       internal: false
       # -- Disable http server completely. It requires https.internal and ingress.tlsService (if Ingress is configured)
       only: false
       keystore:
         path: ""
-        key: ""
+        passwordSecretRef:
+          name: ""
+          key: ""
       keymanager:
-        password: ""
+        passwordSecretRef:
+          name: ""
+          key: ""
+      # -- Specific workers TLS settings when communications between coordinator and workers go through https.
+      # Notice that truststore infos are the same as the coordinator
+      workers:
+        keystore:
+          path: ""
+          passwordSecretRef:
+            name: ""
+            key: ""
+        keymanager:
+          passwordSecretRef:
+            name: ""
+            key: ""
       truststore:
         path: ""
-        key: ""
+        passwordSecretRef:
+          name: ""
+          key: ""
     # -- Trino supports multiple [authentication
     # types](https://trino.io/docs/current/security/authentication-types.html):
     # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
