@@ -184,8 +184,10 @@ spec:
               path: /v1/info
               {{- if .Values.server.config.https.only }}
               port: https
+              scheme: HTTPS
               {{- else }}
               port: http
+              scheme: HTTP
               {{- end }}
             initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds | default 10 }}
