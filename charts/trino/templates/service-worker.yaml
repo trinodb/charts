@@ -16,6 +16,12 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    {{- if and .Values.server.config.https.enabled .Values.server.config.https.internal }}
+    - port: {{ .Values.service.tlsPort }}
+      targetPort: {{ .Values.server.config.https.port }}
+      protocol: TCP
+      name: https
+    {{- end }}
     {{- if $workerJmx.exporter.enabled }}
     - port: {{$workerJmx.exporter.port }}
       targetPort: jmx-exporter

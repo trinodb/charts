@@ -57,7 +57,7 @@ data:
     {{- if .Values.worker.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.worker.config.memory.heapHeadroomPerNode }}
     {{- end }}
-    {{- if .Values.server.config.https.internal }}
+    {{- if and .Values.server.config.https.enabled .Values.server.config.https.internal }}
     internal-communication.https.required=true
     discovery.uri=https://{{ template "trino.fullname" . }}:{{ .Values.service.tlsPort }}
     http-server.https.enabled=true
