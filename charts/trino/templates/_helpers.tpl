@@ -24,6 +24,19 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
+{{- define "trino.fullnameEnv" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" | upper | replace "-" "_" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if hasPrefix .Release.Name $name }}
+{{- $name | trunc 63 | trimSuffix "-" | upper | replace "-" "_" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" | upper | replace "-" "_" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
 {{/*
 Create chart name and version as used by the chart label.
 */}}
