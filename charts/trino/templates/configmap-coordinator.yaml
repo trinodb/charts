@@ -55,22 +55,43 @@ data:
     {{- else }}
     node-scheduler.include-coordinator=true
     {{- end }}
+    {{- if .Values.server.config.https.only }}
+    http-server.http.enabled=false
+    {{- else }}
     http-server.http.port={{ .Values.service.port }}
-    query.max-memory={{ .Values.server.config.query.maxMemory }}
-    query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
-    {{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
-    memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
     {{- end }}
     {{- if .Values.server.config.https.internal }}
-    discovery.uri=https://${ENV:{{ template "trino.fullnameEnv" . }}_PORT_{{ .Values.service.tlsPort }}_TCP_ADDR}:{{ .Values.service.tlsPort }}
+    discovery.uri=https://localhost:{{ .Values.service.tlsPort }}
+    internal-communication.https.required=true
+    # Taken from https://github.com/trinodb/trino/issues/5230#issuecomment-2062013346
+    # Not checking the hostnames may seems like an issue but tls works and is already an additional layer
+    # of security compared to the shared secret
+    discovery.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    dynamic.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    exchange.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    failure-detector.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    memoryManager.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    node-manager.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    scheduler.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    workerInfo.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    discovery.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    dynamic.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    exchange.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    failure-detector.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    memoryManager.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    node-manager.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    scheduler.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    workerInfo.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    discovery.http-client.https.hostname-verification=false
+    dynamic.http-client.https.hostname-verification=false
+    exchange.http-client.https.hostname-verification=false
+    failure-detector.http-client.https.hostname-verification=false
+    memoryManager.http-client.https.hostname-verification=false
+    node-manager.http-client.https.hostname-verification=false
+    scheduler.http-client.https.hostname-verification=false
+    workerInfo.http-client.https.hostname-verification=false
     {{- else }}
     discovery.uri=http://localhost:{{ .Values.service.port }}
-    {{- end }}
-    {{- if .Values.server.config.authenticationType }}
-    http-server.authentication.type={{ .Values.server.config.authenticationType }}
-    {{- end }}
-    {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
     {{- end }}
     {{- if .Values.server.config.https.enabled }}
     http-server.https.enabled=true
@@ -80,15 +101,20 @@ data:
     http-server.https.keymanager.password={{ .Values.server.config.https.keymanager.password }}
     http-server.https.truststore.path={{ .Values.server.config.https.truststore.path }}
     http-server.https.truststore.key={{ .Values.server.config.https.truststore.key }}
-    {{- if .Values.server.config.https.internal }}
-    internal-communication.https.required=true
-    {{- end }}
-    {{- if .Values.server.config.https.only }}
-    http-server.http.enabled=false
-    {{- end }}
     {{- end }}
     {{- if .Values.ingress.enabled }}
     http-server.process-forwarded=true
+    {{- end }}
+    query.max-memory={{ .Values.server.config.query.maxMemory }}
+    query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
+    {{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    {{- end }}
+    {{- if .Values.server.config.authenticationType }}
+    http-server.authentication.type={{ .Values.server.config.authenticationType }}
+    {{- end }}
+    {{- range $configValue := .Values.additionalConfigProperties }}
+    {{ $configValue }}
     {{- end }}
     {{- if $coordinatorJmx.enabled }}
     jmx.rmiregistry.port={{- $coordinatorJmx.registryPort }}

@@ -51,7 +51,9 @@ server:
     https:
       # -- Enable https support
       enabled: false
-      # -- Enable communications between coordinator and workers through https. It depends on https being enabled
+      # -- Enable communications between coordinator and workers through https. It depends on https being enabled.
+      # Be aware that when enabled, keystore, keymanager and truststore infos must also be valid for workers
+      # TLS certificates must also have serverAuth and clientAuth usages
       internal: false
       # -- Disable http server completely. It requires https.internal and ingress.tlsService (if Ingress is configured)
       only: false

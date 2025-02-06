@@ -51,22 +51,40 @@ data:
 
   config.properties: |
     coordinator=false
+    {{- if .Values.server.config.https.only }}
+    http-server.http.enabled=false
+    {{- else }}
     http-server.http.port={{ .Values.service.port }}
+    {{- end }}
+    {{- if .Values.server.config.https.internal }}
+    internal-communication.https.required=true
+    discovery.uri=https://{{ template "trino.fullname" . }}:{{ .Values.service.tlsPort }}
+    http-server.https.enabled=true
+    http-server.https.port={{ .Values.service.tlsPort }}
+    http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
+    http-server.https.keystore.key={{ .Values.server.config.https.keystore.key }}
+    http-server.https.keymanager.password={{ .Values.server.config.https.keymanager.password }}
+    http-server.https.truststore.path={{ .Values.server.config.https.truststore.path }}
+    http-server.https.truststore.key={{ .Values.server.config.https.truststore.key }}
+    # Taken from https://github.com/trinodb/trino/issues/5230#issuecomment-2062013346
+    # Not checking the hostnames may seems like an issue but tls works and is already an additional layer
+    # of security compared to the shared secret
+    discovery.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    exchange.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    node-manager.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    discovery.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    exchange.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    node-manager.http-client.trust-store-password={{ .Values.server.config.https.truststore.key }}
+    discovery.http-client.https.hostname-verification=false
+    exchange.http-client.https.hostname-verification=false
+    node-manager.http-client.https.hostname-verification=false
+    {{- else }}
+    discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
+    {{- end }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.worker.config.query.maxMemoryPerNode }}
     {{- if .Values.worker.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.worker.config.memory.heapHeadroomPerNode }}
-    {{- end }}
-    {{- if .Values.server.config.https.internal }}
-    internal-communication.https.required=true
-    discovery.uri=https://${ENV:{{ template "trino.fullnameEnv" . }}_PORT_{{ .Values.service.tlsPort }}_TCP_ADDR}:{{ .Values.service.tlsPort }}
-    http-server.https.enabled=true
-    http-server.https.port={{ .Values.service.tlsPort }}
-    {{- if .Values.server.config.https.only }}
-    http-server.http.enabled=false
-    {{- end }}
-    {{- else }}
-    discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
     {{- end }}
     {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
