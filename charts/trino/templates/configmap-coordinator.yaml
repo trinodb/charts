@@ -84,6 +84,9 @@ data:
     internal-communication.https.required=true
     {{- end }}
     {{- end }}
+    {{- if .Values.ingress.enabled }}
+    http-server.process-forwarded=true
+    {{- end }}
     {{- if $coordinatorJmx.enabled }}
     jmx.rmiregistry.port={{- $coordinatorJmx.registryPort }}
     jmx.rmiserver.port={{- $coordinatorJmx.serverPort }}
