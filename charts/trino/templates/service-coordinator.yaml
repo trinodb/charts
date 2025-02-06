@@ -13,7 +13,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.service.port }}
       protocol: TCP
       name: http
       {{- if .Values.service.nodePort }}
@@ -21,7 +21,7 @@ spec:
       {{- end }}
     {{- if .Values.server.config.https.enabled }}
     - port: {{ .Values.service.tlsPort }}
-      targetPort: https
+      targetPort: {{ .Values.service.tlsPort }}
       protocol: TCP
       name: https
     {{- end }}
