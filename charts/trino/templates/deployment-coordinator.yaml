@@ -144,17 +144,17 @@ spec:
             - name: TRINO_HTTPS_TRUSTSTORE_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{- tpl $truststorePasswordSecretRef . }}
+                  name: {{ tpl $truststorePasswordSecretRef . }}
                   key: {{ .Values.server.config.https.truststore.passwordSecretRef.key }}
             - name: TRINO_HTTPS_KEYSTORE_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{- tpl $keystorePasswordSecretRef . }}
+                  name: {{ tpl $keystorePasswordSecretRef . }}
                   key: {{ .Values.server.config.https.keystore.passwordSecretRef.key }}
             - name: TRINO_HTTPS_KEYMANAGER_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{- tpl $keymanagerPasswordSecretRef . }}
+                  name: {{ tpl $keymanagerPasswordSecretRef . }}
                   key: {{ .Values.server.config.https.keymanager.passwordSecretRef.key }}
             {{- end }}
           envFrom:
