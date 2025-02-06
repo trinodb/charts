@@ -21,7 +21,7 @@ spec:
       {{- end }}
     {{- if .Values.server.config.https.enabled }}
     - port: {{ .Values.service.tlsPort }}
-      targetPort: {{ .Values.server.config.https.port }}
+      targetPort: https
       protocol: TCP
       name: https
     {{- end }}

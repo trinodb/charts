@@ -61,7 +61,7 @@ data:
     internal-communication.https.required=true
     discovery.uri=https://{{ template "trino.fullname" . }}:{{ .Values.service.tlsPort }}
     http-server.https.enabled=true
-    http-server.https.port={{ .Values.server.config.https.port }}
+    http-server.https.port={{ .Values.service.tlsPort }}
     {{- else }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
     {{- end }}

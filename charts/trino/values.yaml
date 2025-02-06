@@ -51,7 +51,6 @@ server:
     https:
       enabled: false
       internal: false
-      port: 443
       keystore:
         path: ""
         key: ""

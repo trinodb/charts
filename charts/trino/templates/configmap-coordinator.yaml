@@ -74,7 +74,7 @@ data:
     {{- end }}
     {{- if .Values.server.config.https.enabled }}
     http-server.https.enabled=true
-    http-server.https.port={{ .Values.server.config.https.port }}
+    http-server.https.port={{ .Values.service.tlsPort }}
     http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
     http-server.https.keystore.key={{ .Values.server.config.https.keystore.key }}
     http-server.https.keymanager.password={{ .Values.server.config.https.keymanager.password }}
