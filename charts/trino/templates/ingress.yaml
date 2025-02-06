@@ -32,7 +32,7 @@ spec:
               service:
                 name: {{ include "trino.fullname" $ }}
                 port:
-                  {{- if $.Values.ingress.tlsService }}
+                  {{- if and $.Values.server.config.https.enabled $.Values.ingress.tlsService }}
                   number: {{ $.Values.service.tlsPort }}
                   {{- else }}
                   number: {{ $.Values.service.port }}

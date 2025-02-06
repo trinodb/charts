@@ -155,3 +155,23 @@ Create the secret name for the group-provider file
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/* Compile all validation warnings into a single message and call fail. */}}
+{{- define "trino.validateValues" -}}
+{{- $messages := list -}}
+{{- $messages = append $messages (include "mychart.validateValues.httpsonly.enabled" .) -}}
+{{- $messages = without $messages "" -}}
+{{- $message := join "\n" $messages -}}
+
+{{- if $message -}}
+{{- printf "\nVALUES VALIDATION:\n%s" $message | fail -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Validate value of https.only */}}
+{{- define "mychart.validateValues.httpsonly" -}}
+{{- if and .Values.server.config.https.only (not .Values.server.config.https.enabled) -}}
+trino: .Values.server.config.https.only
+    `.Values.server.config.https.only` requires .Values.server.config.https.enabled
+{{- end -}}
+{{- end -}}

@@ -8,3 +8,5 @@ Get the application URL by running these commands:
   echo "Visit http://127.0.0.1:8080 to use your application"
   kubectl port-forward $POD_NAME 8080:8080
 {{- end }}
+
+{{- include "trino.validateValues" . }}

@@ -53,6 +53,8 @@ server:
       enabled: false
       # -- Enable communications between coordinator and workers through https. It depends on https being enabled
       internal: false
+      # -- Disable http server completely. It requires https.internal and ingress.tlsService (if Ingress is configured)
+      only: false
       keystore:
         path: ""
         key: ""
