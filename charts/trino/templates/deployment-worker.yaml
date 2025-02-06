@@ -156,9 +156,16 @@ spec:
             {{- . | toYaml | nindent 12 }}
             {{- end }}
           ports:
+            {{- if not .Values.server.config.https.only }}
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{- end }}
+            {{- if .Values.server.config.https.enabled }}
+            - name: https
+              containerPort: {{ .Values.service.tlsPort }}
+              protocol: TCP
+            {{- end }}
             {{- if $workerJmx.enabled }}
             - name: jmx-registry
               containerPort: {{ $workerJmx.registryPort }}

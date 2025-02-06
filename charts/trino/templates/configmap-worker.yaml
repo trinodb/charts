@@ -62,6 +62,9 @@ data:
     discovery.uri=https://{{ template "trino.fullname" . }}:{{ .Values.service.tlsPort }}
     http-server.https.enabled=true
     http-server.https.port={{ .Values.service.tlsPort }}
+    {{- if .Values.server.config.https.only }}
+    http-server.http.enabled=false
+    {{- end }}
     {{- else }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
     {{- end }}

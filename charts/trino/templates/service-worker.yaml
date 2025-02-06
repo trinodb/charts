@@ -12,11 +12,13 @@ metadata:
 spec:
   clusterIP: None
   ports:
+    {{- if not .Values.server.config.https.only }}
     - port: {{ .Values.service.port }}
       targetPort: {{ .Values.service.port }}
       protocol: TCP
       name: http
-    {{- if and .Values.server.config.https.enabled .Values.server.config.https.internal }}
+    {{- end }}
+    {{- if .Values.server.config.https.internal }}
     - port: {{ .Values.service.tlsPort }}
       targetPort: {{ .Values.service.tlsPort }}
       protocol: TCP

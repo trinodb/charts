@@ -83,6 +83,9 @@ data:
     {{- if .Values.server.config.https.internal }}
     internal-communication.https.required=true
     {{- end }}
+    {{- if .Values.server.config.https.only }}
+    http-server.http.enabled=false
+    {{- end }}
     {{- end }}
     {{- if .Values.ingress.enabled }}
     http-server.process-forwarded=true
