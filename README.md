@@ -25,7 +25,7 @@ the name to get an output similar to the following:
 
 ```
 NAME               	CHART VERSION	APP VERSION	DESCRIPTION
-trino/trino        	1.36.0       	468        	Fast distributed SQL query engine for big data ...
+trino/trino        	1.36.0       	470        	Fast distributed SQL query engine for big data ...
 trino/trino-gateway	1.13.2       	13         	A Helm chart for Trino Gateway
 ```
 
@@ -72,7 +72,7 @@ ct install
 
 To run tests with specific values:
 ```console
-ct install --helm-extra-set-args "--set image.tag=467"
+ct install --helm-extra-set-args "--set image.tag=470"
 ```
 
 Use the `test.sh` script to run a suite of tests, with different chart values.
