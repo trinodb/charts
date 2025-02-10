@@ -62,8 +62,8 @@ server:
   exchangeManager: {}
   # server.exchangeManager -- Mandatory [exchange manager
   # configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
-  # Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations. 
-  # To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. 
+  # Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations.
+  # To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`.
   # Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   # @raw
   # Example:
