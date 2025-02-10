@@ -62,13 +62,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.config.query.maxMemory` - string, default: `"4GB"`
 * `server.exchangeManager` - object, default: `{}`  
 
-  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of the spooling storage destination. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   Example:
   ```yaml
   server:
     exchangeManager:
       name: "filesystem"
-      baseDir: "/tmp/trino-local-file-system-exchange-manager"
+      baseDir:
+        - "/tmp/trino-local-file-system-exchange-manager"
   additionalConfigProperties:
     - retry-policy=TASK
   additionalExchangeManagerProperties:
@@ -411,6 +412,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-config-mount
      configMap: sample-config-map
      path: /config-map/sample.json
+     subPath: sample.json
   ```
 * `secretMounts` - list, default: `[]`  
 
@@ -420,6 +422,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `coordinator.deployment.annotations` - object, default: `{}`
 * `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
@@ -529,6 +532,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-config-mount
      configMap: sample-config-mount
      path: /config-mount/sample.json
+     subPath: sample.json
   ```
 * `coordinator.secretMounts` - list, default: `[]`  
 
@@ -538,6 +542,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `worker.deployment.annotations` - object, default: `{}`
 * `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
@@ -657,6 +662,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   - name: sample-config-mount
     configMap: sample-config-mount
     path: /config-mount/sample.json
+    subPath: sample.json
   ```
 * `worker.secretMounts` - list, default: `[]`  
 
@@ -666,6 +672,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `kafka.mountPath` - string, default: `"/etc/trino/schemas"`
 * `kafka.tableDescriptions` - object, default: `{}`  
