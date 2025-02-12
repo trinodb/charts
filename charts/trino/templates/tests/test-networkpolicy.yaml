@@ -1,0 +1,28 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino.fullname" . }}-test-networkpolicy
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: network-policy
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  containers:
+    - name: check-connection
+      image: {{ include "trino.image" . }}
+      command: [ "/bin/bash", "-c" ]
+      args:
+        - >-
+          curl
+          {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.service.port }}
+          --head
+          --fail
+          --connect-timeout 10
+          --max-time 10
+          2>&1 | grep -q "timed out"
+  restartPolicy: Never
+{{- end }}

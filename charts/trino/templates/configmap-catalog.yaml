@@ -1,0 +1,16 @@
+{{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.catalog" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: catalogs
+data:
+{{- $merged := merge .Values.catalogs .Values.additionalCatalogs }}
+{{- range $catalogName, $catalogProperties := $merged }}
+  {{ $catalogName }}.properties: |
+    {{- $catalogProperties | nindent 4 }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,31 @@
+command:
+  - "/bin/sh"
+  - "-c"
+  - |
+    cat /etc/certificates/tls.crt /etc/certificates/tls.key > /etc/scratch/tls.pem && \
+    java -XX:MinRAMPercentage=80.0 -XX:MaxRAMPercentage=80.0 -jar /usr/lib/trino/gateway-ha-jar-with-dependencies.jar /etc/gateway/config.yaml
+
+config:
+  serverConfig:
+    http-server.http.enabled: false
+    http-server.https.enabled: true
+    http-server.https.port: 8443
+    http-server.https.keystore.path: /etc/scratch/tls.pem
+
+ingress:
+  enabled: true
+
+volumes:
+  - name: certificates
+    secret:
+      secretName: certificates
+  - name: scratch
+    emptyDir:
+      sizeLimit: 10Mi
+
+volumeMounts:
+  - name: certificates
+    mountPath: /etc/certificates
+    readOnly: true
+  - name: scratch
+    mountPath: /etc/scratch

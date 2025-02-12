@@ -1,0 +1,15 @@
+# Resource Groups 'properties' values to test.
+# This is a YAML-formatted file.
+
+server:
+  log:
+    trino:
+      level: INFO
+
+resourceGroups:
+  type: properties
+  properties: |
+    resource-groups.configuration-manager=db
+    resource-groups.config-db-url=jdbc:postgresql://trino-resource-groups-db-postgresql.postgresql.svc.cluster.local:5432/resource_groups
+    resource-groups.config-db-user=trino
+    resource-groups.config-db-password=pass0000

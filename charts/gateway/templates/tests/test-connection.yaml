@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "trino-gateway.fullname" . }}-test-connection"
+  labels:
+    {{- include "trino-gateway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: connection
+  annotations:
+    "helm.sh/hook": test
+spec:
+  initContainers:
+    - name: extract-persistence-sql
+      image: "trinodb/trino-gateway"
+      command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          cd /etc/persistence && \
+          jar -xvf /usr/lib/trino/gateway-ha-jar-with-dependencies.jar \
+          gateway-ha-persistence-postgres.sql
+      volumeMounts:
+        - name: persistence-sql
+          mountPath: /etc/persistence
+    - name: initialize-db
+      image: bitnami/postgresql:17.1.0
+      command:
+        - "/bin/sh"
+        - "-c"
+        - |
+          echo "Initialize gateway schema";
+          PGPASSWORD=pass0000 psql \
+          -h gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local \
+          -U gateway -d gateway \
+          -f /etc/persistence/gateway-ha-persistence-postgres.sql
+      volumeMounts:
+        - name: persistence-sql
+          mountPath: /etc/persistence
+  containers:
+    - name: curl
+      image: alpine
+      env:
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+      # Get the list of backends, which should return an empty list, "[]". For this test to pass
+      # the gateway must successfully connect to an initialized backend database
+      command:
+        - "sh"
+        - "-c"
+        - |
+          apk add curl
+          {{- if eq .Values.service.type "NodePort" -}}
+             && [ "$(curl -k --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 https://${NODE_IP}:30443/entity/GATEWAY_BACKEND )" = "[]" ] && [ "$(curl --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 http://${NODE_IP}:30080/entity/GATEWAY_BACKEND )" = "[]" ]
+          {{- end }}
+          {{- if index .Values "config" "serverConfig" "http-server.https.enabled" -}}
+             && [ "$(curl -k --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 -v https://{{ .Values.serviceName }}:8443/entity/GATEWAY_BACKEND )" = "[]" ]
+          {{- end }}
+          {{- if index .Values "config" "serverConfig" "http-server.http.enabled" -}}
+             && [ "$(curl --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 -v http://{{ .Values.serviceName }}:8080/entity/GATEWAY_BACKEND )" = "[]" ]
+          {{- end }}
+  volumes:
+    - name: persistence-sql
+      emptyDir:
+        sizeLimit: 10Mi
+
+  restartPolicy: Never
