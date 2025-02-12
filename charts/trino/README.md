@@ -954,6 +954,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        - protocol: TCP
          port: 9999
   ```
+  
  * `catalogsSecrets` - list, default: `[]`
      Example:
  ```yaml
