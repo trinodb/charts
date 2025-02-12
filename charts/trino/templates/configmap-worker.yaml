@@ -61,6 +61,9 @@ data:
     {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
     {{- end }}
+    {{- range $configValue := .Values.worker.additionalConfigProperties }}
+    {{ $configValue }}
+    {{- end }}
     {{- if $workerJmx.enabled }}
     jmx.rmiregistry.port={{- $workerJmx.registryPort }}
     jmx.rmiserver.port={{- $workerJmx.serverPort }}

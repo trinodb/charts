@@ -338,7 +338,7 @@ additionalNodeProperties: []
 
 additionalConfigProperties: []
 # additionalConfigProperties -- [Additional config
-# properties](https://trino.io/docs/current/admin/properties.html).
+# properties applied to all pods](https://trino.io/docs/current/admin/properties.html).
 # @raw
 # Example:
 # ```yaml
@@ -601,6 +601,16 @@ coordinator:
   #    protocol: TCP
   # ```
 
+  additionalConfigProperties: []
+  # additionalConfigProperties -- [Additional config
+  # properties applied to coordinator only](https://trino.io/docs/current/admin/properties.html).
+  # @raw
+  # Example:
+  # ```yaml
+  #  - web-ui.preview.enabled=true
+  #  - web-ui.authentication.type=oauth2
+  # ```
+
   resources: {}
   # coordinator.resources -- It is recommended not to specify default resources
   # and to leave this as a conscious choice for the user. This also increases
@@ -762,6 +772,16 @@ worker:
   #    name: https
   #    port: 8443
   #    protocol: TCP
+  # ```
+
+  additionalConfigProperties: []
+  # additionalConfigProperties -- [Additional config
+  # properties applied to workers](https://trino.io/docs/current/admin/properties.html).
+  # @raw
+  # Example:
+  # ```yaml
+  #  - internal-communication.shared-secret=random-value-999
+  #  - http-server.process-forwarded=true
   # ```
 
   resources: {}
