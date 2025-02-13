@@ -65,7 +65,7 @@ spec:
             {{- end }}
           livenessProbe:
             httpGet:
-              path: /trino-gateway
+              path: /trino-gateway/livez
               port: {{ $probePort }}
               scheme: {{ $probeScheme }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
@@ -74,7 +74,7 @@ spec:
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
           readinessProbe:
             httpGet:
-              path: /trino-gateway
+              path: /trino-gateway/readyz
               port: {{ $probePort }}
               scheme: {{ $probeScheme }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
