@@ -780,8 +780,7 @@ worker:
   # @raw
   # Example:
   # ```yaml
-  #  - internal-communication.shared-secret=random-value-999
-  #  - http-server.process-forwarded=true
+  #  - http-server.authentication.allow-insecure-over-http=true
   # ```
 
   resources: {}

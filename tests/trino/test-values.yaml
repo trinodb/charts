@@ -35,7 +35,6 @@ server:
 
 additionalConfigProperties:
   - internal-communication.shared-secret=random-value-999
-  - http-server.authentication.allow-insecure-over-http=true
   - http-server.process-forwarded=true
 
 service:
@@ -72,6 +71,10 @@ coordinator:
       rollingUpdate:
         maxSurge: 25%
         maxUnavailable: 50%
+    
+  additionalConfigProperties:
+    - web-ui.preview.enabled=true
+    - web-ui.authentication.type=oauth2
 
   jvm:
     maxHeapSize: "8G"
@@ -130,6 +133,9 @@ worker:
 
   annotations:
     custom/name: value
+
+  additionalConfigProperties:
+    - http-server.authentication.allow-insecure-over-http=true
 
 commonLabels:
   extra-label: extra-value
