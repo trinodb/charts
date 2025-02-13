@@ -1,0 +1,20 @@
+
+catalogs: {}
+catalogsSecrets:
+  - name: catalogs
+    value:
+     mariadb.properties: |
+      connector.name=mariadb
+      connection-user=
+      connection-url=
+      connection-password=
+     postgresql.properties: |
+      connector.name=postgresql
+      connection-user=
+      connection-url=
+      postgresql.array-mapping=
+      connection-password
+secretMounts:
+  - name: catalogs
+    secretName: catalogs
+    path: /etc/trino/catalog
