@@ -382,13 +382,13 @@ eventListenerProperties: []
 #  - custom-property2=custom-value2
 # ```
 
-catalogs:
-  tpch: |
-    connector.name=tpch
-    tpch.splits-per-node=4
-  tpcds: |
-    connector.name=tpcds
-    tpcds.splits-per-node=4
+catalogs: {}
+#  tpch: |
+#    connector.name=tpch
+#    tpch.splits-per-node=4
+#  tpcds: |
+#    connector.name=tpcds
+#    tpcds.splits-per-node=4
 # catalogs -- Configure
 # [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
 # @raw
