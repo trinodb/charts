@@ -50,11 +50,7 @@ data:
 
   config.properties: |
     coordinator=true
-    {{- if gt (int .Values.server.workers) 0 }}
-    node-scheduler.include-coordinator=false
-    {{- else }}
-    node-scheduler.include-coordinator=true
-    {{- end }}
+    node-scheduler.include-coordinator={{ .Values.coordinator.config.nodeScheduler.includeCoordinator }}
     {{- if .Values.server.config.https.only }}
     http-server.http.enabled=false
     {{- else }}

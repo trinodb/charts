@@ -101,25 +101,25 @@ spec:
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
-            name: {{ .configMap }}
+            name: {{ tpl .configMap $ }}
         {{- end }}
         {{- range .Values.coordinator.configMounts }}
         - name: {{ .name }}
           configMap:
-            name: {{ .configMap }}
+            name: {{ tpl .configMap $ }}
         {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
-            secretName: {{ .secretName }}
+            secretName: {{ tpl .secretName $ }}
         {{- end }}
         {{- range .Values.coordinator.secretMounts }}
         - name: {{ .name }}
           secret:
-            secretName: {{ .secretName }}
+            secretName: {{ tpl .secretName $ }}
         {{- end }}
         {{- with .Values.coordinator.additionalVolumes }}
-        {{- . | toYaml | nindent 8 }}
+        {{- tpl (. | toYaml) $ | nindent 8 }}
         {{- end }}
       {{- if .Values.initContainers.coordinator }}
       initContainers:
@@ -158,7 +158,7 @@ spec:
                   key: {{ .Values.server.config.https.keymanager.passwordSecretRef.key }}
             {{- end }}
           envFrom:
-            {{- toYaml .Values.envFrom | nindent 12 }}
+            {{- tpl (toYaml .Values.envFrom) . | nindent 12 }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
@@ -179,18 +179,30 @@ spec:
             {{- range .Values.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.coordinator.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.coordinator.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
             - mountPath: {{ .Values.server.config.path }}/auth/password

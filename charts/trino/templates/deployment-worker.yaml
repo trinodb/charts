@@ -2,7 +2,7 @@
 {{- $truststorePasswordSecretRef := .Values.server.config.https.truststore.passwordSecretRef.name -}}
 {{- $keystorePasswordSecretRef := .Values.server.config.https.workers.keystore.passwordSecretRef.name -}}
 {{- $keymanagerPasswordSecretRef := .Values.server.config.https.workers.keymanager.passwordSecretRef.name -}}
-{{- if gt (int .Values.server.workers) 0 }}
+{{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,7 +22,7 @@ spec:
   revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
   strategy:
     {{- toYaml .Values.worker.deployment.strategy | nindent 4 }}
-  {{- if not .Values.server.autoscaling.enabled }}
+  {{- if and (not .Values.server.autoscaling.enabled) (not .Values.server.keda.enabled) }}
   replicas: {{ .Values.server.workers }}
   {{- end }}
   selector:
@@ -83,25 +83,25 @@ spec:
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
-            name: {{ .configMap }}
+            name: {{ tpl .configMap $ }}
         {{- end }}
         {{- range .Values.worker.configMounts }}
         - name: {{ .name }}
           configMap:
-            name: {{ .configMap }}
+            name: {{ tpl .configMap $ }}
         {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
-            secretName: {{ .secretName }}
+            secretName: {{ tpl .secretName $ }}
         {{- end }}
         {{- range .Values.worker.secretMounts }}
         - name: {{ .name }}
           secret:
-            secretName: {{ .secretName }}
+            secretName: {{ tpl .secretName $ }}
         {{- end }}
         {{- with .Values.worker.additionalVolumes }}
-        {{- . | toYaml | nindent 8 }}
+        {{- tpl (. | toYaml) $ | nindent 8 }}
         {{- end }}
       {{- if .Values.initContainers.worker }}
       initContainers:
@@ -144,7 +144,7 @@ spec:
                   key: {{ .Values.server.config.https.workers.keymanager.passwordSecretRef.key }}
             {{- end }}
           envFrom:
-            {{- toYaml .Values.envFrom | nindent 12 }}
+            {{- tpl (toYaml .Values.envFrom) . | nindent 12 }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
@@ -161,18 +161,30 @@ spec:
             {{- range .Values.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.worker.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.worker.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- with .Values.worker.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}

@@ -1,6 +1,6 @@
 # trino-gateway
 
-![Version: 1.13.2](https://img.shields.io/badge/Version-1.13.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 13](https://img.shields.io/badge/AppVersion-13-informational?style=flat-square)
+![Version: 1.14.0](https://img.shields.io/badge/Version-1.14.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14](https://img.shields.io/badge/AppVersion-14-informational?style=flat-square)
 
 A Helm chart for Trino Gateway
 
@@ -47,10 +47,6 @@ A Helm chart for Trino Gateway
 * `config.dataStore.password` - string, default: `"mysecretpassword"`
 * `config.dataStore.driver` - string, default: `"org.postgresql.Driver"`
 * `config.clusterStatsConfiguration.monitorType` - string, default: `"INFO_API"`
-* `config.modules[0]` - string, default: `"io.trino.gateway.ha.module.HaGatewayProviderModule"`
-* `config.modules[1]` - string, default: `"io.trino.gateway.ha.module.ClusterStateListenerModule"`
-* `config.modules[2]` - string, default: `"io.trino.gateway.ha.module.ClusterStatsMonitorModule"`
-* `config.managedApps[0]` - string, default: `"io.trino.gateway.ha.clustermonitor.ActiveClusterMonitor"`
 * `command` - list, default: `["java","-XX:MinRAMPercentage=80.0","-XX:MaxRAMPercentage=80.0","-jar","/usr/lib/trino/gateway-ha-jar-with-dependencies.jar","/etc/gateway/config.yaml"]`  
 
   Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.

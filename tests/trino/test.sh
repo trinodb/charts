@@ -4,7 +4,7 @@ set -euo pipefail
 
 declare -A testCases=(
     [default]=""
-    [single_node]="--set server.workers=0"
+    [single_node]="--set server.workers=0,coordinator.config.nodeScheduler.includeCoordinator=true"
     [complete_values]="--values test-values.yaml"
     [overrides]="--set coordinatorNameOverride=coordinator-overridden,workerNameOverride=worker-overridden,nameOverride=overridden"
     [access_control_properties_values]="--values test-access-control-properties-values.yaml"
@@ -34,6 +34,7 @@ function join_by {
 # default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
 NAMESPACE=trino-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
 DB_NAMESPACE=postgresql
+KEDA_NAMESPACE=keda
 HELM_EXTRA_SET_ARGS=
 CT_ARGS=(
     --skip-clean-up
@@ -91,7 +92,7 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
     -keyout cert.key -out cert.crt
 
 kubectl create namespace "$NAMESPACE" --dry-run=client --output yaml | kubectl apply --filename -
-kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
+kubectl -n "$NAMESPACE" create secret tls "$NAMESPACE"-certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
 cat <<YAML | kubectl -n "$NAMESPACE" apply -f-
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -105,15 +106,39 @@ spec:
       storage: 128Mi
 YAML
 
-# only install the Prometheus Helm chart when running the `complete_values` test
+# only install the Prometheus and KEDA Helm charts when running the `complete_values` test
 if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
+    # prometheus
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
         --version "60.0.2" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
         --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
-        --set grafana.enabled=false
+        --set grafana.enabled=false \
+        --set alertmanager.enabled=false \
+        --set kubeApiServer.enabled=false \
+        --set kubelet.enabled=false \
+        --set kubeControllerManager.enabled=false \
+        --set coreDns.enabled=false \
+        --set kubeEtcd.enabled=false \
+        --set kubeScheduler.enabled=false \
+        --set kubeProxy.enabled=false \
+        --set kubeStateMetrics.enabled=false \
+        --set nodeExporter.enabled=false \
+        --set prometheusOperator.admissionWebhooks.enabled=false \
+        --set prometheusOperator.kubeletService.enabled=false \
+        --set prometheusOperator.tls.enabled=false \
+        --set prometheusOperator.serviceMonitor.selfMonitor=false \
+        --set prometheus.serviceMonitor.selfMonitor=false
     kubectl rollout status --watch deployments -l release=prometheus-operator -n "$NAMESPACE"
+    # keda
+    helm repo add kedacore https://kedacore.github.io/charts
+    helm upgrade --install keda kedacore/keda -n "$KEDA_NAMESPACE" \
+        --create-namespace \
+        --version "2.16.0" \
+        --set webhooks.enabled=false \
+        --set asciiArt=false
+    kubectl rollout status --watch deployments -l app.kubernetes.io/instance=keda -n "$KEDA_NAMESPACE"
 fi
 
 # only install the PostgreSQL Helm chart when running the `resource_groups_properties` test
@@ -156,10 +181,14 @@ if [ "$CLEANUP_NAMESPACE" == "true" ]; then
     kubectl delete namespace "$DB_NAMESPACE" --ignore-not-found
     helm -n "$NAMESPACE" uninstall prometheus-operator --ignore-not-found
     kubectl delete namespace "$NAMESPACE"
-    mapfile -t crds < <(kubectl api-resources --api-group=monitoring.coreos.com --output name)
-    if [ ${#crds[@]} -ne 0 ]; then
-        kubectl delete crd "${crds[@]}"
-    fi
+    helm -n "$KEDA_NAMESPACE" uninstall keda --ignore-not-found
+    kubectl delete namespace "$KEDA_NAMESPACE"
+    for api_group in monitoring.coreos.com eventing.keda.sh keda.sh; do
+        mapfile -t crds < <(kubectl api-resources --api-group="$api_group" --output name)
+        if [ ${#crds[@]} -ne 0 ]; then
+            kubectl delete crd "${crds[@]}"
+        fi
+    done
 fi
 
 exit $result
