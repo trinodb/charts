@@ -91,7 +91,7 @@ jobs:
 
   # Everything above is CI, everything here and below is for releases and runs only on non-pull-request events
   sync-readme:
-    needs: [lint, test, docs]
+    needs: [lint, test, test-gateway, docs]
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
@@ -120,7 +120,7 @@ jobs:
           git push
 
   release:
-    needs: [lint, test, docs, sync-readme]
+    needs: [lint, test, test-gateway, docs, sync-readme]
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
