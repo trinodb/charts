@@ -49,10 +49,40 @@ server:
   config:
     path: /etc/trino
     https:
+      # -- Enable https support
       enabled: false
-      port: 8443
+      # -- Enable communications between coordinator and workers through https. It depends on https being enabled.
+      # Be aware that when enabled, truststore infos must also be valid for workers
+      # TLS certificates must also have serverAuth and clientAuth usages
+      internal: false
+      # -- Disable http server completely. It requires https.internal and ingress.tlsService (if Ingress is configured)
+      only: false
       keystore:
         path: ""
+        passwordSecretRef:
+          name: ""
+          key: ""
+      keymanager:
+        passwordSecretRef:
+          name: ""
+          key: ""
+      # -- Specific workers TLS settings when communications between coordinator and workers go through https.
+      # Notice that truststore infos are the same as the coordinator
+      workers:
+        keystore:
+          path: ""
+          passwordSecretRef:
+            name: ""
+            key: ""
+        keymanager:
+          passwordSecretRef:
+            name: ""
+            key: ""
+      truststore:
+        path: ""
+        passwordSecretRef:
+          name: ""
+          key: ""
     # -- Trino supports multiple [authentication
     # types](https://trino.io/docs/current/security/authentication-types.html):
     # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
@@ -489,6 +519,7 @@ service:
   annotations: {}
   type: ClusterIP
   port: 8080
+  tlsPort: 8443
   # service.nodePort -- The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will
   # [allocate a port
   # automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
@@ -1063,6 +1094,12 @@ ingress:
   enabled: false
   className: ""
   annotations: {}
+  # -- Use the TLS service backend instead of the plaintext one --
+  # Depending on Openshift or Kubernetes peculiarities you may have to annotate your ingress
+  # with fields like:
+  # * route.openshift.io/destination-ca-certificate-secret
+  # * route.openshift.io/termination
+  tlsService: false
   hosts: []
   # ingress.hosts -- [Ingress
   # rules](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).

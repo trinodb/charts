@@ -51,23 +51,66 @@ data:
   config.properties: |
     coordinator=true
     node-scheduler.include-coordinator={{ .Values.coordinator.config.nodeScheduler.includeCoordinator }}
+    {{- if .Values.server.config.https.only }}
+    http-server.http.enabled=false
+    {{- else }}
     http-server.http.port={{ .Values.service.port }}
+    {{- end }}
+    {{- if .Values.server.config.https.internal }}
+    discovery.uri=https://localhost:{{ .Values.service.tlsPort }}
+    internal-communication.https.required=true
+    # Taken from https://github.com/trinodb/trino/issues/5230#issuecomment-2062013346
+    # Not checking the hostnames may seems like an issue but tls works and is already an additional layer
+    # of security compared to the shared secret
+    discovery.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    dynamic.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    exchange.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    failure-detector.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    memoryManager.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    node-manager.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    scheduler.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    workerInfo.http-client.trust-store-path={{ .Values.server.config.https.truststore.path }}
+    discovery.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    dynamic.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    exchange.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    failure-detector.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    memoryManager.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    node-manager.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    scheduler.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    workerInfo.http-client.trust-store-password=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    discovery.http-client.https.hostname-verification=false
+    dynamic.http-client.https.hostname-verification=false
+    exchange.http-client.https.hostname-verification=false
+    failure-detector.http-client.https.hostname-verification=false
+    memoryManager.http-client.https.hostname-verification=false
+    node-manager.http-client.https.hostname-verification=false
+    scheduler.http-client.https.hostname-verification=false
+    workerInfo.http-client.https.hostname-verification=false
+    {{- else }}
+    discovery.uri=http://localhost:{{ .Values.service.port }}
+    {{- end }}
+    {{- if .Values.server.config.https.enabled }}
+    http-server.https.enabled=true
+    http-server.https.port={{ .Values.service.tlsPort }}
+    http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
+    http-server.https.keystore.key=${ENV:TRINO_HTTPS_KEYSTORE_SECRET}
+    http-server.https.keymanager.password=${ENV:TRINO_HTTPS_KEYMANAGER_SECRET}
+    http-server.https.truststore.path={{ .Values.server.config.https.truststore.path }}
+    http-server.https.truststore.key=${ENV:TRINO_HTTPS_TRUSTSTORE_SECRET}
+    {{- end }}
+    {{- if .Values.ingress.enabled }}
+    http-server.process-forwarded=true
+    {{- end }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
     {{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
     {{- end }}
-    discovery.uri=http://localhost:{{ .Values.service.port }}
     {{- if .Values.server.config.authenticationType }}
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
     {{- end }}
     {{- range $configValue := .Values.additionalConfigProperties }}
     {{ $configValue }}
-    {{- end }}
-    {{- if .Values.server.config.https.enabled }}
-    http-server.https.enabled=true
-    http-server.https.port={{ .Values.server.config.https.port }}
-    http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
     {{- end }}
     {{- if $coordinatorJmx.enabled }}
     jmx.rmiregistry.port={{- $coordinatorJmx.registryPort }}
