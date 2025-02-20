@@ -37,6 +37,14 @@ A Helm chart for Trino Gateway
     - secretRef:
         name: password-secret
   ```
+* `env` - list, default: `[]`  
+
+  Additional environment variables to mount into the init container as environment variables.
+  Example:
+  ```yaml
+   - name: NAME
+     value: "value"
+  ```
 * `config.serverConfig."node.environment"` - string, default: `"test"`
 * `config.serverConfig."http-server.http.port"` - int, default: `8080`
 * `config.serverConfig."http-server.http.enabled"` - bool, default: `true`
