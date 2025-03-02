@@ -1154,14 +1154,3 @@ additionalSecrets: []
   #       connection-url=
   #       postgresql.array-mapping=
   #       connection-password=
-ldapSecrets: []
-  #  - name: ldap
-  #    value:
-  #      ldap.properties: |
-  #        password-authenticator.name=ldap
-  #        ldap.bind-dn=uid=
-  #        ldap.url=
-  #        ldap.bind-password=
-  #        ldap.user-bind-pattern=
-  #        ldap.group-auth-pattern=
-  #        ldap.user-base-dn=
