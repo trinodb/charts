@@ -955,10 +955,10 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
          port: 9999
   ```
   
- * `catalogsSecrets` - list, default: `[]`
+ * `additionalSecrets` - list, default: `[]`
      Example:
  ```yaml
- catalogsSecrets: []
+ additionalSecrets: []
   # - name: catalogs
   #   value:
   #     mariadb.properties: |
@@ -972,17 +972,6 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   #       connection-url=
   #       postgresql.array-mapping=
   #       connection-password=
-ldapSecrets: []
-  #  - name: ldap
-  #    value:
-  #      ldap.properties: |
-  #        password-authenticator.name=ldap
-  #        ldap.bind-dn=uid=
-  #        ldap.url=
-  #        ldap.bind-password=
-  #        ldap.user-bind-pattern=
-  #        ldap.group-auth-pattern=
-  #        ldap.user-base-dn=
   ```
 
 ----------------------------------------------
