@@ -1140,7 +1140,7 @@ networkPolicy:
   # ```
   egress: []
 
-catalogsSecrets: []
+additionalSecrets: []
   # - name: catalogs
   #   value:
   #     mariadb.properties: |
