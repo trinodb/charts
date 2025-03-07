@@ -190,7 +190,7 @@ spec:
               containerPort: {{ $coordinatorJmx.registryPort }}
               protocol: TCP
             - name: jmx-server
-              containerPort: {{ $coordinatorJmx.coordinator.exporter.port, }}
+              containerPort: {{ $coordinatorJmx.coordinator.exporter.port }}
               protocol: TCP
             {{- end }}
           {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
