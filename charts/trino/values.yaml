@@ -928,6 +928,7 @@ jmx:
   #   enabled: true
   #   exporter:
   #     enabled: true
+  #      port: 9081
   #     configProperties: |-
   #       hostPort: localhost:{{- .Values.jmx.registryPort }}
   #       startDelaySeconds: 0
@@ -942,6 +943,7 @@ jmx:
   #   enabled: true
   #   exporter:
   #     enabled: true
+  #     port: 9082
   # ```
 
 serviceMonitor:

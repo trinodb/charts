@@ -164,7 +164,7 @@ spec:
               containerPort: {{ $workerJmx.registryPort }}
               protocol: TCP
             - name: jmx-server
-              containerPort: {{ $workerJmx.serverPort }}
+              containerPort: {{ $workerJmx.worker.exporter.port }}
               protocol: TCP
             {{- end }}
           {{- range $key, $value := .Values.worker.additionalExposedPorts }}
