@@ -50,11 +50,7 @@ data:
 
   config.properties: |
     coordinator=true
-    {{- if gt (int .Values.server.workers) 0 }}
-    node-scheduler.include-coordinator=false
-    {{- else }}
-    node-scheduler.include-coordinator=true
-    {{- end }}
+    node-scheduler.include-coordinator={{ .Values.coordinator.config.nodeScheduler.includeCoordinator }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
@@ -124,7 +120,7 @@ data:
 {{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
