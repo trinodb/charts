@@ -47,7 +47,7 @@ A Helm chart for Trino Gateway
 * `config.dataStore.password` - string, default: `"mysecretpassword"`
 * `config.dataStore.driver` - string, default: `"org.postgresql.Driver"`
 * `config.clusterStatsConfiguration.monitorType` - string, default: `"INFO_API"`
-* `command` - list, default: `["java","-XX:MinRAMPercentage=80.0","-XX:MaxRAMPercentage=80.0","-jar","/usr/lib/trino/gateway-ha-jar-with-dependencies.jar","/etc/gateway/config.yaml"]`  
+* `command` - list, default: `["java","-XX:MinRAMPercentage=80.0","-XX:MaxRAMPercentage=80.0","-jar","/usr/lib/trino-gateway/gateway-ha-jar-with-dependencies.jar","/etc/trino-gateway/config.yaml"]`  
 
   Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
 * `service` - object, default: `{"ports":[{"name":"gateway","protocol":"TCP"}],"type":"ClusterIP"}`  

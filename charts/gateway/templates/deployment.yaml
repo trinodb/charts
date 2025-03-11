@@ -85,7 +85,7 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: trino-gateway-configuration
-              mountPath: "/etc/gateway/config.yaml"
+              mountPath: "/etc/trino-gateway/config.yaml"
               subPath: "config.yaml"
               readOnly: true
           {{- with .Values.volumeMounts }}
