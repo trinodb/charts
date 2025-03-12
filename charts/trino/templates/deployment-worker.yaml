@@ -29,6 +29,9 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if .Values.secrets }}
+        checksum/secret-config: {{ include (print $.Template.BasePath "/secrets-catalogs.yaml") . | sha256sum }}
+        {{- end }}
         {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         {{- end }}
