@@ -26,7 +26,7 @@ the name to get an output similar to the following:
 ```
 NAME               	CHART VERSION	APP VERSION	DESCRIPTION
 trino/trino        	1.37.0       	470        	Fast distributed SQL query engine for big data ...
-trino/trino-gateway	1.14.0       	14         	A Helm chart for Trino Gateway
+trino/trino-gateway	1.15.0       	15         	A Helm chart for Trino Gateway
 ```
 
 Use `helm search repo trino -l` for information about all available versions.
