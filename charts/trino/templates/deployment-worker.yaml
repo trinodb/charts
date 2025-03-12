@@ -29,7 +29,7 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.secrets }}
+        {{- if .Values.additionalSecrets }}
         checksum/secret-config: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         {{- end }}
         {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
