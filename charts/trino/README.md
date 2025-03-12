@@ -163,9 +163,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
         serverAddress: "http://prometheus.example.com"
         threshold: "1"
         metricName: required_workers
-          query: >-
-            sum by (service)
-            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+        query: >-
+          sum by (service)
+          (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
   ```
 * `server.keda.annotations` - object, default: `{}`  
 

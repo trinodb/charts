@@ -169,9 +169,9 @@ server:
     #       serverAddress: "http://prometheus.example.com"
     #       threshold: "1"
     #       metricName: required_workers
-    #         query: >-
-    #           sum by (service)
-    #           (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+    #       query: >-
+    #         sum by (service)
+    #         (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
     # ```
     annotations: {}
     # server.keda.annotations -- Annotations to apply to the ScaledObject CRD.
