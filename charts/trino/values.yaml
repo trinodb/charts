@@ -402,6 +402,15 @@ catalogs:
 #  memory: |
 #    connector.name=memory
 #    memory.max-data-per-node=128MB
+#  postgresql: |
+#    connector.name=postgresql
+#    connection-url=jdbc:postgresql://postgres-service.my-postgres.svc:5432/my_db
+#    connection-user=${ENV:POSTGRES_USER}
+#    connection-password=${ENV:POSTGRES_PASSWORD}
+#  delta: |
+#    connector.name=delta_lake
+#    hive.metastore=glue
+#    fs.native-s3.enabled=true
 # ```
 
 additionalCatalogs: {}
@@ -418,8 +427,7 @@ env: []
 # ```
 
 envFrom: []
-# envFrom -- additional environment variables added to every pod, specified as a list of either `ConfigMap`
-# or `Secret` references
+# envFrom -- additional environment variables added to every pod, specified as a list of either `ConfigMap` or `Secret` references
 # @raw
 # Example:
 # ```yaml
