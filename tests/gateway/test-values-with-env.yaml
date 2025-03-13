@@ -11,7 +11,7 @@ config:
     http-server.http.port: 8080
   dataStore:
     # The connection details for the backend database for Trino Gateway and Trino query history
-    jdbcUrl: jdbc:postgresql://gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local:5432/gateway
+    jdbcUrl: jdbc:postgresql://${ENV:PG_HOST}:5432/gateway
     user: "${ENV:PG_USER}"
     password: "${ENV:PG_PASSWORD}"
     driver: org.postgresql.Driver
@@ -21,6 +21,10 @@ config:
 envFrom:
   - secretRef:
       name: db-credentials
+
+env:
+  - name: PG_HOST
+    value: gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local
 
 resources:
   limits:
