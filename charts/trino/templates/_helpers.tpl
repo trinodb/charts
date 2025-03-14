@@ -24,6 +24,19 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
+{{- define "trino.fullnameEnv" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" | upper | replace "-" "_" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if hasPrefix .Release.Name $name }}
+{{- $name | trunc 63 | trimSuffix "-" | upper | replace "-" "_" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" | upper | replace "-" "_" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
 {{/*
 Create chart name and version as used by the chart label.
 */}}
@@ -155,3 +168,59 @@ Create the secret name for the group-provider file
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{/* Compile all validation warnings into a single message and call fail. */}}
+{{- define "trino.validateValues" -}}
+{{- $messages := list -}}
+{{- $messages = append $messages (include "trino.validateValues.ingresstlsservice.enabled" .) -}}
+{{- $messages = append $messages (include "trino.validateValues.internal.enabled" .) -}}
+{{- $messages = append $messages (include "trino.validateValues.httpsonly.enabled" .) -}}
+{{- $messages = append $messages (include "trino.validateValues.httpsonly.internal" .) -}}
+{{- $messages = append $messages (include "trino.validateValues.httpsonly.ingresstlsservice" .) -}}
+{{- $messages = without $messages "" -}}
+{{- $message := join "\n" $messages -}}
+
+{{- if $message -}}
+{{- printf "\nVALUES VALIDATION:\n%s" $message | fail -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Validate value of .Values.server.config.https.enabled for .Values.ingress.tlsService */}}
+{{- define "trino.validateValues.ingresstlsservice.enabled" -}}
+{{- if and .Values.ingress.tlsService (not .Values.server.config.https.enabled) -}}
+trino: .Values.ingress.tlsService
+    `.Values.ingress.tlsService` requires `.Values.server.config.https.enabled`
+{{- end -}}
+{{- end -}}
+
+{{/* Validate value of .Values.server.config.https.enabled for .Values.server.config.https.internal */}}
+{{- define "trino.validateValues.internal.enabled" -}}
+{{- if and .Values.server.config.https.internal (not .Values.server.config.https.enabled) -}}
+trino: .Values.server.config.https.internal
+    `.Values.server.config.https.internal` requires `.Values.server.config.https.enabled`
+{{- end -}}
+{{- end -}}
+
+{{/* Validate value of .Values.server.config.https.enabled for .Values.server.config.https.only */}}
+{{- define "trino.validateValues.httpsonly.enabled" -}}
+{{- if and .Values.server.config.https.only (not .Values.server.config.https.enabled) -}}
+trino: .Values.server.config.https.only
+    `.Values.server.config.https.only` requires `.Values.server.config.https.enabled`
+{{- end -}}
+{{- end -}}
+
+{{/* Validate value of .Values.server.config.https.internal for .Values.server.config.https.only */}}
+{{- define "trino.validateValues.httpsonly.internal" -}}
+{{- if and .Values.server.config.https.only (not .Values.server.config.https.internal) -}}
+trino: .Values.server.config.https.only
+    `.Values.server.config.https.only` requires `.Values.server.config.https.internal`
+{{- end -}}
+{{- end -}}
+
+{{/* Validate value of .Values.ingress.tlsService for .Values.server.config.https.only */}}
+{{- define "trino.validateValues.httpsonly.ingresstlsservice" -}}
+{{- if and .Values.server.config.https.only (not .Values.ingress.tlsService) -}}
+trino: .Values.server.config.https.only
+    `.Values.server.config.https.only` requires `.Values.ingress.tlsService`
+{{- end -}}
+{{- end -}}
