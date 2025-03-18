@@ -9,33 +9,6 @@ metadata:
   annotations:
     "helm.sh/hook": test
 spec:
-  initContainers:
-    - name: extract-persistence-sql
-      image: "trinodb/trino-gateway"
-      command:
-        - "/bin/sh"
-        - "-c"
-        - |
-          cd /etc/persistence && \
-          jar -xvf /usr/lib/trino/gateway-ha-jar-with-dependencies.jar \
-          gateway-ha-persistence-postgres.sql
-      volumeMounts:
-        - name: persistence-sql
-          mountPath: /etc/persistence
-    - name: initialize-db
-      image: bitnami/postgresql:17.1.0
-      command:
-        - "/bin/sh"
-        - "-c"
-        - |
-          echo "Initialize gateway schema";
-          PGPASSWORD=pass0000 psql \
-          -h gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local \
-          -U gateway -d gateway \
-          -f /etc/persistence/gateway-ha-persistence-postgres.sql
-      volumeMounts:
-        - name: persistence-sql
-          mountPath: /etc/persistence
   containers:
     - name: curl
       image: alpine

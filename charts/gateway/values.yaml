@@ -43,12 +43,6 @@ config:
     driver: org.postgresql.Driver
   clusterStatsConfiguration:
     monitorType: INFO_API
-  modules:
-    - io.trino.gateway.ha.module.HaGatewayProviderModule
-    - io.trino.gateway.ha.module.ClusterStateListenerModule
-    - io.trino.gateway.ha.module.ClusterStatsMonitorModule
-  managedApps:
-    - io.trino.gateway.ha.clustermonitor.ActiveClusterMonitor
 
 # -- Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
 command:
@@ -56,8 +50,8 @@ command:
   - "-XX:MinRAMPercentage=80.0"
   - "-XX:MaxRAMPercentage=80.0"
   - "-jar"
-  - "/usr/lib/trino/gateway-ha-jar-with-dependencies.jar"
-  - "/etc/gateway/config.yaml"
+  - "/usr/lib/trino-gateway/gateway-ha-jar-with-dependencies.jar"
+  - "/etc/trino-gateway/config.yaml"
 
 # -- Service for accessing the gateway. The contents of this dictionary are used
 #  for the [service spec](https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport).
