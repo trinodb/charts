@@ -1018,11 +1018,7 @@ jmx:
     #    cpu: 100m
     #    memory: 128Mi
     # ```
-  coordinator:
-    serverPort: 9082
-    enabled: true
-    exporter:
-      enabled: true
+  coordinator: {}
   # jmx.coordinator -- Override JMX configurations for the Trino coordinator.
   # @raw
   # Example
@@ -1037,10 +1033,6 @@ jmx:
   #       ssl: false
   # ```
   worker: {}
-    serverPort: 9083
-    enabled: true
-    exporter:
-      enabled: true
   # jmx.worker -- Override JMX configurations for the Trino workers.
   # @raw
   # Example
