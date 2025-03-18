@@ -1,6 +1,6 @@
 # trino
 
-![Version: 1.36.0](https://img.shields.io/badge/Version-1.36.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 468](https://img.shields.io/badge/AppVersion-468-informational?style=flat-square)
+![Version: 1.37.0](https://img.shields.io/badge/Version-1.37.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 470](https://img.shields.io/badge/AppVersion-470-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -62,13 +62,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.config.query.maxMemory` - string, default: `"4GB"`
 * `server.exchangeManager` - object, default: `{}`  
 
-  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of the spooling storage destination. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
+  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   Example:
   ```yaml
   server:
     exchangeManager:
       name: "filesystem"
-      baseDir: "/tmp/trino-local-file-system-exchange-manager"
+      baseDir:
+        - "/tmp/trino-local-file-system-exchange-manager"
   additionalConfigProperties:
     - retry-policy=TASK
   additionalExchangeManagerProperties:
@@ -78,8 +79,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `server.workerExtraConfig` - string, default: `""`
 * `server.coordinatorExtraConfig` - string, default: `""`
-* `server.autoscaling.enabled` - bool, default: `false`
-* `server.autoscaling.maxReplicas` - int, default: `5`
+* `server.autoscaling` - object, default: `{"behavior":{},"enabled":false,"maxReplicas":5,"targetCPUUtilizationPercentage":50,"targetMemoryUtilizationPercentage":80}`  
+
+  Configure [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) for workers (`server.keda.enabled` must be `false`).
 * `server.autoscaling.targetCPUUtilizationPercentage` - int, default: `50`  
 
   Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU, set to an empty string.
@@ -107,6 +109,70 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        value: 4
        periodSeconds: 15
      selectPolicy: Max
+  ```
+* `server.keda` - object, default: `{"advanced":{},"annotations":{},"cooldownPeriod":300,"enabled":false,"fallback":{},"initialCooldownPeriod":0,"maxReplicaCount":5,"minReplicaCount":0,"pollingInterval":30,"triggers":[]}`  
+
+  Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers (`server.autoscaling.enabled` must be `false`).
+* `server.keda.cooldownPeriod` - int, default: `300`  
+
+  Period (in seconds) to wait after the last trigger reported active before scaling the resource back to 0
+* `server.keda.initialCooldownPeriod` - int, default: `0`  
+
+  The delay (in seconds) before the `cooldownPeriod` starts after the initial creation of the `ScaledObject`.
+* `server.keda.minReplicaCount` - int, default: `0`  
+
+  Minimum number of replicas KEDA will scale the resource down to. By default, it’s scale to zero, but you can use it with some other value as well.
+* `server.keda.maxReplicaCount` - int, default: `5`  
+
+  This setting is passed to the HPA definition that KEDA will create for a given resource and holds the maximum number of replicas of the target resource.
+* `server.keda.fallback` - object, default: `{}`  
+
+  Defines a number of replicas to fall back to if a scaler is in an error state.
+  Example:
+  ```yaml
+  fallback:             # Optional. Section to specify fallback options
+    failureThreshold: 3 # Mandatory if fallback section is included
+    replicas: 6         # Mandatory if fallback section is included
+  ```
+* `server.keda.advanced` - object, default: `{}`  
+
+  Specifies HPA related options
+  Example:
+  ```yaml
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 15
+  ```
+* `server.keda.triggers` - list, default: `[]`  
+
+  List of triggers to activate scaling of the target resource
+  Example:
+  ```yaml
+  triggers:
+    - type: prometheus
+      metricType: Value
+      metadata:
+        serverAddress: "http://prometheus.example.com"
+        threshold: "1"
+        metricName: required_workers
+          query: >-
+            sum by (service)
+            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+  ```
+* `server.keda.annotations` - object, default: `{}`  
+
+  Annotations to apply to the ScaledObject CRD.
+  Example:
+  ```yaml
+  annotations:
+    autoscaling.keda.sh/paused-replicas: "0"
+    autoscaling.keda.sh/paused: "true"
   ```
 * `accessControl` - object, default: `{}`  
 
@@ -411,6 +477,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-config-mount
      configMap: sample-config-map
      path: /config-map/sample.json
+     subPath: sample.json
   ```
 * `secretMounts` - list, default: `[]`  
 
@@ -420,6 +487,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `coordinator.deployment.annotations` - object, default: `{}`
 * `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
@@ -435,6 +503,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `coordinator.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
 * `coordinator.config.memory.heapHeadroomPerNode` - string, default: `""`
+* `coordinator.config.nodeScheduler.includeCoordinator` - bool, default: `false`  
+
+  Allows scheduling work on the coordinator so that a single machine can function as both coordinator and worker. For large clusters, processing work on the coordinator can negatively impact query performance because the machine's resources are not available for the critical coordinator tasks of scheduling, managing, and monitoring query execution.
 * `coordinator.config.query.maxMemoryPerNode` - string, default: `"1GB"`
 * `coordinator.additionalJVMConfig` - list, default: `[]`
 * `coordinator.additionalExposedPorts` - object, default: `{}`  
@@ -529,6 +600,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-config-mount
      configMap: sample-config-mount
      path: /config-mount/sample.json
+     subPath: sample.json
   ```
 * `coordinator.secretMounts` - list, default: `[]`  
 
@@ -538,6 +610,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `worker.deployment.annotations` - object, default: `{}`
 * `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
@@ -657,6 +730,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   - name: sample-config-mount
     configMap: sample-config-mount
     path: /config-mount/sample.json
+    subPath: sample.json
   ```
 * `worker.secretMounts` - list, default: `[]`  
 
@@ -666,6 +740,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: sample-secret
      secretName: sample-secret
      path: /secrets/sample.json
+     subPath: sample.json
   ```
 * `kafka.mountPath` - string, default: `"/etc/trino/schemas"`
 * `kafka.tableDescriptions` - object, default: `{}`  
@@ -879,6 +954,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
        - protocol: TCP
          port: 9999
   ```
+
+ * `additionalSecrets` - list, default: `[]`
+     Example:
+ ```yaml
+ additionalSecrets: []
+  # - name: extra-secret
+  #   value:
+  #      POSTGRES_USER:
+  #      POSTGRES_PASSWORD:
+  #      MARIADB_USER:
+  #      MARIADB_PASSWORD: 
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)

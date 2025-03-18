@@ -62,16 +62,17 @@ server:
   exchangeManager: {}
   # server.exchangeManager -- Mandatory [exchange manager
   # configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
-  # Used to set the name and location(s) of the spooling storage destination. To enable fault-tolerant execution,
-  # set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be
-  # added to `additionalExchangeManagerProperties`.
+  # Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations.
+  # To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`.
+  # Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   # @raw
   # Example:
   # ```yaml
   # server:
   #   exchangeManager:
   #     name: "filesystem"
-  #     baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  #     baseDir:
+  #       - "/tmp/trino-local-file-system-exchange-manager"
   # additionalConfigProperties:
   #   - retry-policy=TASK
   # additionalExchangeManagerProperties:
@@ -82,6 +83,8 @@ server:
 
   workerExtraConfig: ""
   coordinatorExtraConfig: ""
+  # server.autoscaling -- Configure [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
+  # for workers (`server.keda.enabled` must be `false`).
   autoscaling:
     enabled: false
     maxReplicas: 5
@@ -112,6 +115,71 @@ server:
     #      value: 4
     #      periodSeconds: 15
     #    selectPolicy: Max
+    # ```
+
+  # server.keda -- Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers
+  # (`server.autoscaling.enabled` must be `false`).
+  keda:
+    enabled: false
+    pollingInterval: 30
+    # -- Period (in seconds) to wait after the last trigger reported active before scaling the resource back to 0
+    cooldownPeriod: 300
+    # -- The delay (in seconds) before the `cooldownPeriod` starts after the initial creation of the `ScaledObject`.
+    initialCooldownPeriod: 0
+    # -- Minimum number of replicas KEDA will scale the resource down to.
+    # By default, it’s scale to zero, but you can use it with some other value as well.
+    minReplicaCount: 0
+    # -- This setting is passed to the HPA definition that KEDA will create for a given resource and
+    # holds the maximum number of replicas of the target resource.
+    maxReplicaCount: 5
+    fallback: {}
+    # server.keda.fallback -- Defines a number of replicas to fall back to if a scaler is in an error state.
+    # @raw
+    # Example:
+    # ```yaml
+    # fallback:             # Optional. Section to specify fallback options
+    #   failureThreshold: 3 # Mandatory if fallback section is included
+    #   replicas: 6         # Mandatory if fallback section is included
+    # ```
+    advanced: {}
+    # server.keda.advanced -- Specifies HPA related options
+    # @raw
+    # Example:
+    # ```yaml
+    # advanced:
+    #   horizontalPodAutoscalerConfig:
+    #     behavior:
+    #       scaleDown:
+    #         stabilizationWindowSeconds: 300
+    #         policies:
+    #           - type: Percent
+    #             value: 100
+    #             periodSeconds: 15
+    # ```
+    triggers: []
+    # server.keda.triggers -- List of triggers to activate scaling of the target resource
+    # @raw
+    # Example:
+    # ```yaml
+    # triggers:
+    #   - type: prometheus
+    #     metricType: Value
+    #     metadata:
+    #       serverAddress: "http://prometheus.example.com"
+    #       threshold: "1"
+    #       metricName: required_workers
+    #         query: >-
+    #           sum by (service)
+    #           (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+    # ```
+    annotations: {}
+    # server.keda.annotations -- Annotations to apply to the ScaledObject CRD.
+    # @raw
+    # Example:
+    # ```yaml
+    # annotations:
+    #   autoscaling.keda.sh/paused-replicas: "0"
+    #   autoscaling.keda.sh/paused: "true"
     # ```
 
 accessControl: {}
@@ -339,6 +407,20 @@ catalogs:
 additionalCatalogs: {}
 # additionalCatalogs -- Deprecated, use `catalogs` instead. Configure additional
 # [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
+# @raw
+# Example:
+# ```yaml
+#  postgresql: |
+#    connector.name=postgresql
+#    connection-url=jdbc:postgresql://postgres-service.my-postgres.svc:5432/my_db
+#    connection-user=${ENV:POSTGRES_USER}
+#    connection-password=${ENV:POSTGRES_PASSWORD}
+#  mariadb: |
+#    connector.name=mariadb
+#    connection-url=jdbc:mariadb://mariadb-service.my-mariadb.svc:3306/my_db
+#    connection-user=${ENV:MARIADB_USER}
+#    connection-password=${ENV:MARIADB_PASSWORD}
+# ```
 
 env: []
 # env -- additional environment variables added to every pod, specified as a list with explicit values
@@ -465,6 +547,7 @@ configMounts: []
 #  - name: sample-config-mount
 #    configMap: sample-config-map
 #    path: /config-map/sample.json
+#    subPath: sample.json
 # ```
 
 secretMounts: []
@@ -476,6 +559,7 @@ secretMounts: []
 #  - name: sample-secret
 #    secretName: sample-secret
 #    path: /secrets/sample.json
+#    subPath: sample.json
 # ```
 
 coordinator:
@@ -507,6 +591,12 @@ coordinator:
   config:
     memory:
       heapHeadroomPerNode: ""
+    nodeScheduler:
+      includeCoordinator: false
+      # coordinator.config.nodeScheduler.includeCoordinator -- Allows scheduling work on the coordinator so that a
+      # single machine can function as both coordinator and worker. For large clusters, processing work on the
+      # coordinator can negatively impact query performance because the machine's resources are not available for the
+      # critical coordinator tasks of scheduling, managing, and monitoring query execution.
     query:
       maxMemoryPerNode: "1GB"
 
@@ -604,6 +694,8 @@ coordinator:
   # ```yaml
   #  - name: extras
   #    emptyDir: {}
+  #  - name: extra-secret
+  #    emptyDir: {}
   # ```
 
   additionalVolumeMounts: []
@@ -612,6 +704,9 @@ coordinator:
   # Example:
   #  - name: extras
   #    mountPath: /usr/share/extras
+  #    readOnly: true
+  #  - name: extra-secret
+  #    mountPath: /etc/trino/secrets
   #    readOnly: true
 
   annotations: {}
@@ -627,6 +722,7 @@ coordinator:
   #  - name: sample-config-mount
   #    configMap: sample-config-mount
   #    path: /config-mount/sample.json
+  #    subPath: sample.json
   # ```
 
   secretMounts: []
@@ -638,6 +734,7 @@ coordinator:
   #  - name: sample-secret
   #    secretName: sample-secret
   #    path: /secrets/sample.json
+  #    subPath: sample.json
   # ```
 
 worker:
@@ -810,6 +907,7 @@ worker:
   # - name: sample-config-mount
   #   configMap: sample-config-mount
   #   path: /config-mount/sample.json
+  #   subPath: sample.json
   # ```
 
   secretMounts: []
@@ -821,6 +919,7 @@ worker:
   #  - name: sample-secret
   #    secretName: sample-secret
   #    path: /secrets/sample.json
+  #    subPath: sample.json
   # ```
 
 kafka:
@@ -903,7 +1002,7 @@ jmx:
     #         type: UNTYPED
     # ```
     securityContext: {}
-    resources: {}
+    resources:
     # jmx.exporter.resources -- It is recommended not to specify default resources
     # and to leave this as a conscious choice for the user. This also increases
     # chances charts run on environments with little resources, such as Minikube.
@@ -912,14 +1011,18 @@ jmx:
     # @raw
     # Example:
     # ```yaml
-    #  limits:
-    #    cpu: 100m
-    #    memory: 128Mi
-    #  requests:
-    #    cpu: 100m
-    #    memory: 128Mi
+     limits:
+       cpu: 100m
+       memory: 128Mi
+     requests:
+       cpu: 100m
+       memory: 128Mi
     # ```
-  coordinator: {}
+  coordinator:
+    serverPort: 9082
+    enabled: true
+    exporter:
+      enabled: true
   # jmx.coordinator -- Override JMX configurations for the Trino coordinator.
   # @raw
   # Example
@@ -933,7 +1036,11 @@ jmx:
   #       startDelaySeconds: 0
   #       ssl: false
   # ```
-  worker: {}
+  worker:
+    serverPort: 9083
+    enabled: true
+    exporter:
+      enabled: true
   # jmx.worker -- Override JMX configurations for the Trino workers.
   # @raw
   # Example
@@ -1053,3 +1160,11 @@ networkPolicy:
   #        port: 9999
   # ```
   egress: []
+
+additionalSecrets: []
+  # - name: extra-secret
+  #   value:
+  #      POSTGRES_USER:
+  #      POSTGRES_PASSWORD:
+  #      MARIADB_USER:
+  #      MARIADB_PASSWORD:
