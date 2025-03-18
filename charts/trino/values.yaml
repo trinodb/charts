@@ -1036,7 +1036,7 @@ jmx:
   #       startDelaySeconds: 0
   #       ssl: false
   # ```
-  worker:
+  worker: {}
     serverPort: 9083
     enabled: true
     exporter:
