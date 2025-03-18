@@ -42,7 +42,7 @@ spec:
       - --password
     {{- end }}
       - --debug
-      - --execute=SELECT 1
+      - --execute=SELECT COUNT(*) FROM tpch.tiny.nation
       - --no-progress
     {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
       env:
@@ -58,6 +58,6 @@ spec:
   volumes:
     - name: certificates
       secret:
-        secretName: certificates
+        secretName: {{ .Release.Namespace }}-certificates
     {{- end }}
   restartPolicy: Never
