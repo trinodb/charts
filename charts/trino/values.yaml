@@ -1002,7 +1002,7 @@ jmx:
     #         type: UNTYPED
     # ```
     securityContext: {}
-    resources:
+    resources: {}
     # jmx.exporter.resources -- It is recommended not to specify default resources
     # and to leave this as a conscious choice for the user. This also increases
     # chances charts run on environments with little resources, such as Minikube.
@@ -1011,12 +1011,12 @@ jmx:
     # @raw
     # Example:
     # ```yaml
-     limits:
-       cpu: 100m
-       memory: 128Mi
-     requests:
-       cpu: 100m
-       memory: 128Mi
+    #  limits:
+    #    cpu: 100m
+    #    memory: 128Mi
+    #  requests:
+    #    cpu: 100m
+    #    memory: 128Mi
     # ```
   coordinator:
     serverPort: 9082
