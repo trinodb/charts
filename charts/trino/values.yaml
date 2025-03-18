@@ -413,8 +413,8 @@ additionalCatalogs: {}
 #  postgresql: |
 #    connector.name=postgresql
 #    connection-url=jdbc:postgresql://postgres-service.my-postgres.svc:5432/my_db
-#    connection-user=${ENV:POSTGRES_USER}
-#    connection-password=${ENV:POSTGRES_PASSWORD}
+#    connection-user=${ENV:POSTGRESQL_USER}
+#    connection-password=${ENV:POSTGRESQL_PASSWORD}
 #  mariadb: |
 #    connector.name=mariadb
 #    connection-url=jdbc:mariadb://mariadb-service.my-mariadb.svc:3306/my_db
@@ -1156,7 +1156,7 @@ networkPolicy:
 additionalSecrets: []
   # - name: extra-secret
   #   value:
-  #      POSTGRES_USER:
-  #      POSTGRES_PASSWORD:
+  #      POSTGRESQL_USER:
+  #      POSTGRESQL_PASSWORD:
   #      MARIADB_USER:
   #      MARIADB_PASSWORD:
