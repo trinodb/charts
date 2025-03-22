@@ -40,6 +40,7 @@ imagePullSecrets: []
 server:
   workers: 2
   node:
+    # server.node.environment -- Supports templating with `tpl`.
     environment: production
     dataDir: /data/trino
     pluginDir: /usr/lib/trino/plugin
