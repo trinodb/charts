@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: coordinator
 data:
   node.properties: |
-    node.environment={{ .Values.server.node.environment }}
+    node.environment={{ tpl .Values.server.node.environment . }}
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
