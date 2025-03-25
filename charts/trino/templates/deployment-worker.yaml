@@ -1,4 +1,7 @@
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+{{- $truststorePasswordSecretRef := .Values.server.config.https.truststore.passwordSecretRef.name -}}
+{{- $keystorePasswordSecretRef := .Values.server.config.https.workers.keystore.passwordSecretRef.name -}}
+{{- $keymanagerPasswordSecretRef := .Values.server.config.https.workers.keymanager.passwordSecretRef.name -}}
 {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: apps/v1
 kind: Deployment
@@ -120,7 +123,26 @@ spec:
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           env:
+            {{- if .Values.env }}
             {{- toYaml .Values.env | nindent 12 }}
+            {{- end }}
+            {{- if .Values.server.config.https.internal }}
+            - name: TRINO_HTTPS_TRUSTSTORE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl $truststorePasswordSecretRef . }}
+                  key: {{ .Values.server.config.https.truststore.passwordSecretRef.key }}
+            - name: TRINO_HTTPS_KEYSTORE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl $keystorePasswordSecretRef . }}
+                  key: {{ .Values.server.config.https.workers.keystore.passwordSecretRef.key }}
+            - name: TRINO_HTTPS_KEYMANAGER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl $keymanagerPasswordSecretRef . }}
+                  key: {{ .Values.server.config.https.workers.keymanager.passwordSecretRef.key }}
+            {{- end }}
           envFrom:
             {{- tpl (toYaml .Values.envFrom) . | nindent 12 }}
           volumeMounts:
@@ -168,9 +190,16 @@ spec:
             {{- . | toYaml | nindent 12 }}
             {{- end }}
           ports:
+            {{- if not .Values.server.config.https.only }}
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{- end }}
+            {{- if .Values.server.config.https.enabled }}
+            - name: https
+              containerPort: {{ .Values.service.tlsPort }}
+              protocol: TCP
+            {{- end }}
             {{- if $workerJmx.enabled }}
             - name: jmx-registry
               containerPort: {{ $workerJmx.registryPort }}
@@ -187,7 +216,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /v1/info
+              {{- if .Values.server.config.https.only }}
+              port: https
+              scheme: HTTPS
+              {{- else }}
               port: http
+              scheme: HTTP
+              {{- end }}
             initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds | default 5 }}
@@ -218,7 +253,11 @@ spec:
                     -d '"SHUTTING_DOWN"'
                     -H 'Content-type: application/json'
                     -H 'X-Trino-User: admin'
+                    {{- if .Values.server.config.https.only }}
+                    https://localhost:{{- .Values.service.tlsPort -}}/v1/info/state
+                    {{- else }}
                     http://localhost:{{- .Values.service.port -}}/v1/info/state
+                    {{- end }}
             {{- end }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
