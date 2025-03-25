@@ -48,7 +48,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
     - name: registry-credentials
   ```
 * `server.workers` - int, default: `2`
-* `server.node.environment` - string, default: `"production"`
+* `server.node.environment` - string, default: `"production"`  
+
+  Supports templating with `tpl`.
 * `server.node.dataDir` - string, default: `"/data/trino"`
 * `server.node.pluginDir` - string, default: `"/usr/lib/trino/plugin"`
 * `server.log.trino.level` - string, default: `"INFO"`
