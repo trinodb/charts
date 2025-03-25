@@ -383,13 +383,13 @@ eventListenerProperties: []
 #  - custom-property2=custom-value2
 # ```
 
-catalogs:
-  tpch: |
-    connector.name=tpch
-    tpch.splits-per-node=4
-  tpcds: |
-    connector.name=tpcds
-    tpcds.splits-per-node=4
+catalogs: {}
+#  tpch: |
+#    connector.name=tpch
+#    tpch.splits-per-node=4
+#  tpcds: |
+#    connector.name=tpcds
+#    tpcds.splits-per-node=4
 # catalogs -- Configure
 # [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
 # @raw
@@ -547,6 +547,12 @@ secretMounts: []
 #    secretName: sample-secret
 #    path: /secrets/sample.json
 #    subPath: sample.json
+#  - name: catalogs
+#    secretName: catalogs
+#    path: /etc/trino/catalog
+#  - name: ldap
+#    secretName: ldap
+#    path: /etc/trino/ldap
 # ```
 
 coordinator:
@@ -1134,3 +1140,18 @@ networkPolicy:
   #        port: 9999
   # ```
   egress: []
+
+additionalSecrets: []
+  # - name: catalogs
+  #   value:
+  #     mariadb.properties: |
+  #       connector.name=mariadb
+  #       connection-user=
+  #       connection-url=
+  #       connection-password=
+  #     postgresql.properties: |
+  #       connector.name=postgresql
+  #       connection-user=
+  #       connection-url=
+  #       postgresql.array-mapping=
+  #       connection-password=
