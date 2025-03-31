@@ -100,13 +100,6 @@ coordinator:
       mountPath: /etc/trino/generated
       readOnly: false
 
-  additionalExposedPorts:
-    https:
-      servicePort: 8443
-      name: https
-      port: 8443
-      protocol: TCP
-
   annotations:
     custom/name: value
 

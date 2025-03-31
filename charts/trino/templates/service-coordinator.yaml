@@ -19,6 +19,12 @@ spec:
       {{- if .Values.service.nodePort }}
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
+    {{- if .Values.server.config.https.enabled }}
+    - port: {{ .Values.server.config.https.port }}
+      targetPort: https
+      protocol: TCP
+      name: https
+    {{- end }}
     {{- if $coordinatorJmx.exporter.enabled }}
     - port: {{ $coordinatorJmx.exporter.port }}
       targetPort: jmx-exporter

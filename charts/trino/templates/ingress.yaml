@@ -32,7 +32,11 @@ spec:
               service:
                 name: {{ include "trino.fullname" $ }}
                 port:
+                  {{- if $.Values.server.config.https.enabled }}
+                  number: {{ $.Values.server.config.https.port }}
+                  {{- else }}
                   number: {{ $.Values.service.port }}
+                  {{- end }}
           {{- end }}
     {{- end }}
 {{- end }}
