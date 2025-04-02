@@ -12,6 +12,7 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
+    {{- if not .Values.server.config.https.only }}
     - port: {{ .Values.service.port }}
       targetPort: http
       protocol: TCP
@@ -19,6 +20,13 @@ spec:
       {{- if .Values.service.nodePort }}
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
+    {{- end }}
+    {{- if .Values.server.config.https.enabled }}
+    - port: {{ .Values.service.tlsPort }}
+      targetPort: https
+      protocol: TCP
+      name: https
+    {{- end }}
     {{- if $coordinatorJmx.exporter.enabled }}
     - port: {{ $coordinatorJmx.exporter.port }}
       targetPort: jmx-exporter

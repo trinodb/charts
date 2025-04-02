@@ -7,3 +7,5 @@ Get the application URL by running these commands:
   kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ template "trino.fullname" . }} 8080:{{ .Values.service.port }}
   echo "Visit http://127.0.0.1:8080 to use your application"
 {{- end }}
+
+{{- include "trino.validateValues" . }}
