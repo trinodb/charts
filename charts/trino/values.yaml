@@ -550,9 +550,6 @@ secretMounts: []
 #  - name: catalogs
 #    secretName: catalogs
 #    path: /etc/trino/catalog
-#  - name: ldap
-#    secretName: ldap
-#    path: /etc/trino/ldap
 # ```
 
 coordinator:
