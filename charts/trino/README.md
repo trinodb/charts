@@ -1,6 +1,6 @@
 # trino
 
-![Version: 1.37.0](https://img.shields.io/badge/Version-1.37.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 470](https://img.shields.io/badge/AppVersion-470-informational?style=flat-square)
+![Version: 1.38.0](https://img.shields.io/badge/Version-1.38.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 474](https://img.shields.io/badge/AppVersion-474-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -48,7 +48,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
     - name: registry-credentials
   ```
 * `server.workers` - int, default: `2`
-* `server.node.environment` - string, default: `"production"`
+* `server.node.environment` - string, default: `"production"`  
+
+  Supports templating with `tpl`.
 * `server.node.dataDir` - string, default: `"/data/trino"`
 * `server.node.pluginDir` - string, default: `"/usr/lib/trino/plugin"`
 * `server.log.trino.level` - string, default: `"INFO"`
