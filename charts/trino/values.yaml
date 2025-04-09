@@ -1140,18 +1140,3 @@ networkPolicy:
   #        port: 9999
   # ```
   egress: []
-
-additionalSecrets: []
-  # - name: catalogs
-  #   value:
-  #     mariadb.properties: |
-  #       connector.name=mariadb
-  #       connection-user=
-  #       connection-url=
-  #       connection-password=
-  #     postgresql.properties: |
-  #       connector.name=postgresql
-  #       connection-user=
-  #       connection-url=
-  #       postgresql.array-mapping=
-  #       connection-password=
