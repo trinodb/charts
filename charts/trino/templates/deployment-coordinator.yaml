@@ -25,9 +25,6 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if .Values.additionalSecrets }}
-        checksum/secret-config: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
-        {{- end }}
         {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
         checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum }}
         {{- end }}
