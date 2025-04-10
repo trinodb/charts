@@ -65,7 +65,11 @@ spec:
             {{- end }}
           livenessProbe:
             httpGet:
+<<<<<<< HEAD
               path: /trino-gateway/livez
+=======
+              path: /trino-gateway
+>>>>>>> 83d9fad (New squashed commit)
               port: {{ $probePort }}
               scheme: {{ $probeScheme }}
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
@@ -74,7 +78,11 @@ spec:
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
           readinessProbe:
             httpGet:
+<<<<<<< HEAD
               path: /trino-gateway/readyz
+=======
+              path: /trino-gateway
+>>>>>>> 83d9fad (New squashed commit)
               port: {{ $probePort }}
               scheme: {{ $probeScheme }}
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
@@ -84,17 +92,28 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
+<<<<<<< HEAD
             - name: {{ include "trino-gateway.fullname" . }}-configuration
               mountPath: "/etc/trino-gateway/config.yaml"
+=======
+            - name: trino-gateway-configuration
+              mountPath: "/etc/gateway/config.yaml"
+>>>>>>> 83d9fad (New squashed commit)
               subPath: "config.yaml"
               readOnly: true
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
       volumes:
+<<<<<<< HEAD
         - name: {{ include "trino-gateway.fullname" . }}-configuration
           secret:
               secretName: {{ include "trino-gateway.fullname" . }}-configuration
+=======
+        - name: trino-gateway-configuration
+          secret:
+              secretName: trino-gateway-configuration
+>>>>>>> 83d9fad (New squashed commit)
               optional: false
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}

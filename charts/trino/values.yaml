@@ -2,6 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+<<<<<<< HEAD
 # -- Override resource names to avoid name conflicts when deploying multiple
 # releases in the same namespace.
 # @raw
@@ -36,11 +37,24 @@ image:
 #   - name: registry-credentials
 # ```
 imagePullSecrets: []
+=======
+image:
+  repository: trinodb/trino
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart version.
+  tag: latest
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 
 server:
   workers: 2
   node:
+<<<<<<< HEAD
+<<<<<<< HEAD
     # server.node.environment -- Supports templating with `tpl`.
+=======
+>>>>>>> 83d9fad (New squashed commit)
+=======
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
     environment: production
     dataDir: /data/trino
     pluginDir: /usr/lib/trino/plugin
@@ -49,6 +63,7 @@ server:
       level: INFO
   config:
     path: /etc/trino
+<<<<<<< HEAD
     https:
       enabled: false
       port: 8443
@@ -467,10 +482,38 @@ sidecarContainers: {}
 
 # -- [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration.
 # To remove the default, set it to null (or `~`).
+=======
+    http:
+      port: 8080
+    query:
+      maxMemory: "4GB"
+      maxMemoryPerNode: "1GB"
+      maxTotalMemoryPerNode: "2GB"
+    memory:
+      heapHeadroomPerNode: "1GB"
+  jvm:
+    maxHeapSize: "8G"
+    gcMethod:
+      type: "UseG1GC"
+      g1:
+        heapRegionSize: "32M"
+
+additionalNodeProperties: {}
+
+additionalJVMConfig: {}
+
+additionalConfigProperties: {}
+
+additionalLogProperties: {}
+
+additionalCatalogs: {}
+
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 securityContext:
   runAsUser: 1000
   runAsGroup: 1000
 
+<<<<<<< HEAD
 # -- [Container security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) configuration.
 containerSecurityContext:
   # -- Control whether a process can gain more privileges than its parent process.
@@ -547,6 +590,15 @@ secretMounts: []
 #    secretName: sample-secret
 #    path: /secrets/sample.json
 #    subPath: sample.json
+<<<<<<< HEAD
+=======
+#  - name: catalogs
+#    secretName: catalogs
+#    path: /etc/trino/catalog
+#  - name: ldap
+#    secretName: ldap
+#    path: /etc/trino/ldap
+>>>>>>> 83d9fad (New squashed commit)
 # ```
 
 coordinator:
@@ -1134,3 +1186,55 @@ networkPolicy:
   #        port: 9999
   # ```
   egress: []
+<<<<<<< HEAD
+=======
+
+catalogsSecrets: []
+  # - name: catalogs
+  #   value:
+  #     mariadb.properties: |
+  #       connector.name=mariadb
+  #       connection-user=
+  #       connection-url=
+  #       connection-password=
+  #     postgresql.properties: |
+  #       connector.name=postgresql
+  #       connection-user=
+  #       connection-url=
+  #       postgresql.array-mapping=
+  #       connection-password=
+ldapSecrets: []
+  #  - name: ldap
+  #    value:
+  #      ldap.properties: |
+  #        password-authenticator.name=ldap
+  #        ldap.bind-dn=uid=
+  #        ldap.url=
+  #        ldap.bind-password=
+  #        ldap.user-bind-pattern=
+  #        ldap.group-auth-pattern=
+  #        ldap.user-base-dn=
+>>>>>>> 83d9fad (New squashed commit)
+=======
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)

@@ -1,15 +1,34 @@
+<<<<<<< HEAD
 {{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+=======
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "trino.coordinator" . }}
+<<<<<<< HEAD
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator
 data:
   node.properties: |
+<<<<<<< HEAD
     node.environment={{ tpl .Values.server.node.environment . }}
+=======
+    node.environment={{ .Values.server.node.environment }}
+>>>>>>> 83d9fad (New squashed commit)
+=======
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: coordinator
+data:
+  node.properties: |
+    node.environment={{ .Values.server.node.environment }}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
@@ -18,6 +37,7 @@ data:
 
   jvm.config: |
     -server
+<<<<<<< HEAD
     -agentpath:/usr/lib/trino/bin/libjvmkill.so
     -Xmx{{ .Values.coordinator.jvm.maxHeapSize }}
     -XX:+{{ .Values.coordinator.jvm.gcMethod.type }}
@@ -125,6 +145,42 @@ data:
     {{ $configValue }}
   {{- end }}
 {{- end }}
+=======
+    -Xmx{{ .Values.server.jvm.maxHeapSize }}
+    -XX:+{{ .Values.server.jvm.gcMethod.type }}
+    -XX:G1HeapRegionSize={{ .Values.server.jvm.gcMethod.g1.heapRegionSize }}
+    -XX:+UseGCOverheadLimit
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    -Djdk.attach.allowAttachSelf=true
+    -XX:-UseBiasedLocking
+    -XX:ReservedCodeCacheSize=512M
+    -XX:PerMethodRecompilationCutoff=10000
+    -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.nio.maxCachedBufferSize=2000000
+  {{- range $configValue := .Values.additionalJVMConfig }}
+    {{ $configValue }}
+  {{- end }}
+
+  config.properties: |
+    coordinator=true
+{{- if gt (int .Values.server.workers) 0 }}
+    node-scheduler.include-coordinator=false
+{{- else }}
+    node-scheduler.include-coordinator=true
+{{- end }}
+    http-server.http.port={{ .Values.service.port }}
+    query.max-memory={{ .Values.server.config.query.maxMemory }}
+    query.max-memory-per-node={{ .Values.server.config.query.maxMemoryPerNode }}
+    query.max-total-memory-per-node={{ .Values.server.config.query.maxTotalMemoryPerNode }}
+    memory.heap-headroom-per-node={{ .Values.server.config.memory.heapHeadroomPerNode }}
+    discovery-server.enabled=true
+    discovery.uri=http://localhost:{{ .Values.service.port }}
+  {{- range $configValue := .Values.additionalConfigProperties }}
+    {{ $configValue }}
+  {{- end }}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
@@ -132,6 +188,7 @@ data:
     {{ $configValue }}
   {{- end }}
 
+<<<<<<< HEAD
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
   password-authenticator.properties: |
     password-authenticator.name=file
@@ -185,3 +242,6 @@ data:
   {{- range $key, $val := .Values.kafka.tableDescriptions }}
   {{ $key }}: {{ $val | quote }}
   {{- end }}
+=======
+---
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)

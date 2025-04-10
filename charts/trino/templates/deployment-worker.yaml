@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
 {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
+=======
+{{- if gt (int .Values.server.workers) 0 }}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "trino.worker" . }}
+<<<<<<< HEAD
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
@@ -29,7 +34,11 @@ spec:
   template:
     metadata:
       annotations:
+<<<<<<< HEAD
         {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+=======
+        {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+>>>>>>> 83d9fad (New squashed commit)
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         {{- end }}
         checksum/worker-config: {{ include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum }}
@@ -55,11 +64,38 @@ spec:
       {{- if .Values.shareProcessNamespace.worker }}
       shareProcessNamespace: {{ .Values.shareProcessNamespace.worker }}
       {{- end }}
+=======
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: worker
+spec:
+  replicas: {{ .Values.server.workers }}
+  selector:
+    matchLabels:
+      app: {{ template "trino.name" . }}
+      release: {{ .Release.Name }}
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: {{ template "trino.name" . }}
+        release: {{ .Release.Name }}
+        component: worker
+    spec:
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
       volumes:
         - name: config-volume
           configMap:
             name: {{ template "trino.worker" . }}
+<<<<<<< HEAD
+<<<<<<< HEAD
         {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+=======
+        {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+>>>>>>> 83d9fad (New squashed commit)
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
@@ -126,7 +162,11 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
+<<<<<<< HEAD
             {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+=======
+            {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+>>>>>>> 83d9fad (New squashed commit)
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
             {{- end }}
@@ -167,10 +207,27 @@ spec:
             {{- with .Values.worker.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}
             {{- end }}
+=======
+        - name: catalog-volume
+          configMap:
+            name: {{ template "trino.catalog" . }}
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - name: {{ .Chart.Name }}-worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.server.config.path }}
+              name: config-volume
+            - mountPath: {{ .Values.server.config.path }}/catalog
+              name: catalog-volume
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+<<<<<<< HEAD
             {{- if $workerJmx.enabled }}
             - name: jmx-registry
               containerPort: {{ $workerJmx.registryPort }}
@@ -184,10 +241,13 @@ spec:
               containerPort: {{ $value.port }}
               protocol: {{ $value.protocol }}
           {{- end }}
+=======
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
           livenessProbe:
             httpGet:
               path: /v1/info
               port: http
+<<<<<<< HEAD
             initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds | default 5 }}
@@ -253,6 +313,23 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.worker.tolerations }}
+=======
+          readinessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

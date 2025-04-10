@@ -2,8 +2,13 @@ apiVersion: v2
 name: trino-gateway
 description: A Helm chart for Trino Gateway
 type: application
+<<<<<<< HEAD
 version: "1.15.1"
 appVersion: "15"
+=======
+version: "1.13.2"
+appVersion: "13"
+>>>>>>> 83d9fad (New squashed commit)
 
 icon: https://trino.io/assets/images/logos/trino-gateway-small.png
 

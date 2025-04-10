@@ -91,7 +91,11 @@ jobs:
 
   # Everything above is CI, everything here and below is for releases and runs only on non-pull-request events
   sync-readme:
+<<<<<<< HEAD
     needs: [lint, test, test-gateway, docs]
+=======
+    needs: [lint, test, docs]
+>>>>>>> 83d9fad (New squashed commit)
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:
@@ -120,7 +124,11 @@ jobs:
           git push
 
   release:
+<<<<<<< HEAD
     needs: [lint, test, test-gateway, docs, sync-readme]
+=======
+    needs: [lint, test, docs, sync-readme]
+>>>>>>> 83d9fad (New squashed commit)
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     steps:

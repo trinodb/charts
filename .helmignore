@@ -14,12 +14,28 @@
 *.swp
 *.bak
 *.tmp
+<<<<<<< HEAD
+<<<<<<< HEAD
 *.orig
+=======
+>>>>>>> 1cc98e4 (Initial commit)
+=======
+*.orig
+>>>>>>> 83d9fad (New squashed commit)
 *~
 # Various IDEs
 .project
 .idea/
 *.tmproj
+<<<<<<< HEAD
+<<<<<<< HEAD
 .vscode/
 # helm-doc template
 README.md.gotmpl
+=======
+>>>>>>> 1cc98e4 (Initial commit)
+=======
+.vscode/
+# helm-doc template
+README.md.gotmpl
+>>>>>>> 83d9fad (New squashed commit)

@@ -16,8 +16,13 @@ If release name contains chart name it will be used as a full name.
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
+<<<<<<< HEAD
 {{- if hasPrefix .Release.Name $name }}
 {{- $name | trunc 63 | trimSuffix "-" }}
+=======
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 {{- else }}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
 {{- end }}
@@ -36,10 +41,17 @@ Create chart name and version as used by the chart label.
 {{- .Values.coordinatorNameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
+<<<<<<< HEAD
 {{- if hasPrefix .Release.Name $name }}
 {{- printf "%s-%s" $name "coordinator" | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- printf "%s-%s-%s" .Release.Name $name "coordinator" | trunc 63 | trimSuffix "-" }}
+=======
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}-coordinator
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-coordinator
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 {{- end }}
 {{- end }}
 {{- end }}
@@ -49,10 +61,17 @@ Create chart name and version as used by the chart label.
 {{- .Values.workerNameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
+<<<<<<< HEAD
 {{- if hasPrefix .Release.Name $name }}
 {{- printf "%s-%s" $name "worker" | trunc 63 | trimSuffix "-" }}
 {{- else }}
 {{- printf "%s-%s-%s" .Release.Name $name "worker" | trunc 63 | trimSuffix "-" }}
+=======
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}-worker
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}-worker
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 {{- end }}
 {{- end }}
 {{- end }}
@@ -61,6 +80,7 @@ Create chart name and version as used by the chart label.
 {{- define "trino.catalog" -}}
 {{ template "trino.fullname" . }}-catalog
 {{- end -}}
+<<<<<<< HEAD
 
 {{/*
 Common labels
@@ -155,3 +175,5 @@ Create the secret name for the group-provider file
 {{- end }}
 {{- end }}
 {{- end }}
+=======
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)

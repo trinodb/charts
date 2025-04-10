@@ -1,8 +1,16 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
 {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+=======
+{{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+>>>>>>> 83d9fad (New squashed commit)
+=======
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "trino.catalog" . }}
+<<<<<<< HEAD
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
@@ -14,3 +22,24 @@ data:
     {{- $catalogProperties | nindent 4 }}
 {{- end }}
 {{- end }}
+=======
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    role: catalogs
+data:
+  tpch.properties: |
+    connector.name=tpch
+    tpch.splits-per-node=4
+  tpcds.properties: |
+    connector.name=tpcds
+    tpcds.splits-per-node=4
+{{- range $catalogName, $catalogProperties := .Values.additionalCatalogs }}
+  {{ $catalogName }}.properties: |
+    {{- $catalogProperties | nindent 4 }}
+{{- end }}
+
+
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)

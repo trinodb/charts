@@ -15,13 +15,29 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
+<<<<<<< HEAD
+<<<<<<< HEAD
 version: 1.38.0
+=======
+version: 1.37.0
+>>>>>>> 83d9fad (New squashed commit)
+=======
+version: 0.2.0
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
+<<<<<<< HEAD
 # Same value as in values.yml#image.tag
+<<<<<<< HEAD
 appVersion: "474"
+=======
+appVersion: "470"
+>>>>>>> 83d9fad (New squashed commit)
+=======
+appVersion: "355"
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 
 icon: https://trino.io/assets/trino.png
 

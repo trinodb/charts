@@ -1,0 +1,28 @@
+name: Lint and Test Chart
+on: push
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup node
+        uses: AutoModality/action-clean@1.1.0
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.4.0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.0.1
+      - name: Run chart-testing (lint)
+        run: ct lint --charts=charts/trino --validate-maintainers=false
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.0.0
+      - name: Run chart-testing (install)
+        run: ct install --charts=charts/trino

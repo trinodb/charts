@@ -2,6 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+<<<<<<< HEAD
 global:
   env: "dev"
   region: "region_test"
@@ -9,6 +10,9 @@ global:
 server:
   node:
     environment: "{{ .Values.global.env }}_{{ .Values.global.region }}"
+=======
+server:
+>>>>>>> 83d9fad (New squashed commit)
   workers: 0
   config:
     https:

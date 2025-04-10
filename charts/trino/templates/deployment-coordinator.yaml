@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 {{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+=======
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "trino.coordinator" . }}
+<<<<<<< HEAD
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "trino.labels" . | nindent 4 }}
@@ -28,7 +32,11 @@ spec:
         {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
         checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum }}
         {{- end }}
+<<<<<<< HEAD
         {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+=======
+        {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+>>>>>>> 83d9fad (New squashed commit)
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         {{- end }}
         checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
@@ -51,12 +59,42 @@ spec:
       {{- end }}
       {{- if .Values.shareProcessNamespace.coordinator }}
       shareProcessNamespace: {{ .Values.shareProcessNamespace.coordinator }}
+=======
+  labels:
+    app: {{ template "trino.name" . }}
+    chart: {{ template "trino.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    component: coordinator
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "trino.name" . }}
+      release: {{ .Release.Name }}
+      component: coordinator
+  template:
+    metadata:
+      labels:
+        app: {{ template "trino.name" . }}
+        release: {{ .Release.Name }}
+        component: coordinator
+    spec:
+      {{- with .Values.securityContext }}
+      securityContext:
+        runAsUser: {{ .runAsUser }}
+        runAsGroup: {{ .runAsGroup }}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
       {{- end }}
       volumes:
         - name: config-volume
           configMap:
             name: {{ template "trino.coordinator" . }}
+<<<<<<< HEAD
+<<<<<<< HEAD
         {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+=======
+        {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+>>>>>>> 83d9fad (New squashed commit)
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
@@ -140,7 +178,11 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
+<<<<<<< HEAD
             {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+=======
+            {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+>>>>>>> 83d9fad (New squashed commit)
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
             {{- end }}
@@ -193,10 +235,27 @@ spec:
             {{- with .Values.coordinator.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}
             {{- end }}
+=======
+        - name: catalog-volume
+          configMap:
+            name: {{ template "trino.catalog" . }}
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - name: {{ .Chart.Name }}-coordinator
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: {{ .Values.server.config.path }}
+              name: config-volume
+            - mountPath: {{ .Values.server.config.path }}/catalog
+              name: catalog-volume
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+<<<<<<< HEAD
             {{- if $coordinatorJmx.enabled }}
             - name: jmx-registry
               containerPort: {{ $coordinatorJmx.registryPort }}
@@ -210,10 +269,13 @@ spec:
               containerPort: {{ $value.port }}
               protocol: {{ $value.protocol }}
           {{- end }}
+=======
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
           livenessProbe:
             httpGet:
               path: /v1/info
               port: http
+<<<<<<< HEAD
             initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.coordinator.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.coordinator.livenessProbe.timeoutSeconds | default 5 }}
@@ -262,6 +324,23 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.coordinator.tolerations }}
+=======
+          readinessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+>>>>>>> 7f0562e (extend chart, add GHA for CI and Release)
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
