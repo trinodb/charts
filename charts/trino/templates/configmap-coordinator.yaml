@@ -1,0 +1,187 @@
+{{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.coordinator" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  node.properties: |
+    node.environment={{ tpl .Values.server.node.environment . }}
+    node.data-dir={{ .Values.server.node.dataDir }}
+    plugin.dir={{ .Values.server.node.pluginDir }}
+  {{- range $configValue := .Values.additionalNodeProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  jvm.config: |
+    -server
+    -agentpath:/usr/lib/trino/bin/libjvmkill.so
+    -Xmx{{ .Values.coordinator.jvm.maxHeapSize }}
+    -XX:+{{ .Values.coordinator.jvm.gcMethod.type }}
+    -XX:G1HeapRegionSize={{ .Values.coordinator.jvm.gcMethod.g1.heapRegionSize }}
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    -XX:-OmitStackTraceInFastThrow
+    -XX:ReservedCodeCacheSize=512M
+    -XX:PerMethodRecompilationCutoff=10000
+    -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.attach.allowAttachSelf=true
+    -Djdk.nio.maxCachedBufferSize=2000000
+    # Allow loading dynamic agent used by JOL
+    -XX:+EnableDynamicAgentLoading
+  {{/* only check the version number if the image is not overriden in any way */}}
+  {{- with .Values.image -}}
+  {{- if and (eq .repository "trinodb/trino") (not .useRepositoryAsSoleImageReference) (not .registry) (not .digest) (gt (default $.Chart.AppVersion .tag | int ) 447 ) }}
+    # https://bugs.openjdk.org/browse/JDK-8329528
+    -XX:+UnlockDiagnosticVMOptions
+    -XX:G1NumCollectionsKeepPinned=10000000
+  {{- end }}{{/* if */}}
+  {{- end }}{{/* with */}}
+  {{- range $configValue := .Values.coordinator.additionalJVMConfig }}
+    {{ $configValue }}
+  {{- end }}
+  {{- if $coordinatorJmx.enabled }}
+    -Dcom.sun.management.jmxremote.rmi.port={{- $coordinatorJmx.serverPort }}
+  {{- end }}
+
+  config.properties: |
+    coordinator=true
+    node-scheduler.include-coordinator={{ .Values.coordinator.config.nodeScheduler.includeCoordinator }}
+    http-server.http.port={{ .Values.service.port }}
+    query.max-memory={{ .Values.server.config.query.maxMemory }}
+    query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
+    {{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
+    {{- end }}
+    discovery.uri=http://localhost:{{ .Values.service.port }}
+    {{- if .Values.server.config.authenticationType }}
+    http-server.authentication.type={{ .Values.server.config.authenticationType }}
+    {{- end }}
+    {{- range $configValue := .Values.additionalConfigProperties }}
+    {{ $configValue }}
+    {{- end }}
+    {{- if .Values.server.config.https.enabled }}
+    http-server.https.enabled=true
+    http-server.https.port={{ .Values.server.config.https.port }}
+    http-server.https.keystore.path={{ .Values.server.config.https.keystore.path }}
+    {{- end }}
+    {{- if $coordinatorJmx.enabled }}
+    jmx.rmiregistry.port={{- $coordinatorJmx.registryPort }}
+    jmx.rmiserver.port={{- $coordinatorJmx.serverPort }}
+    {{- end }}
+    {{- if .Values.worker.gracefulShutdown.enabled }}
+    shutdown.grace-period={{- .Values.worker.gracefulShutdown.gracePeriodSeconds -}}s
+    {{- end }}
+    {{- if .Values.server.coordinatorExtraConfig }}
+    {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
+    {{- end }}
+
+{{- if .Values.accessControl }}
+  {{- if eq .Values.accessControl.type "configmap" }}
+  access-control.properties: |
+    access-control.name=file
+    {{- if .Values.accessControl.refreshPeriod }}
+    security.refresh-period={{ .Values.accessControl.refreshPeriod }}
+    {{- end }}
+    security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
+  {{- else if eq .Values.accessControl.type "properties" }}
+  access-control.properties: |
+    {{- if .Values.accessControl.properties }}
+    {{- .Values.accessControl.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "accessControl.properties is required when accessControl.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid accessControl.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
+{{- end }}
+
+{{- if .Values.resourceGroups }}
+  {{- if eq .Values.resourceGroups.type "configmap" }}
+  resource-groups.properties: |
+    resource-groups.configuration-manager=file
+    resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
+  {{- else if eq .Values.resourceGroups.type "properties" }}
+  resource-groups.properties: |
+    {{- if .Values.resourceGroups.properties }}
+    {{- .Values.resourceGroups.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "resourceGroups.properties is required when resourceGroups.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid resourceGroups.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
+{{- end }}
+
+{{- if .Values.server.exchangeManager }}
+  exchange-manager.properties: |
+    exchange-manager.name={{ .Values.server.exchangeManager.name }}
+    exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
+  {{- range $configValue := .Values.additionalExchangeManagerProperties }}
+    {{ $configValue }}
+  {{- end }}
+{{- end }}
+
+  log.properties: |
+    io.trino={{ .Values.server.log.trino.level }}
+  {{- range $configValue := .Values.additionalLogProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
+  password-authenticator.properties: |
+    password-authenticator.name=file
+    file.password-file={{ .Values.server.config.path }}/auth/password/password.db
+  {{- end }}{{- end }}
+
+  {{- if .Values.auth.groups }}{{- if not (index .Values.coordinator.additionalConfigFiles "group-provider.properties") }}
+  group-provider.properties: |
+    group-provider.name=file
+    file.group-file={{ .Values.server.config.path }}/auth/group/group.db
+    {{- if .Values.auth.refreshPeriod }}
+    file.refresh-period={{ .Values.auth.refreshPeriod }}
+    {{- end }}
+  {{- end }}{{- end }}
+
+{{ if .Values.eventListenerProperties }}
+  event-listener.properties: |
+  {{- range $configValue := .Values.eventListenerProperties }}
+    {{ $configValue }}
+  {{- end }}
+{{ end }}
+
+{{- range $fileName, $fileContent := .Values.coordinator.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- tpl $fileContent $ | nindent 4 }}
+{{- end }}
+{{- if eq .Values.resourceGroups.type "configmap" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-resource-groups-volume-coordinator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  resource-groups.json: |-
+    {{- .Values.resourceGroups.resourceGroupsConfig | nindent 4 }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+data:
+  {{- range $key, $val := .Values.kafka.tableDescriptions }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}

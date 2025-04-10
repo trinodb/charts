@@ -1,0 +1,99 @@
+{{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+{{- $coordinatorServiceMonitor := merge .Values.serviceMonitor.coordinator (omit .Values.serviceMonitor "coordinator" "worker") -}}
+{{- $workerServiceMonitor := merge .Values.serviceMonitor.worker (omit .Values.serviceMonitor "coordinator" "worker") -}}
+{{- if or $coordinatorJmx.exporter.enabled $coordinatorServiceMonitor.enabled $workerJmx.exporter.enabled $workerServiceMonitor.enabled -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino.fullname" . }}-test-jmx
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: jmx
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  containers:
+    {{- if $coordinatorJmx.exporter.enabled }}
+    - name: trino-jmx-coordinator
+      image: {{ include "trino.image" . }}
+      command: ["/bin/bash", "-c"]
+      args:
+        - curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ $coordinatorJmx.exporter.port }}/metrics | grep -q trino
+    {{- end }}
+    {{- if $workerJmx.exporter.port }}
+    - name: trino-jmx-worker
+      image: {{ include "trino.image" . }}
+      command: ["/bin/bash", "-c"]
+      args:
+        - curl -s {{ include "trino.fullname" . }}-worker.{{ .Release.Namespace }}:{{ $workerJmx.exporter.port }}/metrics | grep -q trino
+    {{- end }}
+    {{- if $coordinatorServiceMonitor.enabled }}
+    - name: service-monitor-coordinator
+      image: python:3-slim
+      command: [ "python", "/tests/test.py" ]
+      args: ["{{ include "trino.fullname" . }}"]
+      volumeMounts:
+        - name: tests
+          mountPath: /tests
+    {{- end }}
+    {{- if $workerServiceMonitor.enabled }}
+    - name: service-monitor-worker
+      image: python:3-slim
+      command: ["python", "/tests/test.py"]
+      args: ["{{ include "trino.fullname" . }}-worker"]
+      volumeMounts:
+        - name: tests
+          mountPath: /tests
+    {{- end }}
+  volumes:
+    - name: tests
+      configMap:
+        name: {{ include "trino.fullname" . }}-test-jmx
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "trino.fullname" . }}-test-jmx
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: jmx
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+data:
+  test.py: |
+    from urllib.request import urlopen
+    from urllib.error import URLError, HTTPError
+    import json
+    import logging
+    import sys
+    import time
+
+    logger = logging.getLogger(__name__)
+    target_service = sys.argv[1]
+    url = f"http://prometheus-operator-kube-p-prometheus:9090/api/v1/targets?scrapePool=serviceMonitor/{{ .Release.Namespace }}/{target_service}/0&state=active"
+    while True:
+      try:
+        with urlopen(url) as response:
+          data = json.load(response)
+      except (URLError, HTTPError) as e:
+          logger.warning("Error fetching targets, Prometheus service might not be ready: ", e)
+          time.sleep(2)  # Retry after 2 seconds
+          continue
+
+      try:
+        service_name = data["data"]["activeTargets"][0]["discoveredLabels"]["__meta_kubernetes_service_name"]
+      except (KeyError, IndexError) as e:
+        logger.warning("Invalid Prometheus response: ", e)
+        time.sleep(2)  # Retry after 2 seconds
+        continue
+
+      if service_name == target_service:
+        logger.info(f"Found expected service '{service_name}' in Prometheus targets!")
+        break
+{{- end }}

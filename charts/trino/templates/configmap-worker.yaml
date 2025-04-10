@@ -1,0 +1,120 @@
+{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+{{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.worker" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+data:
+  node.properties: |
+    node.environment={{ tpl .Values.server.node.environment . }}
+    node.data-dir={{ .Values.server.node.dataDir }}
+    plugin.dir={{ .Values.server.node.pluginDir }}
+  {{- range $configValue := .Values.additionalNodeProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+  jvm.config: |
+    -server
+    -agentpath:/usr/lib/trino/bin/libjvmkill.so
+    -Xmx{{ .Values.worker.jvm.maxHeapSize }}
+    -XX:+{{ .Values.worker.jvm.gcMethod.type }}
+    -XX:G1HeapRegionSize={{ .Values.worker.jvm.gcMethod.g1.heapRegionSize }}
+    -XX:+ExplicitGCInvokesConcurrent
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:+ExitOnOutOfMemoryError
+    -XX:-OmitStackTraceInFastThrow
+    -XX:ReservedCodeCacheSize=512M
+    -XX:PerMethodRecompilationCutoff=10000
+    -XX:PerBytecodeRecompilationCutoff=10000
+    -Djdk.attach.allowAttachSelf=true
+    -Djdk.nio.maxCachedBufferSize=2000000
+    # Allow loading dynamic agent used by JOL
+    -XX:+EnableDynamicAgentLoading
+  {{/* only check the version number if the image is not overriden in any way */}}
+  {{- with .Values.image -}}
+  {{- if and (eq .repository "trinodb/trino") (not .useRepositoryAsSoleImageReference) (not .registry) (not .digest) (gt (default $.Chart.AppVersion .tag | int ) 447 ) }}
+    # https://bugs.openjdk.org/browse/JDK-8329528
+    -XX:+UnlockDiagnosticVMOptions
+    -XX:G1NumCollectionsKeepPinned=10000000
+  {{- end }}{{/* if */}}
+  {{- end }}{{/* with */}}
+  {{- range $configValue := .Values.worker.additionalJVMConfig }}
+    {{ $configValue }}
+  {{- end }}
+  {{- if $workerJmx.enabled }}
+    -Dcom.sun.management.jmxremote.rmi.port={{- $workerJmx.serverPort }}
+  {{- end }}
+
+  config.properties: |
+    coordinator=false
+    http-server.http.port={{ .Values.service.port }}
+    query.max-memory={{ .Values.server.config.query.maxMemory }}
+    query.max-memory-per-node={{ .Values.worker.config.query.maxMemoryPerNode }}
+    {{- if .Values.worker.config.memory.heapHeadroomPerNode }}
+    memory.heap-headroom-per-node={{ .Values.worker.config.memory.heapHeadroomPerNode }}
+    {{- end }}
+    discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
+    {{- range $configValue := .Values.additionalConfigProperties }}
+    {{ $configValue }}
+    {{- end }}
+    {{- if $workerJmx.enabled }}
+    jmx.rmiregistry.port={{- $workerJmx.registryPort }}
+    jmx.rmiserver.port={{- $workerJmx.serverPort }}
+    {{- end }}
+    {{- if .Values.worker.gracefulShutdown.enabled }}
+    shutdown.grace-period={{- .Values.worker.gracefulShutdown.gracePeriodSeconds -}}s
+    {{- end }}
+    {{- if .Values.server.workerExtraConfig }}
+    {{- .Values.server.workerExtraConfig | nindent 4 }}
+    {{- end }}
+
+{{- if .Values.worker.gracefulShutdown.enabled }}
+  access-control.properties: |
+    access-control.name=file
+    security.config-file={{ .Values.server.config.path }}/access-control/graceful-shutdown-rules.json
+{{- end }}
+
+{{- if .Values.server.exchangeManager }}
+  exchange-manager.properties: |
+    exchange-manager.name={{ .Values.server.exchangeManager.name }}
+    exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
+  {{- range $configValue := .Values.additionalExchangeManagerProperties }}
+    {{ $configValue }}
+  {{- end }}
+{{- end }}
+
+  log.properties: |
+    io.trino={{ .Values.server.log.trino.level }}
+  {{- range $configValue := .Values.additionalLogProperties }}
+    {{ $configValue }}
+  {{- end }}
+
+{{ if .Values.eventListenerProperties }}
+  event-listener.properties: |
+  {{- range $configValue := .Values.eventListenerProperties }}
+    {{ $configValue }}
+  {{- end }}
+{{ end }}
+
+{{- range $fileName, $fileContent := .Values.worker.additionalConfigFiles }}
+  {{ $fileName }}: |
+    {{- tpl $fileContent $ | nindent 4 }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-schemas-volume-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+data:
+  {{- range $key, $val := .Values.kafka.tableDescriptions }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,267 @@
+{{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "trino.coordinator" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+    trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
+    {{- if .Values.coordinator.labels }}
+    {{- tpl (toYaml .Values.coordinator.labels) . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- toYaml .Values.coordinator.deployment.annotations | nindent 4 }}
+spec:
+  progressDeadlineSeconds: {{ .Values.coordinator.deployment.progressDeadlineSeconds }}
+  revisionHistoryLimit: {{ .Values.coordinator.deployment.revisionHistoryLimit }}
+  strategy:
+    {{- toYaml .Values.coordinator.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: coordinator
+  template:
+    metadata:
+      annotations:
+        {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
+        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum }}
+        {{- end }}
+        {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+        checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
+        {{- end }}
+        checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
+      {{- if .Values.coordinator.annotations }}
+      {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
+      {{- end }}
+
+      labels:
+        {{- include "trino.labels" . | nindent 8 }}
+        app.kubernetes.io/component: coordinator
+        trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
+        {{- if .Values.coordinator.labels }}
+        {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "trino.serviceAccountName" . }}
+      {{- with .Values.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.shareProcessNamespace.coordinator }}
+      shareProcessNamespace: {{ .Values.shareProcessNamespace.coordinator }}
+      {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ template "trino.coordinator" . }}
+        {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+        - name: catalog-volume
+          configMap:
+            name: {{ template "trino.catalog" . }}
+        {{- end }}
+        - name: schemas-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
+        {{- if eq .Values.accessControl.type "configmap" }}
+        - name: access-control-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
+        {{- end }}
+        {{- if eq .Values.resourceGroups.type "configmap" }}
+        - name: resource-groups-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-resource-groups-volume-coordinator
+        {{- end }}
+        {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
+        - name: file-password-authentication-volume
+          secret:
+            secretName: {{ template "trino.passwordSecretName" . }}
+            items:
+              - key: password.db
+                path: password.db
+        {{- end }}
+        {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}
+        - name: file-groups-authentication-volume
+          secret:
+            secretName: {{ template "trino.groupsSecretName" . }}
+            items:
+              - key: group.db
+                path: group.db
+        {{- end }}
+        {{- if $coordinatorJmx.exporter.enabled }}
+        - name: jmx-exporter-config-volume
+          configMap:
+            name: {{ template "trino.fullname" . }}-jmx-exporter-config-coordinator
+        {{- end }}
+        {{- range .Values.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ tpl .configMap $ }}
+        {{- end }}
+        {{- range .Values.coordinator.configMounts }}
+        - name: {{ .name }}
+          configMap:
+            name: {{ tpl .configMap $ }}
+        {{- end }}
+        {{- range .Values.secretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ tpl .secretName $ }}
+        {{- end }}
+        {{- range .Values.coordinator.secretMounts }}
+        - name: {{ .name }}
+          secret:
+            secretName: {{ tpl .secretName $ }}
+        {{- end }}
+        {{- with .Values.coordinator.additionalVolumes }}
+        {{- tpl (. | toYaml) $ | nindent 8 }}
+        {{- end }}
+      {{- if .Values.initContainers.coordinator }}
+      initContainers:
+      {{- tpl (toYaml .Values.initContainers.coordinator) . | nindent 6 }}
+      {{- end }}
+      {{- if .Values.imagePullSecrets}}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.coordinator.terminationGracePeriodSeconds }}
+      containers:
+        - name: {{ .Chart.Name }}-coordinator
+          image: {{ include "trino.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+          envFrom:
+            {{- tpl (toYaml .Values.envFrom) . | nindent 12 }}
+          volumeMounts:
+            - mountPath: {{ .Values.server.config.path }}
+              name: config-volume
+            {{- if or .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
+            - mountPath: {{ .Values.server.config.path }}/catalog
+              name: catalog-volume
+            {{- end }}
+            - mountPath: {{ .Values.kafka.mountPath }}
+              name: schemas-volume
+            {{- if eq .Values.accessControl.type "configmap" }}
+            - mountPath: {{ .Values.server.config.path }}/access-control
+              name: access-control-volume
+            {{- end }}
+            {{- if eq .Values.resourceGroups.type "configmap" }}
+            - mountPath: {{ .Values.server.config.path }}/resource-groups
+              name: resource-groups-volume
+            {{- end }}
+            {{- range .Values.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            {{- range .Values.coordinator.configMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            {{- range .Values.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            {{- range .Values.coordinator.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            {{- if or .Values.auth.passwordAuth .Values.auth.passwordAuthSecret }}
+            - mountPath: {{ .Values.server.config.path }}/auth/password
+              name: file-password-authentication-volume
+            {{- end }}
+            {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}
+            - mountPath: {{ .Values.server.config.path }}/auth/group
+              name: file-groups-authentication-volume
+            {{- end }}
+            {{- with .Values.coordinator.additionalVolumeMounts }}
+            {{- . | toYaml | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            {{- if $coordinatorJmx.enabled }}
+            - name: jmx-registry
+              containerPort: {{ $coordinatorJmx.registryPort }}
+              protocol: TCP
+            - name: jmx-server
+              containerPort: {{ $coordinatorJmx.serverPort }}
+              protocol: TCP
+            {{- end }}
+          {{- range $key, $value := .Values.coordinator.additionalExposedPorts }}
+            - name: {{ $value.name }}
+              containerPort: {{ $value.port }}
+              protocol: {{ $value.protocol }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /v1/info
+              port: http
+            initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 30 }}
+            periodSeconds: {{ .Values.coordinator.livenessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.coordinator.livenessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.coordinator.livenessProbe.failureThreshold | default 6 }}
+            successThreshold: {{ .Values.coordinator.livenessProbe.successThreshold | default 1 }}
+          readinessProbe:
+            exec:
+              command: [/usr/lib/trino/bin/health-check]
+            initialDelaySeconds: {{ .Values.coordinator.readinessProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .Values.coordinator.readinessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.coordinator.readinessProbe.timeoutSeconds | default 5 }}
+            failureThreshold: {{ .Values.coordinator.readinessProbe.failureThreshold | default 6 }}
+            successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
+          lifecycle:
+            {{- toYaml .Values.coordinator.lifecycle | nindent 12 }}
+          resources:
+            {{- toYaml .Values.coordinator.resources | nindent 12 }}
+      {{- if $coordinatorJmx.exporter.enabled }}
+        - name: jmx-exporter
+          image: {{ $coordinatorJmx.exporter.image }}
+          imagePullPolicy: {{ $coordinatorJmx.exporter.pullPolicy }}
+          securityContext:
+            {{- toYaml $coordinatorJmx.exporter.securityContext | nindent 12 }}
+          args:
+            - "{{ $coordinatorJmx.exporter.port }}"
+            - /etc/jmx-exporter/jmx-exporter-config.yaml
+          volumeMounts:
+            - mountPath: /etc/jmx-exporter/
+              name: jmx-exporter-config-volume
+          resources:
+            {{- toYaml $coordinatorJmx.exporter.resources | nindent 12 }}
+          ports:
+            - name: jmx-exporter
+              containerPort: {{ $coordinatorJmx.exporter.port }}
+              protocol: TCP
+      {{- end }}
+      {{- if .Values.sidecarContainers.coordinator }}
+        {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}
+      {{- end }}
+      {{- with .Values.coordinator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.coordinator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.coordinator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

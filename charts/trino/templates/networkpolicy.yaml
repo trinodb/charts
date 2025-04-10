@@ -1,0 +1,37 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- if eq "NodePort" .Values.service.type}}
+{{- fail "NetworkPolicy enforcement is not supported with NodePort services, as traffic reaches the Pod through the node itself, bypassing pod-level network controls." }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ template "trino.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      trino.io/network-policy-protection: enabled
+  policyTypes:
+    - Ingress
+  {{- with .Values.networkPolicy.egress }}
+    - Egress
+  egress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "trino.selectorLabels" . | nindent 14 }}
+              trino.io/network-policy-protection: enabled
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  {{- with .Values.networkPolicy.ingress }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

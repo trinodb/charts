@@ -1,0 +1,113 @@
+{{- $probePort := -1 }}
+{{- $probeScheme := "" }}
+{{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+{{- $probePort =  index .Values "config" "serverConfig" "http-server.http.port" }}
+{{- $probeScheme = "HTTP" }}
+{{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+{{  $probePort =  index .Values "config" "serverConfig" "http-server.https.port" }}
+{{- $probeScheme = "HTTPS" }}
+{{- else }}
+  {{- fail "Error: Either https or http must be enabled in serverConfig!" }}
+{{- end }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "trino-gateway.fullname" . }}
+  labels:
+    {{- include "trino-gateway.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "trino-gateway.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "trino-gateway.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "trino-gateway.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            {{- toYaml .Values.command | nindent 12}}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12}}
+          ports:
+            {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+            - name: http
+              containerPort: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
+              protocol: TCP
+            {{- end }}
+            {{- if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+            - name: https
+              containerPort: {{ index .Values "config" "serverConfig" "http-server.https.port" }}
+              protocol: TCP
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /trino-gateway/livez
+              port: {{ $probePort }}
+              scheme: {{ $probeScheme }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /trino-gateway/readyz
+              port: {{ $probePort }}
+              scheme: {{ $probeScheme }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ include "trino-gateway.fullname" . }}-configuration
+              mountPath: "/etc/trino-gateway/config.yaml"
+              subPath: "config.yaml"
+              readOnly: true
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: {{ include "trino-gateway.fullname" . }}-configuration
+          secret:
+              secretName: {{ include "trino-gateway.fullname" . }}-configuration
+              optional: false
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

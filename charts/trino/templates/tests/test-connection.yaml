@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino.fullname" . }}-test-connection
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: connection
+  annotations:
+    "helm.sh/hook": test
+spec:
+  {{- if eq .Values.resourceGroups.type "properties" }}
+  initContainers:
+    - name: postgresql-client
+      image: bitnami/postgresql:17.1.0
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Inserting resource groups data";
+          PGUSER=trino PGPASSWORD=pass0000 psql -h trino-resource-groups-db-postgresql.postgresql.svc.cluster.local resource_groups <<SQL
+          -- create a root group 'admin' with NULL parent
+          INSERT INTO resource_groups (name, soft_memory_limit, hard_concurrency_limit, max_queued, scheduling_policy, environment)
+          VALUES ('admin', '100%', 50, 100, 'query_priority', 'production');
+          -- use ID of 'admin' resource group for selector
+          INSERT INTO selectors (resource_group_id, user_regex, priority) VALUES ((SELECT resource_group_id FROM resource_groups WHERE name = 'admin'), 'admin', 6);
+          SQL
+  {{- end }}
+  containers:
+    - name: cli
+      image: {{ include "trino.image" . }}
+      command: ['trino']
+      args:
+    {{- if .Values.server.config.https.enabled }}
+      # port must match coordinator.additionalExposedPorts
+      - trino://{{ include "trino.fullname" . }}.{{ .Release.Namespace }}:8443?SSL=true&SSLVerification=FULL&SSLTrustStorePath=/etc/trino/certificates/tls.crt
+    {{- else }}
+      - trino://{{ include "trino.fullname" . }}:{{ .Values.service.port }}
+    {{- end }}
+      - --user=admin
+    {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+      - --password
+    {{- end }}
+      - --debug
+      - --execute=SELECT COUNT(*) FROM tpch.tiny.nation
+      - --no-progress
+    {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
+      env:
+        - name: TRINO_PASSWORD
+          # must match test-values.yaml
+          value: admin123
+    {{- end }}
+    {{- if .Values.server.config.https.enabled }}
+      volumeMounts:
+        - name: certificates
+          readOnly: true
+          mountPath: "/etc/trino/certificates"
+  volumes:
+    - name: certificates
+      secret:
+        secretName: {{ .Release.Namespace }}-certificates
+    {{- end }}
+  restartPolicy: Never
