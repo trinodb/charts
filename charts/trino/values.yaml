@@ -547,9 +547,6 @@ secretMounts: []
 #    secretName: sample-secret
 #    path: /secrets/sample.json
 #    subPath: sample.json
-#  - name: catalogs
-#    secretName: catalogs
-#    path: /etc/trino/catalog
 # ```
 
 coordinator:
