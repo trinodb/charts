@@ -29,7 +29,7 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if or .Values.catalogs .Values.additionalCatalogs }}
+        {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
         checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
         {{- end }}
         checksum/worker-config: {{ include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum }}
@@ -59,7 +59,7 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.worker" . }}
-        {{- if or .Values.catalogs .Values.additionalCatalogs }}
+        {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
@@ -126,7 +126,7 @@ spec:
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
-            {{- if or .Values.catalogs .Values.additionalCatalogs }}
+            {{- if or .Values.catalogs .Values.additionalCatalogs (and (.Values.catalogs) (gt (len .Values.catalogs) 0)) }}
             - mountPath: {{ .Values.server.config.path }}/catalog
               name: catalog-volume
             {{- end }}
