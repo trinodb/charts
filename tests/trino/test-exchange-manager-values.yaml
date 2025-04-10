@@ -1,0 +1,35 @@
+# Exchange Manager values to test.
+# This is a YAML-formatted file.
+
+coordinator:
+  additionalVolumes:
+    - name: exchange-volume
+      persistentVolumeClaim:
+        claimName: exchange-manager-pvc
+
+  additionalVolumeMounts:
+    - name: exchange-volume
+      mountPath: "/tmp/trino-local-file-system-exchange-manager"
+
+worker:
+  additionalVolumes:
+    - name: exchange-volume
+      persistentVolumeClaim:
+        claimName: exchange-manager-pvc
+
+  additionalVolumeMounts:
+    - name: exchange-volume
+      mountPath: "/tmp/trino-local-file-system-exchange-manager"
+
+server:
+  exchangeManager:
+    name: "filesystem"
+    baseDir: "/tmp/trino-local-file-system-exchange-manager"
+
+additionalConfigProperties:
+  - retry-policy=TASK
+
+additionalExchangeManagerProperties:
+  - exchange.sink-buffer-pool-min-size=10
+  - exchange.sink-buffers-per-partition=2
+  - exchange.source-concurrent-readers=4

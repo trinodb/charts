@@ -1,0 +1,7 @@
+# Access Control 'properties' values to test.
+# This is a YAML-formatted file.
+
+accessControl:
+  type: properties
+  properties: |
+    access-control.name=read-only
