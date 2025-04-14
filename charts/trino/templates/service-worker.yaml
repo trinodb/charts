@@ -22,6 +22,15 @@ spec:
       protocol: TCP
       name: jmx-exporter
     {{- end }}
+    {{- range $key, $value := .Values.worker.additionalExposedPorts }}
+    - port: {{ $value.servicePort }}
+      name: {{ $value.name }}
+      targetPort: {{ $value.port }}
+      protocol: {{ $value.protocol }}
+      {{- if $value.nodePort }}
+      nodePort: {{ $value.nodePort }}
+      {{- end }}
+    {{- end }}
   selector:
     {{- include "trino.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: worker
