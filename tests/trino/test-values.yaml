@@ -134,6 +134,13 @@ worker:
     query:
       maxMemoryPerNode: "2GB"
 
+  additionalExposedPorts:
+    extra-port:
+      servicePort: 9483
+      name: extra-port
+      port: 9483
+      protocol: TCP
+
   annotations:
     custom/name: value
 

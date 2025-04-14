@@ -754,7 +754,7 @@ worker:
   additionalJVMConfig: []
 
   additionalExposedPorts: {}
-  # worker.additionalExposedPorts -- Additional container ports configured in all worker pods.
+  # worker.additionalExposedPorts -- Additional container ports configured in all worker pods and the worker service.
   # @raw
   # Example:
   # ```yaml
