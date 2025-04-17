@@ -632,7 +632,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.additionalJVMConfig` - list, default: `[]`
 * `worker.additionalExposedPorts` - object, default: `{}`  
 
-  Additional container ports configured in all worker pods.
+  Additional container ports configured in all worker pods and the worker service.
   Example:
   ```yaml
    https:
