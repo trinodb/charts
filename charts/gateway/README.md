@@ -37,6 +37,21 @@ A Helm chart for Trino Gateway
     - secretRef:
         name: password-secret
   ```
+* `initContainers` - object, default: `{}`  
+
+  Additional [containers that run to completion](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) during pod initialization.
+  Example:
+  ```yaml
+  initContainers:
+    - name: wait-for-service
+      image: busybox:1.28
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', "until nslookup {{ .Values.serviceName }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+    - name: init-sleep
+      image: busybox:1.28
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
+  ```
 * `config.serverConfig."node.environment"` - string, default: `"test"`
 * `config.serverConfig."http-server.http.port"` - int, default: `8080`
 * `config.serverConfig."http-server.http.enabled"` - bool, default: `true`

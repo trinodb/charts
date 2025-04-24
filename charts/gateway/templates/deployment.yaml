@@ -46,6 +46,10 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if .Values.initContainers }}
+      initContainers:
+      {{- tpl (toYaml .Values.initContainers) . | nindent 6 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

@@ -18,6 +18,12 @@ config:
   clusterStatsConfiguration:
     monitorType: INFO_API
 
+initContainers:
+  - name: wait-for-service
+    image: busybox:1.28
+    imagePullPolicy: IfNotPresent
+    command: ['sh', '-c', "until nslookup {{ .Values.serviceName }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+
 ingress:
   enabled: true
 

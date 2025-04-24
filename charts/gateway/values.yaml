@@ -30,6 +30,24 @@ imagePullSecrets: []
 # ```
 envFrom: []
 
+# -- Additional [containers that run to
+# completion](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/)
+# during pod initialization.
+# @raw
+# Example:
+# ```yaml
+# initContainers:
+#   - name: wait-for-service
+#     image: busybox:1.28
+#     imagePullPolicy: IfNotPresent
+#     command: ['sh', '-c', "until nslookup {{ .Values.serviceName }}.$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace).svc.cluster.local; do echo waiting for myservice; sleep 2; done"]
+#   - name: init-sleep
+#     image: busybox:1.28
+#     imagePullPolicy: IfNotPresent
+#     command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
+# ```
+initContainers: {}
+
 config:
   serverConfig:
     node.environment: test
