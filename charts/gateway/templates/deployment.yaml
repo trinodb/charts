@@ -97,7 +97,7 @@ spec:
               subPath: "config.yaml"
               readOnly: true
           {{- with .Values.volumeMounts }}
-            {{- toYaml . | nindent 12 }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
           {{- end }}
           lifecycle:
             {{- toYaml .Values.lifecycle | nindent 12 }}
@@ -107,7 +107,7 @@ spec:
               secretName: {{ include "trino-gateway.fullname" . }}-configuration
               optional: false
       {{- with .Values.volumes }}
-        {{- toYaml . | nindent 8 }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
