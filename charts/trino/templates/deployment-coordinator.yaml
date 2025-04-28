@@ -1,4 +1,7 @@
 {{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+{{- $truststorePasswordSecretRef := .Values.server.config.https.truststore.passwordSecretRef.name -}}
+{{- $keystorePasswordSecretRef := .Values.server.config.https.keystore.passwordSecretRef.name -}}
+{{- $keymanagerPasswordSecretRef := .Values.server.config.https.keymanager.passwordSecretRef.name -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -134,7 +137,26 @@ spec:
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           env:
+            {{- if .Values.env }}
             {{- toYaml .Values.env | nindent 12 }}
+            {{- end }}
+            {{- if .Values.server.config.https.enabled }}
+            - name: TRINO_HTTPS_TRUSTSTORE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl $truststorePasswordSecretRef . }}
+                  key: {{ .Values.server.config.https.truststore.passwordSecretRef.key }}
+            - name: TRINO_HTTPS_KEYSTORE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl $keystorePasswordSecretRef . }}
+                  key: {{ .Values.server.config.https.keystore.passwordSecretRef.key }}
+            - name: TRINO_HTTPS_KEYMANAGER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl $keymanagerPasswordSecretRef . }}
+                  key: {{ .Values.server.config.https.keymanager.passwordSecretRef.key }}
+            {{- end }}
           envFrom:
             {{- tpl (toYaml .Values.envFrom) . | nindent 12 }}
           volumeMounts:
@@ -194,9 +216,16 @@ spec:
             {{- . | toYaml | nindent 12 }}
             {{- end }}
           ports:
+            {{- if not .Values.server.config.https.only }}
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{- end }}
+            {{- if .Values.server.config.https.enabled }}
+            - name: https
+              containerPort: {{ .Values.service.tlsPort }}
+              protocol: TCP
+            {{- end }}
             {{- if $coordinatorJmx.enabled }}
             - name: jmx-registry
               containerPort: {{ $coordinatorJmx.registryPort }}
@@ -213,7 +242,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /v1/info
+              {{- if .Values.server.config.https.only }}
+              port: https
+              scheme: HTTPS
+              {{- else }}
               port: http
+              scheme: HTTP
+              {{- end }}
             initialDelaySeconds: {{ .Values.coordinator.livenessProbe.initialDelaySeconds | default 30 }}
             periodSeconds: {{ .Values.coordinator.livenessProbe.periodSeconds | default 10 }}
             timeoutSeconds: {{ .Values.coordinator.livenessProbe.timeoutSeconds | default 5 }}
