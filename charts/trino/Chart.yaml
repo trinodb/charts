@@ -21,7 +21,7 @@ version: 1.38.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # Same value as in values.yml#image.tag
-appVersion: "474"
+appVersion: "475"
 
 icon: https://trino.io/assets/trino.png
 
