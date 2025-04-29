@@ -25,7 +25,7 @@ the name to get an output similar to the following:
 
 ```
 NAME               	CHART VERSION	APP VERSION	DESCRIPTION
-trino/trino        	1.38.0       	474        	Fast distributed SQL query engine for big data ...
+trino/trino        	1.39.0       	475        	Fast distributed SQL query engine for big data ...
 trino/trino-gateway	1.15.1       	15         	A Helm chart for Trino Gateway
 ```
 
@@ -35,7 +35,7 @@ After configuring your Kubernetes cluster, you can install Trino with the chart
 `trino/trino` using:
 
 ```console
-helm install my-trino trino/trino --version 1.38.0
+helm install my-trino trino/trino --version 1.39.0
 ```
 
 Also, you can check the manifests using:
@@ -72,7 +72,7 @@ ct install
 
 To run tests with specific values:
 ```console
-ct install --helm-extra-set-args "--set image.tag=474"
+ct install --helm-extra-set-args "--set image.tag=475"
 ```
 
 Use the `test.sh` script to run a suite of tests, with different chart values.
