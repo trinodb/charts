@@ -120,6 +120,7 @@ A Helm chart for Trino Gateway
 * `volumeMounts` - object, default: `{}`
 * `nodeSelector` - object, default: `{}`
 * `tolerations` - list, default: `[]`
+* `topologySpreadConstraints` - list, default: `[]`
 * `affinity` - object, default: `{}`
 * `commonLabels` - object, default: `{}`  
 
