@@ -1134,3 +1134,5 @@ networkPolicy:
   #        port: 9999
   # ```
   egress: []
+
+extraDeploy: {}
