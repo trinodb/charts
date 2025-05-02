@@ -94,6 +94,8 @@ spec:
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          lifecycle:
+            {{- toYaml .Values.lifecycle | nindent 12 }}
       volumes:
         - name: {{ include "trino-gateway.fullname" . }}-configuration
           secret:
