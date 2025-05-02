@@ -158,6 +158,16 @@ volumes: {}
 
 volumeMounts: {}
 
+# -- Container lifecycle events.
+# @raw
+# Example:
+# ```yaml
+#  preStop:
+#    exec:
+#      command: ["/bin/sh", "-c", "sleep 120"]
+# ```
+lifecycle: {}
+
 nodeSelector: {}
 
 tolerations: []

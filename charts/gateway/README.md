@@ -118,6 +118,15 @@ A Helm chart for Trino Gateway
 * `readinessProbe.scheme` - string, default: `"HTTP"`
 * `volumes` - object, default: `{}`
 * `volumeMounts` - object, default: `{}`
+* `lifecycle` - object, default: `{}`  
+
+  Container lifecycle events.
+  Example:
+  ```yaml
+   preStop:
+     exec:
+       command: ["/bin/sh", "-c", "sleep 120"]
+  ```
 * `nodeSelector` - object, default: `{}`
 * `tolerations` - list, default: `[]`
 * `affinity` - object, default: `{}`
