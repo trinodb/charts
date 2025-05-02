@@ -11,7 +11,7 @@ metadata:
 spec:
   containers:
     - name: curl
-      image: alpine
+      image: alpine/curl
       env:
         - name: NODE_IP
           valueFrom:
@@ -23,16 +23,37 @@ spec:
         - "sh"
         - "-c"
         - |
-          apk add curl
-          {{- if eq .Values.service.type "NodePort" -}}
-             && [ "$(curl -k --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 https://${NODE_IP}:30443/entity/GATEWAY_BACKEND )" = "[]" ] && [ "$(curl --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 http://${NODE_IP}:30080/entity/GATEWAY_BACKEND )" = "[]" ]
-          {{- end }}
-          {{- if index .Values "config" "serverConfig" "http-server.https.enabled" -}}
-             && [ "$(curl -k --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 -v https://{{ .Values.serviceName }}:8443/entity/GATEWAY_BACKEND )" = "[]" ]
-          {{- end }}
-          {{- if index .Values "config" "serverConfig" "http-server.http.enabled" -}}
-             && [ "$(curl --retry 3 --retry-all-errors --connect-timeout 5 --retry-delay 5 -v http://{{ .Values.serviceName }}:8080/entity/GATEWAY_BACKEND )" = "[]" ]
-          {{- end }}
+        {{ $curlOpts := "--fail --retry 5 --retry-all-errors --connect-timeout 10 --retry-delay 10 --verbose" }}
+        {{- if eq .Values.service.type "NodePort" }}
+          if curl {{ $curlOpts }} --insecure https://${NODE_IP}:30443/entity/GATEWAY_BACKEND; then
+            echo "HTTPS connection to NodePort service successful"
+          else
+            echo "HTTPS connection to NodePort service failed"
+            exit 1
+          fi
+          if curl {{ $curlOpts }} http://${NODE_IP}:30080/entity/GATEWAY_BACKEND; then
+            echo "HTTP connection to NodePort service successful"
+          else
+            echo "HTTP connection to NodePort service failed"
+            exit 1
+          fi
+        {{- end }}
+        {{- if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+          if curl {{ $curlOpts }} --insecure https://{{ .Values.serviceName }}:8443/entity/GATEWAY_BACKEND; then
+            echo "HTTPS connection to service successful"
+          else
+            echo "HTTPS connection to service failed"
+            exit 1
+          fi
+        {{- end }}
+        {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+          if curl {{ $curlOpts }} http://{{ .Values.serviceName }}:8080/entity/GATEWAY_BACKEND; then
+            echo "HTTP connection to service successful"
+          else
+            echo "HTTP connection to service failed"
+            exit 1
+          fi
+        {{- end }}
   volumes:
     - name: persistence-sql
       emptyDir:
