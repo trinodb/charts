@@ -692,6 +692,21 @@ coordinator:
   #    readOnly: true
 
   annotations: {}
+  # coordinator.annotations -- Annotations to add to the coordinator pod.
+  # @raw
+  # By default, the following annotations are added to the coordinator pod:
+  # - `checksum/access-control-config` - checksum of the coordinator access control config file;
+  # - `checksum/catalog-config` - checksum of the catalog config file;
+  # - `checksum/coordinator-config` - checksum of the coordinator config file.
+  # This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  # setting these annotations to fixed constants in the `coordinator.annotations` section.
+  # Example:
+  # ```yaml
+  #  annotations:
+  #    checksum/access-control-config: ""
+  #    checksum/catalog-config: ""
+  #    checksum/coordinator-config: ""
+  # ```
 
   labels: {}
 
@@ -877,6 +892,21 @@ worker:
   # ```
 
   annotations: {}
+  # worker.annotations -- Annotations to add to the worker pods.
+  # @raw
+  # By default, the following annotations are added to the worker pods:
+  # - `checksum/access-control-config` - checksum of the worker access control config file;
+  # - `checksum/catalog-config` - checksum of the catalog config file;
+  # - `checksum/worker-config` - checksum of the worker config file.
+  # This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  # setting these annotations to fixed constants in the `worker.annotations` section.
+  # Example:
+  # ```yaml
+  #  annotations:
+  #    checksum/access-control-config: ""
+  #    checksum/catalog-config: ""
+  #    checksum/worker-config: ""
+  # ```
 
   labels: {}
 
