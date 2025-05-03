@@ -218,12 +218,15 @@ spec:
                 command:
                   - /bin/sh
                   - -c
-                  - >-
-                    curl -v -X PUT
-                    -d '"SHUTTING_DOWN"'
-                    -H 'Content-type: application/json'
-                    -H 'X-Trino-User: admin'
-                    http://localhost:{{- .Values.service.port -}}/v1/info/state
+                  - |-
+                    # send shutdown request to worker
+                    curl -v -X PUT \
+                      -d '"SHUTTING_DOWN"' \
+                      -H 'Content-type: application/json' \
+                      -H 'X-Trino-User: admin' \
+                      http://localhost:{{- .Values.service.port -}}/v1/info/state
+                    # wait for shutdown to complete
+                    tail --pid=1 -f /dev/null
             {{- end }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
