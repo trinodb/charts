@@ -168,6 +168,8 @@ volumeMounts: {}
 # ```
 lifecycle: {}
 
+terminationGracePeriodSeconds: 30
+
 nodeSelector: {}
 
 tolerations: []
