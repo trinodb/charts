@@ -15,7 +15,7 @@ metadata:
 rules:
   - apiGroups: [ "" ]
     resources: [ "pods" ]
-    verbs: [ "get", "list", "delete" ]
+    verbs: [ "get", "list", "delete", "watch" ]
   - apiGroups: [ "" ]
     resources: [ "pods/log" ]
     verbs: [ "get" ]
@@ -73,25 +73,24 @@ spec:
   initContainers:
     - name: get-worker-pod
       image: bitnami/kubectl:latest
-      command: [ "sh", "-c" ]
+      command: [ "sh", "-xc" ]
       args:
         - >-
           kubectl get pods
           --selector="app.kubernetes.io/name={{ include "trino.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=worker"
-          --output=jsonpath="{.items[0].metadata.name}"
+          --output=jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
           --namespace={{ .Release.Namespace }}
-          > /pods/worker-pod.txt
+          > /pods/worker-pods.txt
       volumeMounts:
         - mountPath: /pods
           name: worker-pod
   containers:
     - name: check-logs
       image: bitnami/kubectl:latest
-      command: [ "sh", "-c" ]
+      command: [ "sh", "-xc" ]
       args:
         - >-
-          WORKER_POD=$(cat /pods/worker-pod.txt) &&
-          kubectl logs ${WORKER_POD}
+          kubectl logs $(cat /pods/worker-pods.txt | head -n 1)
           --follow
           --container=trino-worker
           --namespace={{ .Release.Namespace }}
@@ -101,14 +100,10 @@ spec:
           name: worker-pod
     - name: trigger-graceful-shutdown
       image: bitnami/kubectl:latest
-      command: [ "sh", "-c" ]
+      command: [ "sh", "-xc" ]
       args:
         - >-
-          sleep 5 &&
-          WORKER_POD=$(cat /pods/worker-pod.txt) &&
-          kubectl delete pod
-          ${WORKER_POD}
-          --namespace={{ .Release.Namespace }}
+          sleep 5 && date && kubectl delete pod $(cat /pods/worker-pods.txt) --namespace={{ .Release.Namespace }}
       volumeMounts:
         - mountPath: /pods
           name: worker-pod
