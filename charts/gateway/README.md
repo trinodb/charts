@@ -127,6 +127,7 @@ A Helm chart for Trino Gateway
      exec:
        command: ["/bin/sh", "-c", "sleep 120"]
   ```
+* `terminationGracePeriodSeconds` - int, default: `30`
 * `nodeSelector` - object, default: `{}`
 * `tolerations` - list, default: `[]`
 * `affinity` - object, default: `{}`
