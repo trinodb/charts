@@ -30,6 +30,15 @@ imagePullSecrets: []
 # ```
 envFrom: []
 
+# env -- Additional environment variables to mount into the init container as environment variables.
+# @raw
+# Example:
+# ```yaml
+#  - name: NAME
+#    value: "value"
+# ```
+env: []
+
 config:
   serverConfig:
     node.environment: test
