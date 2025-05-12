@@ -368,6 +368,50 @@ additionalExchangeManagerProperties: []
 #  - exchange.s3.aws-secret-key=your-secret-key
 # ```
 
+sessionProperties: {}
+# sessionProperties -- [Session properties manager config
+# file](https://trino.io/docs/current/admin/session-property-managers.html) is
+# mounted to {{ .Values.server.config.path }}/session-property-config.json
+# @raw
+# Set the type property to either:
+# * `configmap`, and provide the session properties manager file contents in `sessionPropertiesConfig`,
+# * `properties`, and provide configuration properties in `properties`.
+
+# Properties example:
+# ```yaml
+# type: properties
+# properties: |
+#   session-property-config.configuration-manager=file
+#   session-property-manager.config-file=/etc/trino/session-property-config.json
+
+# Configmap Example:
+# ```yaml
+# type: configmap
+# sessionPropertiesConfig: |-
+#   [
+#     {
+#       "group": "global.*",
+#       "sessionProperties": {
+#         "query_max_execution_time": "8h"
+#       }
+#     },
+#     {
+#       "group": "global.interactive.*",
+#       "sessionProperties": {
+#         "query_max_execution_time": "1h"
+#       }
+#     },
+#     {
+#       "group": "global.pipeline.*",
+#       "clientTags": ["etl"],
+#       "sessionProperties": {
+#         "scale_writers": "true",
+#         "hive.insert_existing_partitions_behavior": "overwrite"
+#       }
+#     }
+#   ]
+# ```
+
 eventListenerProperties: []
 # eventListenerProperties -- [Event
 # listener](https://trino.io/docs/current/develop/event-listener.html#event-listener)

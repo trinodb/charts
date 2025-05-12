@@ -208,6 +208,17 @@ accessControl:
             "user": "alice",
             "owner": false
           }
+        ],
+        "system_session_properties": [
+          {
+            "role": "admin",
+            "allow": true
+          },
+          {
+            "user": ".*",
+            "property": "query_max_execution_time",
+            "allow": true
+          }
         ]
       }
 
@@ -311,6 +322,29 @@ networkPolicy:
               - key: test
                 operator: NotIn
                 values: [network-policy]
+sessionProperties:
+  type: configmap
+  sessionPropertiesConfig: |-
+    [
+      {
+        "group": "global.admin",
+        "sessionProperties": {
+          "query_max_execution_time": "8h"
+        }
+      },
+      {
+        "group": "global.readonly",
+        "sessionProperties": {
+          "query_max_execution_time": "1h"
+        }
+      },
+      {
+        "group": "global.(finance_human_resources|general)",
+        "sessionProperties": {
+          "query_max_execution_time": "10m"
+        }
+      }
+    ]
 
 catalogs:
   tpch: |
