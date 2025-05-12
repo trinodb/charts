@@ -349,6 +349,12 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - exchange.s3.aws-access-key=your-access-key
    - exchange.s3.aws-secret-key=your-secret-key
   ```
+* `sessionProperties` - object, default: `{}`  
+
+  [Session properties manager config file](https://trino.io/docs/current/admin/session-property-managers.html) is mounted to {{ .Values.server.config.path }}/session-property-config.json
+  Set the type property to either:
+  * `configmap`, and provide the session properties manager file contents in `sessionPropertiesConfig`,
+  * `properties`, and provide configuration properties in `properties`.
 * `eventListenerProperties` - list, default: `[]`  
 
   [Event listener](https://trino.io/docs/current/develop/event-listener.html#event-listener) properties. To configure multiple event listeners, add them in `coordinator.additionalConfigFiles` and `worker.additionalConfigFiles`, and set the `event-listener.config-files` property in `additionalConfigProperties` to their locations.

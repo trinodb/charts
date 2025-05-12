@@ -117,6 +117,26 @@ data:
   {{- end }}
 {{- end }}
 
+{{- if .Values.sessionProperties }}
+  {{- if eq .Values.sessionProperties.type "configmap" }}
+  session-property-config.properties: |
+    session-property-config.configuration-manager=file
+    session-property-manager.config-file={{ .Values.server.config.path }}/session-property-config.json
+
+  session-property-config.json: |
+    {{- .Values.sessionProperties.sessionPropertiesConfig | nindent 4 }}
+  {{- else if eq .Values.sessionProperties.type "properties" }}
+  session-property-config.properties: |
+    {{- if .Values.sessionProperties.properties }}
+    {{- .Values.sessionProperties.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "sessionProperties.properties is required when sessionProperties.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid sessionProperties.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
+{{- end }}
+
 {{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
