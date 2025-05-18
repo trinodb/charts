@@ -124,7 +124,17 @@ A Helm chart for Trino Gateway
 * `commonLabels` - object, default: `{}`  
 
   Labels that get applied to every resource's metadata
-* `podAnnotations` - object, default: `{}`
+* `podAnnotations` - object, default: `{}`  
+
+  Annotations to add to the Gateway pods.
+  By default, all pods will have the `checksum/trino-gateway-config` annotation with the
+  checksum of the current configuration file. This is used to trigger a rolling update of the deployment when the
+  configuration changes. This behaviour can be disabled by manually setting this annotation to a fixed constant.
+  Example:
+  ```yaml
+   podAnnotations:
+     checksum/trino-gateway-config: ""
+  ```
 * `podLabels` - object, default: `{}`
 * `podDisruptionBudget` - object, default: `{"minAvailable":1}`  
 
