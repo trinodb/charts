@@ -131,8 +131,8 @@ A Helm chart for Trino Gateway
 * `readinessProbe.failureThreshold` - int, default: `12`
 * `readinessProbe.timeoutSeconds` - int, default: `1`
 * `readinessProbe.scheme` - string, default: `"HTTP"`
-* `volumes` - object, default: `{}`
-* `volumeMounts` - object, default: `{}`
+* `volumes` - list, default: `[]`
+* `volumeMounts` - list, default: `[]`
 * `lifecycle` - object, default: `{}`  
 
   Container lifecycle events.
