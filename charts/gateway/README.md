@@ -126,6 +126,9 @@ A Helm chart for Trino Gateway
   Labels that get applied to every resource's metadata
 * `podAnnotations` - object, default: `{}`
 * `podLabels` - object, default: `{}`
+* `podDisruptionBudget` - object, default: `{"minAvailable":1}`  
+
+  [Pod Disruption Budget](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets) configuration.
 * `podSecurityContext` - object, default: `{}`  
 
   [Pod security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod) configuration. To remove the default, set it to null (or `~`).
