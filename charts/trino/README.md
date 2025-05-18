@@ -592,7 +592,22 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: extras
      mountPath: /usr/share/extras
      readOnly: true
-* `coordinator.annotations` - object, default: `{}`
+* `coordinator.annotations` - object, default: `{}`  
+
+  Annotations to add to the coordinator pod.
+  By default, the following annotations are added to the coordinator pod:
+  - `checksum/access-control-config` - checksum of the coordinator access control config file;
+  - `checksum/catalog-config` - checksum of the catalog config file;
+  - `checksum/coordinator-config` - checksum of the coordinator config file.
+  This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  setting these annotations to fixed constants in the `coordinator.annotations` section.
+  Example:
+  ```yaml
+   annotations:
+     checksum/access-control-config: ""
+     checksum/catalog-config: ""
+     checksum/coordinator-config: ""
+  ```
 * `coordinator.labels` - object, default: `{}`
 * `coordinator.configMounts` - list, default: `[]`  
 
@@ -722,7 +737,22 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      mountPath: /usr/share/extras
      readOnly: true
   ```
-* `worker.annotations` - object, default: `{}`
+* `worker.annotations` - object, default: `{}`  
+
+  Annotations to add to the worker pods.
+  By default, the following annotations are added to the worker pods:
+  - `checksum/access-control-config` - checksum of the worker access control config file;
+  - `checksum/catalog-config` - checksum of the catalog config file;
+  - `checksum/worker-config` - checksum of the worker config file.
+  This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  setting these annotations to fixed constants in the `worker.annotations` section.
+  Example:
+  ```yaml
+   annotations:
+     checksum/access-control-config: ""
+     checksum/catalog-config: ""
+     checksum/worker-config: ""
+  ```
 * `worker.labels` - object, default: `{}`
 * `worker.configMounts` - list, default: `[]`  
 
