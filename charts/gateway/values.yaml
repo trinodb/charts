@@ -163,6 +163,19 @@ nodeSelector: {}
 tolerations: []
 
 topologySpreadConstraints: []
+# topologySpreadConstraints -- [Deployment Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) configuration.
+# Useful to control how Pods are spread across domains such as regions, zones, nodes etc.
+# @raw
+# Example:
+# ```yaml
+#  - maxSkew: 1
+#    topologyKey: "kubernetes.io/hostname"
+#    whenUnsatisfiable: ScheduleAnyway
+#  - maxSkew: 1
+#    topologyKey: "topology.kubernetes.io/zone"
+#    whenUnsatisfiable: ScheduleAnyway
+# ```
+
 
 affinity: {}
 
