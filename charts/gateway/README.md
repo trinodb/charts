@@ -120,19 +120,18 @@ A Helm chart for Trino Gateway
 * `volumeMounts` - object, default: `{}`
 * `nodeSelector` - object, default: `{}`
 * `tolerations` - list, default: `[]`
-* `topologySpreadConstraints` - list, default: `[]`
- 
-   [Deployment Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) configuration. <br>
-   Useful to control how Pods are spread across domains such as regions, zones, nodes etc. Example:
+* `topologySpreadConstraints` - list, default: `[]`  
+
+  [Deployment Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) configuration. Useful to control how Pods are spread across domains such as regions, zones, nodes etc.
+  Example:
   ```yaml
    - maxSkew: 1
-    topologyKey: "kubernetes.io/hostname"
-    whenUnsatisfiable: ScheduleAnyway
+     topologyKey: "kubernetes.io/hostname"
+     whenUnsatisfiable: ScheduleAnyway
    - maxSkew: 1
-    topologyKey: "topology.kubernetes.io/zone"
-    whenUnsatisfiable: ScheduleAnyway
-   ```
-
+     topologyKey: "topology.kubernetes.io/zone"
+     whenUnsatisfiable: ScheduleAnyway
+  ```
 * `affinity` - object, default: `{}`
 * `commonLabels` - object, default: `{}`  
 
