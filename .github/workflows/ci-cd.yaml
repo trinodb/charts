@@ -28,9 +28,40 @@ jobs:
       - name: Lint charts
         run: ct lint --charts=charts/trino,charts/gateway --validate-maintainers=false
 
+  changes:
+    runs-on: ubuntu-latest
+    name: changed trino/gateway files
+    outputs:
+      trino-changed: ${{ steps.filter.outputs.trino }}
+      gateway-changed: ${{ steps.filter.outputs.gateway }}
+    steps:
+      - uses: actions/checkout@v4
+      # Detect changes in trino/gatway files to conditionally run tests
+      - name: Get changed related files
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+        id: filter
+        with:
+          filters: |
+            trino:
+              - 'charts/trino/**'
+              - 'tests/trino/**'
+              - '.helmignore'
+              - '.github/**'
+              - '.gitignore'
+            gateway:
+              - 'charts/gateway/**'
+              - 'tests/gateway/**'
+              - '.helmignore'
+              - '.github/**'
+              - '.gitignore'
+          # For PRs, use the base commit SHA; for Push events, use the commit before the current one
+          base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+
   test:
     runs-on: ubuntu-latest
     name: test trino ${{ matrix.label }}
+    needs: [changes]
+    if: ${{needs.changes.outputs.trino-changed == 'true'}}
     strategy:
       fail-fast: false
       matrix:
@@ -60,6 +91,8 @@ jobs:
   test-gateway:
     runs-on: ubuntu-latest
     name: test gateway ${{ matrix.label }}
+    needs: [changes]
+    if: ${{needs.changes.outputs.gateway-changed == 'true'}}
     strategy:
       fail-fast: false
       matrix:
