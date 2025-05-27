@@ -241,7 +241,7 @@ spec:
           image: {{ $coordinatorJmx.exporter.image }}
           imagePullPolicy: {{ $coordinatorJmx.exporter.pullPolicy }}
           securityContext:
-            {{- toYaml $coordinatorJmx.exporter.securityContext | nindent 12 }}
+            {{- toYaml $coordinatorJmx.exporter.securityContext | nindent 12 }}topologySpreadConstraints
           args:
             - "{{ $coordinatorJmx.exporter.port }}"
             - /etc/jmx-exporter/jmx-exporter-config.yaml
@@ -268,5 +268,9 @@ spec:
       {{- end }}
       {{- with .Values.coordinator.tolerations }}
       tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.coordinator.topologySpreadConstraints }}
+      topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
