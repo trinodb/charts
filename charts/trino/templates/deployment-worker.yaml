@@ -211,7 +211,7 @@ spec:
             {{- if .Values.worker.gracefulShutdown.enabled }}
             {{- fail "The `worker.lifecycle` configuration conflicts with `worker.gracefulShutdown`. Either disable `worker.gracefulShutdown` and apply the related configurations manually, or remove `worker.lifecycle`." }}
             {{- end }}
-            {{- toYaml .Values.worker.lifecycle | nindent 12 }}
+            {{- tpl (toYaml .Values.worker.lifecycle) . | nindent 12 }}
             {{- else if .Values.worker.gracefulShutdown.enabled }}
             preStop:
               exec:
