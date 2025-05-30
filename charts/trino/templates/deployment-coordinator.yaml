@@ -126,6 +126,10 @@ spec:
       imagePullSecrets:
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       {{- end }}
+      {{- if .Values.coordinator.hostAliases }}
+      hostAliases:
+      {{- toYaml .Values.coordinator.hostAliases | nindent 8 }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.coordinator.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}-coordinator

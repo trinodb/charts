@@ -569,6 +569,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.nodeSelector` - object, default: `{}`
 * `coordinator.tolerations` - list, default: `[]`
 * `coordinator.affinity` - object, default: `{}`
+* `coordinator.hostAliases` - list, default: `[]`
+  For databases with self signed certificate and without valid domain names, sometimes you need to set databace host in /etc/hosts file.
+  [Adding entries to Pod /etc/hosts with HostAliases](https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods)
+  Example:
+  ```yaml
+   - hostnames:
+     - name-1
+     - name-2
+     - name-3
+     ip: 1.1.1.1
+  ```
 * `coordinator.additionalConfigFiles` - object, default: `{}`  
 
   Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
@@ -712,6 +723,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.nodeSelector` - object, default: `{}`
 * `worker.tolerations` - list, default: `[]`
 * `worker.affinity` - object, default: `{}`
+* `coordinator.hostAliases` - list, default: `[]`
+  For databases with self signed certificate and without valid domain names, sometimes you need to set databace host in /etc/hosts file.
+  [Adding entries to Pod /etc/hosts with HostAliases](https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods)
+  Example:
+  ```yaml
+   - hostnames:
+     - name-1
+     - name-2
+     - name-3
+     ip: 1.1.1.1
+  ```
 * `worker.additionalConfigFiles` - object, default: `{}`  
 
   Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
