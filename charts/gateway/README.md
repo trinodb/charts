@@ -158,6 +158,7 @@ A Helm chart for Trino Gateway
      whenUnsatisfiable: ScheduleAnyway
   ```
 * `affinity` - object, default: `{}`
+*
 * `commonLabels` - object, default: `{}`  
 
   Labels that get applied to every resource's metadata
