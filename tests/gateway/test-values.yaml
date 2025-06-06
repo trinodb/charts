@@ -34,3 +34,14 @@ resources:
   requests:
     cpu: 250m
     memory: 256Mi
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/instance
+              operator: In
+              values:
+                - "{{ .Release.Name }}"
+        topologyKey: "kubernetes.io/hostname"
