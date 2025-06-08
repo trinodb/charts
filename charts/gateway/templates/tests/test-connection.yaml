@@ -22,7 +22,7 @@ spec:
       command:
         - "sh"
         - "-c"
-        - |
+        - >
         {{ $curlOpts := "--fail --retry 5 --retry-all-errors --connect-timeout 10 --retry-delay 10 --verbose" }}
         {{- if eq .Values.service.type "NodePort" }}
           if curl {{ $curlOpts }} --insecure https://${NODE_IP}:30443/entity/GATEWAY_BACKEND; then
