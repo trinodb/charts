@@ -712,6 +712,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.nodeSelector` - object, default: `{}`
 * `worker.tolerations` - list, default: `[]`
 * `worker.affinity` - object, default: `{}`
+* `worker.topologySpreadConstraints` - list, default: `[]`
 * `worker.additionalConfigFiles` - object, default: `{}`  
 
   Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.

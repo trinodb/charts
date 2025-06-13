@@ -862,6 +862,8 @@ worker:
 
   affinity: {}
 
+  topologySpreadConstraints: []
+
   additionalConfigFiles: {}
   # worker.additionalConfigFiles -- Additional config files placed in the default configuration directory.
   # Supports templating the files' contents with `tpl`.

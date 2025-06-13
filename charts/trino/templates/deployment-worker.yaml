@@ -256,6 +256,10 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.worker.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.worker.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
