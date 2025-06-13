@@ -137,6 +137,22 @@ worker:
   annotations:
     custom/name: value
 
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: "ScheduleAnyway"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
+    - maxSkew: 1
+      topologyKey: "topology.kubernetes.io/zone"
+      whenUnsatisfiable: "ScheduleAnyway"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
+
 commonLabels:
   extra-label: extra-value
 
