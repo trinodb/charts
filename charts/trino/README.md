@@ -712,6 +712,27 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.nodeSelector` - object, default: `{}`
 * `worker.tolerations` - list, default: `[]`
 * `worker.affinity` - object, default: `{}`
+* `worker.topologySpreadConstraints` - list, default: `[]`  
+
+  Configure [topology spread constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) to control how worker pods are spread across your cluster among failure-domains such as nodes, zones, and regions. This is a best practice for achieving high availability and preventing resource hotspots.
+  Example of spreading workers across hostnames and zones:
+  ```yaml
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: "ScheduleAnyway"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
+    - maxSkew: 1
+      topologyKey: "topology.kubernetes.io/zone"
+      whenUnsatisfiable: "DoNotSchedule"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
+  ```
 * `worker.additionalConfigFiles` - object, default: `{}`  
 
   Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
