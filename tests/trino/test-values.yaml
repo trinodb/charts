@@ -78,6 +78,10 @@ coordinator:
       rollingUpdate:
         maxSurge: 25%
         maxUnavailable: 50%
+  service:
+    annotations:
+      custom/name: coordinator
+    port: 8080
 
   jvm:
     maxHeapSize: "8G"
