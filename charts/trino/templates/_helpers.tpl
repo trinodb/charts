@@ -144,8 +144,8 @@ Create the secret name for the file-based authentication's password file
 Create the secret name for the group-provider file
 */}}
 {{- define "trino.groupsSecretName" -}}
-{{- if and .Values.auth .Values.auth.groupAuthSecret }}
-{{- .Values.auth.groupAuthSecret | trunc 63 | trimSuffix "-" }}
+{{- if and .Values.auth .Values.auth.groupsAuthSecret }}
+{{- .Values.auth.groupsAuthSecret }}
 {{- else }}
 {{- $name := default .Chart.Name .Values.nameOverride }}
 {{- if hasPrefix .Release.Name $name }}
