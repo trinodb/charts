@@ -460,7 +460,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
   Set the name of a secret containing this file in the group.db key
   ```yaml
-   groupAuthSecret: "trino-group-authentication"
+   groupsAuthSecret: "trino-groups-authentication"
   ```
 * `serviceAccount.create` - bool, default: `false`  
 
