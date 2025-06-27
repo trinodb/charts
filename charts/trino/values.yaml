@@ -513,7 +513,7 @@ auth: {}
 # ```
 # Set the name of a secret containing this file in the group.db key
 # ```yaml
-#  groupAuthSecret: "trino-group-authentication"
+#  groupsAuthSecret: "trino-groups-authentication"
 # ```
 
 serviceAccount:
