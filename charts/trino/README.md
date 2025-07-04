@@ -569,6 +569,27 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.nodeSelector` - object, default: `{}`
 * `coordinator.tolerations` - list, default: `[]`
 * `coordinator.affinity` - object, default: `{}`
+* `coordinator.topologySpreadConstraints` - list, default: `[]`  
+
+  Configure [topology spread constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) to control how coordinator pods are spread across your cluster among failure-domains such as nodes, zones, and regions.
+  Example of spreading coordinators across hostnames and zones:
+  ```yaml
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: "ScheduleAnyway"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: coordinator
+    - maxSkew: 1
+      topologyKey: "topology.kubernetes.io/zone"
+      whenUnsatisfiable: "DoNotSchedule"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: coordinator
+  ```
 * `coordinator.additionalConfigFiles` - object, default: `{}`  
 
   Additional config files placed in the default configuration directory. Supports templating the files' contents with `tpl`.
