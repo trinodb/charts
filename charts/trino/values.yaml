@@ -734,6 +734,15 @@ coordinator:
   #    subPath: sample.json
   # ```
 
+  service: {}
+  # annotations: {}
+  # type: ClusterIP
+  # port: 8080
+  # # service.nodePort -- The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will
+  # # [allocate a port
+  # # automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+  # nodePort: ""
+
 worker:
   deployment:
     annotations: {}
@@ -960,6 +969,15 @@ worker:
   #    path: /secrets/sample.json
   #    subPath: sample.json
   # ```
+
+  service: {}
+  # annotations: {}
+  # type: ClusterIP
+  # port: 8080
+  # # service.nodePort -- The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will
+  # # [allocate a port
+  # # automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+  # nodePort: ""
 
 kafka:
   mountPath: "/etc/trino/schemas"

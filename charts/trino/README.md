@@ -629,6 +629,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      path: /secrets/sample.json
      subPath: sample.json
   ```
+* `coordinator.service` - object, default: `{}`
 * `worker.deployment.annotations` - object, default: `{}`
 * `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
 
@@ -795,6 +796,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      path: /secrets/sample.json
      subPath: sample.json
   ```
+* `worker.service` - object, default: `{}`
 * `kafka.mountPath` - string, default: `"/etc/trino/schemas"`
 * `kafka.tableDescriptions` - object, default: `{}`  
 

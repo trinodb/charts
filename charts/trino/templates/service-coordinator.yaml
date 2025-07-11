@@ -1,3 +1,4 @@
+{{- $svc := .Values.coordinator.service | default .Values.service }}
 {{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
 apiVersion: v1
 kind: Service
@@ -8,16 +9,16 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator
   annotations:
-    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- toYaml $svc.annotations | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ $svc.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ $svc.port }}
       targetPort: http
       protocol: TCP
       name: http
-      {{- if .Values.service.nodePort }}
-      nodePort: {{ .Values.service.nodePort }}
+      {{- if $svc.nodePort }}
+      nodePort: {{ $svc.nodePort }}
       {{- end }}
     {{- if .Values.server.config.https.enabled }}
     - port: {{ .Values.server.config.https.port }}
