@@ -82,7 +82,7 @@ spec:
               - key: password.db
                 path: password.db
         {{- end }}
-        {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}
+        {{- if or .Values.auth.groups .Values.auth.groupAuthSecret }}
         - name: file-groups-authentication-volume
           secret:
             secretName: {{ template "trino.groupsSecretName" . }}
@@ -186,7 +186,7 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/auth/password
               name: file-password-authentication-volume
             {{- end }}
-            {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}
+            {{- if or .Values.auth.groups .Values.auth.groupAuthSecret }}
             - mountPath: {{ .Values.server.config.path }}/auth/group
               name: file-groups-authentication-volume
             {{- end }}
