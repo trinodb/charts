@@ -59,6 +59,7 @@ server:
     # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
     authenticationType: ""
     query:
+      # -- Should be the same or slightly less than worker.resources memory values if set
       maxMemory: "4GB"
   exchangeManager: {}
   # server.exchangeManager -- Mandatory [exchange manager
@@ -569,14 +570,17 @@ coordinator:
     # coordinator.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
   jvm:
+    # -- Should be around 70% of coordinator.resources memory values if set
     maxHeapSize: "8G"
     gcMethod:
       type: "UseG1GC"
       g1:
+        # -- Should be around 10% of coordinator.resources memory values if set
         heapRegionSize: "32M"
 
   config:
     memory:
+      # -- Should be around 30% of coordinator.resources memory values if set
       heapHeadroomPerNode: ""
     nodeScheduler:
       includeCoordinator: false
@@ -585,6 +589,7 @@ coordinator:
       # coordinator can negatively impact query performance because the machine's resources are not available for the
       # critical coordinator tasks of scheduling, managing, and monitoring query execution.
     query:
+      # -- Should be around 20% of coordinator.resources memory values if set
       maxMemoryPerNode: "1GB"
 
   additionalJVMConfig: []
@@ -754,16 +759,20 @@ worker:
     # worker.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
   jvm:
+    # -- Should be around 70% of worker.resources memory values if set
     maxHeapSize: "8G"
     gcMethod:
       type: "UseG1GC"
       g1:
+        # -- Should be around 10% of worker.resources memory values if set
         heapRegionSize: "32M"
 
   config:
     memory:
+      # -- Should be around 30% of worker.resources memory values if set
       heapHeadroomPerNode: ""
     query:
+      # -- Should be around 20% of worker.resources memory values if set
       maxMemoryPerNode: "1GB"
 
   additionalJVMConfig: []
