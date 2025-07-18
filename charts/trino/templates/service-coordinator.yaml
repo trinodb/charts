@@ -1,4 +1,6 @@
 {{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+{{- $coordinatorSvcSpecOverride := index .Values.coordinator.service "spec" | default dict -}}
+{{- $coordinatorSvcAnnotations := deepCopy .Values.service.annotations | merge (index .Values.coordinator.service "annotations" | default dict) -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,9 +10,17 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator
   annotations:
-    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- toYaml $coordinatorSvcAnnotations | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  {{- if gt (len $coordinatorSvcSpecOverride) 0 }}
+  {{- toYaml $coordinatorSvcSpecOverride | nindent 2 }}
+  {{- end }}
+
+  {{- if not (hasKey $coordinatorSvcSpecOverride "type") }}
+  type: {{ default .Values.service.type }}
+  {{- end }}
+
+  {{- if not (hasKey $coordinatorSvcSpecOverride "ports") }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
@@ -43,6 +53,10 @@ spec:
       nodePort: {{ $value.nodePort }}
       {{- end }}
     {{- end }}
+  {{- end }}
+
+  {{- if not (hasKey $coordinatorSvcSpecOverride "selector") }}
   selector:
     {{- include "trino.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: coordinator
+  {{- end }}

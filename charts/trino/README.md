@@ -491,6 +491,20 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      path: /secrets/sample.json
      subPath: sample.json
   ```
+* `coordinator.service` - object, default: `{}`  
+
+  Service overrides just for the coordinator service. It is merged with the root-level service specification. Beware that specifying spec.ports will override the dynamically generated ports for JMX exporter as well as the additionalExposedPorts.
+  Example:
+  ```yaml
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: trino.example.com
+  spec:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    loadBalancerSourceRanges:
+      - 1.2.3.4/32
+      - 10.0.0.0/8
+  ```
 * `coordinator.deployment.annotations` - object, default: `{}`
 * `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
 
@@ -628,6 +642,20 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      secretName: sample-secret
      path: /secrets/sample.json
      subPath: sample.json
+  ```
+* `worker.service` - object, default: `{}`  
+
+  Service overrides just for the worker service. It is merged with the root-level service specification. Beware that specifying spec.ports will override the dynamically generated ports for JMX exporter as well as the additionalExposedPorts.
+  Example:
+  ```yaml
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: trino-workers.example.com
+  spec:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    loadBalancerSourceRanges:
+      - 1.2.3.4/32
+      - 10.0.0.0/8
   ```
 * `worker.deployment.annotations` - object, default: `{}`
 * `worker.deployment.progressDeadlineSeconds` - int, default: `600`  
