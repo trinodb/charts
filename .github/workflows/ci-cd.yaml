@@ -76,13 +76,13 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.4
+          version: v3.17.4
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
         with:
-          version: v0.26.0
+          version: v0.29.0
       - name: Run tests
         run: ./tests/trino/test.sh ${{ matrix.args }}
 
@@ -101,13 +101,13 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.16.4
+          version: v3.17.4
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.7.0
       - name: Create kind cluster
         uses: helm/kind-action@v1.12.0
         with:
-          version: v0.24.0
+          version: v0.29.0
       - name: Run gateway tests
         run: ./tests/gateway/test.sh ${{ matrix.args }}
 
