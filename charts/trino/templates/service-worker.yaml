@@ -1,3 +1,4 @@
+{{- $svc := .Values.worker.service | default .Values.service }}
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
 apiVersion: v1
 kind: Service
@@ -8,11 +9,11 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
   annotations:
-    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- toYaml $svc.annotations | nindent 4 }}
 spec:
   clusterIP: None
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ $svc.port }}
       targetPort: http
       protocol: TCP
       name: http
