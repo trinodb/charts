@@ -25,7 +25,7 @@ the name to get an output similar to the following:
 
 ```
 NAME               	CHART VERSION	APP VERSION	DESCRIPTION
-trino/trino        	1.39.1       	476        	Fast distributed SQL query engine for big data ...
+trino/trino        	1.40.0       	476        	Fast distributed SQL query engine for big data ...
 trino/trino-gateway	1.15.3       	15         	A Helm chart for Trino Gateway
 ```
 
@@ -35,7 +35,7 @@ After configuring your Kubernetes cluster, you can install Trino with the chart
 `trino/trino` using:
 
 ```console
-helm install my-trino trino/trino --version 1.39.1
+helm install my-trino trino/trino --version 1.40.0
 ```
 
 Also, you can check the manifests using:
