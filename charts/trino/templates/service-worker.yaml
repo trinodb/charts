@@ -1,4 +1,7 @@
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+{{- $workerSvcSpecOverride := index .Values.worker.service "spec" | default dict -}}
+{{- $workerSvcAnnotations := deepCopy .Values.service.annotations | merge (index .Values.worker.service "annotations" | default dict) -}}
+{{- $workerSvcIsLoadBalancer := eq (index $workerSvcSpecOverride "type" | default "") "LoadBalancer" -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,9 +11,17 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
   annotations:
-    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- toYaml $workerSvcAnnotations | nindent 4 }}
 spec:
+  {{- if gt (len $workerSvcSpecOverride) 0 }}
+  {{- toYaml $workerSvcSpecOverride | nindent 2 }}
+  {{- end }}
+
+  {{- if not $workerSvcIsLoadBalancer }}
   clusterIP: None
+  {{- end }}
+
+  {{- if not (hasKey $workerSvcSpecOverride "ports") }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
@@ -31,6 +42,10 @@ spec:
       nodePort: {{ $value.nodePort }}
       {{- end }}
     {{- end }}
+  {{- end }}
+
+  {{- if not (hasKey $workerSvcSpecOverride "selector") }}
   selector:
     {{- include "trino.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: worker
+  {{- end }}
