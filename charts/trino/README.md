@@ -571,7 +571,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.affinity` - object, default: `{}`
 * `coordinator.topologySpreadConstraints` - list, default: `[]`  
 
-  Configure [topology spread constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) to control how coordinator pods are spread across your cluster among failure-domains such as nodes, zones, and regions.
+  Configure [topology spread constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/) to control how the coordinator pod is placed in your cluster among failure-domains such as nodes, zones, and regions.
   Example of spreading coordinators across hostnames and zones:
   ```yaml
   topologySpreadConstraints:
