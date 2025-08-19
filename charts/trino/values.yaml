@@ -689,7 +689,7 @@ coordinator:
   #         app.kubernetes.io/name: trino
   #         app.kubernetes.io/component: coordinator
   # ```
-  
+
   additionalConfigFiles: {}
   # coordinator.additionalConfigFiles -- Additional config files placed in the default configuration directory.
   # Supports templating the files' contents with `tpl`.
