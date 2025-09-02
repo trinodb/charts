@@ -17,8 +17,10 @@ metadata:
 spec:
   progressDeadlineSeconds: {{ .Values.worker.deployment.progressDeadlineSeconds }}
   revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
+  {{- if .Values.worker.deployment.strategy }}
   strategy:
     {{- toYaml .Values.worker.deployment.strategy | nindent 4 }}
+  {{- end }}
   {{- if and (not .Values.server.autoscaling.enabled) (not .Values.server.keda.enabled) }}
   replicas: {{ .Values.server.workers }}
   {{- end }}

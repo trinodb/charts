@@ -17,8 +17,10 @@ spec:
   replicas: 1
   progressDeadlineSeconds: {{ .Values.coordinator.deployment.progressDeadlineSeconds }}
   revisionHistoryLimit: {{ .Values.coordinator.deployment.revisionHistoryLimit }}
+  {{- if .Values.coordinator.deployment.strategy }}
   strategy:
     {{- toYaml .Values.coordinator.deployment.strategy | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "trino.selectorLabels" . | nindent 6 }}

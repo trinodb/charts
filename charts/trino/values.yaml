@@ -605,11 +605,7 @@ coordinator:
     revisionHistoryLimit: 10
     # coordinator.deployment.revisionHistoryLimit -- The number of old ReplicaSets to retain to allow rollback.
 
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 25%
-        maxUnavailable: 25%
+    strategy: {}
     # coordinator.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
   jvm:
@@ -790,11 +786,7 @@ worker:
     revisionHistoryLimit: 10
     # worker.deployment.revisionHistoryLimit -- The number of old ReplicaSets to retain to allow rollback.
 
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 25%
-        maxUnavailable: 25%
+    strategy: {}
     # worker.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
   jvm:
