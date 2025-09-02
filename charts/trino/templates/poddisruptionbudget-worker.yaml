@@ -1,0 +1,18 @@
+{{- if gt (int .Values.server.workers) 0 }}
+{{- with .Values.worker.podDisruptionBudget }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "trino.worker" $ }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "trino.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  selector:
+    matchLabels:
+      {{- include "trino.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: worker
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}
