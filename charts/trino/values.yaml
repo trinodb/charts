@@ -608,6 +608,18 @@ coordinator:
     strategy: {}
     # coordinator.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
+  podDisruptionBudget: {}
+  # coordinator.podDisruptionBudget -- [Pod Disruption Budget](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets) configuration.
+  # @raw
+  # Example:
+  # ```yaml
+  #  minAvailable: 1
+  # ```
+  # or
+  # ```yaml
+  #  maxUnavailable: 1
+  # ```
+
   jvm:
     maxHeapSize: "8G"
     gcMethod:
@@ -788,6 +800,18 @@ worker:
 
     strategy: {}
     # worker.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
+
+  podDisruptionBudget: {}
+  # worker.podDisruptionBudget -- [Pod Disruption Budget](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets) configuration.
+  # @raw
+  # Example:
+  # ```yaml
+  #  maxUnavailable: 1
+  # ```
+  # or
+  # ```yaml
+  #  minAvailable: 2
+  # ```
 
   jvm:
     maxHeapSize: "8G"

@@ -1,0 +1,16 @@
+{{- with .Values.coordinator.podDisruptionBudget }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "trino.coordinator" $ }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "trino.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: coordinator
+spec:
+  selector:
+    matchLabels:
+      {{- include "trino.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: coordinator
+  {{- toYaml . | nindent 2 }}
+{{- end }}
