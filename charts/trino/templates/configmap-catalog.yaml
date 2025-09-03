@@ -11,6 +11,6 @@ data:
 {{- $merged := merge .Values.catalogs .Values.additionalCatalogs }}
 {{- range $catalogName, $catalogProperties := $merged }}
   {{ $catalogName }}.properties: |
-    {{- $catalogProperties | nindent 4 }}
+    {{- tpl ($catalogProperties | nindent 4) . }}
 {{- end }}
 {{- end }}
