@@ -504,7 +504,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.deployment.revisionHistoryLimit` - int, default: `10`  
 
   The number of old ReplicaSets to retain to allow rollback.
-* `coordinator.deployment.strategy` - object, default: `{"rollingUpdate":{"maxSurge":"25%","maxUnavailable":"25%"},"type":"RollingUpdate"}`  
+* `coordinator.deployment.strategy` - object, default: `{}`  
 
   The deployment strategy to use to replace existing pods with new ones.
 * `coordinator.jvm.maxHeapSize` - string, default: `"8G"`
@@ -642,7 +642,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.deployment.revisionHistoryLimit` - int, default: `10`  
 
   The number of old ReplicaSets to retain to allow rollback.
-* `worker.deployment.strategy` - object, default: `{"rollingUpdate":{"maxSurge":"25%","maxUnavailable":"25%"},"type":"RollingUpdate"}`  
+* `worker.deployment.strategy` - object, default: `{}`  
 
   The deployment strategy to use to replace existing pods with new ones.
 * `worker.jvm.maxHeapSize` - string, default: `"8G"`
