@@ -1,0 +1,16 @@
+additionalConfigProperties:
+- catalog.management=dynamic
+
+coordinator:
+  additionalVolumes:
+  - name: catalogs
+    persistentVolumeClaim:
+      claimName: catalogs-pvc
+  additionalConfigFiles:
+    catalog-store.properties: |
+      catalog.config-dir=/etc/trino/dynamic-catalog
+
+  additionalVolumeMounts:
+    - name: catalogs
+      mountPath: /etc/trino/dynamic-catalog
+      readOnly: false
