@@ -288,7 +288,7 @@ jmx:
   serverPort: 9081
   exporter:
     enabled: true
-    image: bitnami/jmx-exporter:1.0.1
+    image: bitnamilegacy/jmx-exporter:1.4.0
     pullPolicy: Always
     port: 5556
     configProperties: |

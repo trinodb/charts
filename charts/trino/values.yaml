@@ -1046,7 +1046,7 @@ jmx:
   exporter:
     # jmx.exporter.enabled -- Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
     enabled: false
-    image: bitnami/jmx-exporter:1.0.1
+    image: bitnamilegacy/jmx-exporter:1.4.0
     pullPolicy: Always
     port: 5556
     configProperties: ""
