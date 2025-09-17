@@ -12,7 +12,7 @@ spec:
   {{- if eq .Values.resourceGroups.type "properties" }}
   initContainers:
     - name: postgresql-client
-      image: bitnami/postgresql:17.1.0
+      image: bitnamilegacy/postgresql:17.1.0
       command:
         - /bin/sh
         - -c

@@ -72,7 +72,7 @@ spec:
   serviceAccountName: {{ include "trino.fullname" . }}-pod-manager-sa
   initContainers:
     - name: get-worker-pod
-      image: bitnami/kubectl:latest
+      image: bitnamilegacy/kubectl:latest
       command: [ "sh", "-c" ]
       args:
         - >-
@@ -86,7 +86,7 @@ spec:
           name: worker-pod
   containers:
     - name: check-logs
-      image: bitnami/kubectl:latest
+      image: bitnamilegacy/kubectl:latest
       command: [ "sh", "-c" ]
       args:
         - >-
@@ -100,7 +100,7 @@ spec:
         - mountPath: /pods
           name: worker-pod
     - name: trigger-graceful-shutdown
-      image: bitnami/kubectl:latest
+      image: bitnamilegacy/kubectl:latest
       command: [ "sh", "-c" ]
       args:
         - >-
