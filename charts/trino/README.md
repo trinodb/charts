@@ -848,7 +848,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `jmx.exporter.enabled` - bool, default: `false`  
 
   Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
-* `jmx.exporter.image` - string, default: `"bitnami/jmx-exporter:1.0.1"`
+* `jmx.exporter.image` - string, default: `"bitnamilegacy/jmx-exporter:1.4.0"`
 * `jmx.exporter.pullPolicy` - string, default: `"Always"`
 * `jmx.exporter.port` - int, default: `5556`
 * `jmx.exporter.configProperties` - string, default: `""`  
