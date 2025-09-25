@@ -11,6 +11,7 @@ declare -A testCases=(
     [exchange_manager_values]="--values test-exchange-manager-values.yaml"
     [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
     [resource_groups_properties]="--values test-resource-groups-properties-values.yaml"
+    [dynamic_catalogs]="--values dyncat-values.yaml"
 )
 
 declare -A testCaseCharts=(
@@ -22,6 +23,7 @@ declare -A testCaseCharts=(
     [exchange_manager_values]="../../charts/trino"
     [graceful_shutdown]="../../charts/trino"
     [resource_groups_properties]="../../charts/trino"
+    [dynamic_catalogs]="../../charts/trino"
 )
 
 function join_by {
@@ -41,7 +43,7 @@ CT_ARGS=(
     --helm-extra-args="--timeout 2m"
 )
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown resource_groups_properties)
+TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown resource_groups_properties dynamic_catalogs)
 
 usage() {
     cat <<EOF 1>&2
@@ -104,6 +106,19 @@ spec:
   resources:
     requests:
       storage: 128Mi
+YAML
+cat <<YAML | kubectl -n "$NAMESPACE" create -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: catalogs-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 30Mi
 YAML
 
 # only install the Prometheus and KEDA Helm charts when running the `complete_values` test
