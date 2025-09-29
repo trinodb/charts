@@ -598,6 +598,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    - name: extras
      mountPath: /usr/share/extras
      readOnly: true
+* `coordinator.priorityClassName` - string, default: `nil`
 * `coordinator.annotations` - object, default: `{}`  
 
   Annotations to add to the coordinator pod.
@@ -764,6 +765,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      mountPath: /usr/share/extras
      readOnly: true
   ```
+* `worker.priorityClassName` - string, default: `nil`
 * `worker.annotations` - object, default: `{}`  
 
   Annotations to add to the worker pods.
