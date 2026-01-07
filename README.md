@@ -25,7 +25,7 @@ the name to get an output similar to the following:
 
 ```
 NAME               	CHART VERSION	APP VERSION	DESCRIPTION
-trino/trino        	2.0       	477        	Fast distributed SQL query engine for big data ...
+trino/trino        	1.42.0       	477        	Fast distributed SQL query engine for big data ...
 trino/trino-gateway	1.16.0       	16         	A Helm chart for Trino Gateway
 ```
 
