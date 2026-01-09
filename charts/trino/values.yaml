@@ -10,8 +10,10 @@
 # coordinatorNameOverride: trino-coordinator-adhoc
 # workerNameOverride: trino-worker-adhoc
 # nameOverride: trino-adhoc
+# fullnameOverride: trino-adhoc
 # ```
 nameOverride:
+fullnameOverride:
 coordinatorNameOverride:
 workerNameOverride:
 

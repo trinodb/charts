@@ -35,12 +35,7 @@ Create chart name and version as used by the chart label.
 {{- if .Values.coordinatorNameOverride }}
 {{- .Values.coordinatorNameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if hasPrefix .Release.Name $name }}
-{{- printf "%s-%s" $name "coordinator" | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s-%s" .Release.Name $name "coordinator" | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- printf "%s-%s" (include "trino.fullname" .) "coordinator" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 
@@ -48,12 +43,7 @@ Create chart name and version as used by the chart label.
 {{- if .Values.workerNameOverride }}
 {{- .Values.workerNameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if hasPrefix .Release.Name $name }}
-{{- printf "%s-%s" $name "worker" | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s-%s" .Release.Name $name "worker" | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- printf "%s-%s" (include "trino.fullname" .) "worker" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 
@@ -131,12 +121,7 @@ Create the secret name for the file-based authentication's password file
 {{- if and .Values.auth .Values.auth.passwordAuthSecret }}
 {{- .Values.auth.passwordAuthSecret | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if hasPrefix .Release.Name $name }}
-{{- printf "%s-%s" $name "password-file" | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s-%s" .Release.Name $name "password-file" | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- printf "%s-%s" (include "trino.fullname" .) "password-file" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 
@@ -147,11 +132,6 @@ Create the secret name for the group-provider file
 {{- if and .Values.auth .Values.auth.groupsAuthSecret }}
 {{- .Values.auth.groupsAuthSecret }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if hasPrefix .Release.Name $name }}
-{{- printf "%s-%s" $name "groups-file" | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s-%s" .Release.Name $name "groups-file" | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- printf "%s-%s" (include "trino.fullname" .) "groups-file" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
