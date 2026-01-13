@@ -22,9 +22,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.7.0
+        uses: helm/chart-testing-action@v2.8.0
       - name: Lint charts
         run: ct lint --charts=charts/trino,charts/gateway --validate-maintainers=false
 
@@ -35,7 +35,7 @@ jobs:
       trino-changed: ${{ steps.filter.outputs.trino }}
       gateway-changed: ${{ steps.filter.outputs.gateway }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       # Detect changes in trino/gatway files to conditionally run tests
       - name: Get changed related files
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
@@ -72,17 +72,17 @@ jobs:
           # skip cleanup to test deploying multiple releases in a single namespace
           - { label: overrides, args: '-s -t default,overrides' }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.19.0
+          version: v4.0.4
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.7.0
+        uses: helm/chart-testing-action@v2.8.0
       - name: Create kind cluster
-        uses: helm/kind-action@v1.12.0
+        uses: helm/kind-action@v1.13.0
         with:
-          version: v0.30.0
+          version: v0.31.0
       - name: Run tests
         run: ./tests/trino/test.sh ${{ matrix.args }}
 
@@ -97,24 +97,24 @@ jobs:
         include:
           - { label: default, args: '' }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Helm
         uses: azure/setup-helm@v4
         with:
-          version: v3.19.0
+          version: v4.0.4
       - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.7.0
+        uses: helm/chart-testing-action@v2.8.0
       - name: Create kind cluster
-        uses: helm/kind-action@v1.12.0
+        uses: helm/kind-action@v1.13.0
         with:
-          version: v0.30.0
+          version: v0.31.0
       - name: Run gateway tests
         run: ./tests/gateway/test.sh ${{ matrix.args }}
 
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.x'
@@ -127,11 +127,11 @@ jobs:
     if: ${{ always() && !failure() && github.event_name != 'pull_request'}}
     steps:
       - name: Checkout main
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: main
       - name: Checkout gh-pages
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: gh-pages
           path: gh-pages
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() && !failure() && github.event_name != 'pull_request'}}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Configure Git

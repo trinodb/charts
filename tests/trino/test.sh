@@ -111,7 +111,7 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     # prometheus
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
-        --version "60.0.2" \
+        --version "68.2.1" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
         --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
         --set grafana.enabled=false \
@@ -135,7 +135,7 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     helm repo add kedacore https://kedacore.github.io/charts
     helm upgrade --install keda kedacore/keda -n "$KEDA_NAMESPACE" \
         --create-namespace \
-        --version "2.16.0" \
+        --version "2.18.3" \
         --set webhooks.enabled=false \
         --set asciiArt=false
     kubectl rollout status --watch deployments -l app.kubernetes.io/instance=keda -n "$KEDA_NAMESPACE"
@@ -145,7 +145,7 @@ fi
 if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz resource_groups_properties; then
     helm upgrade --install trino-resource-groups-db oci://registry-1.docker.io/bitnamicharts/postgresql -n "$DB_NAMESPACE" \
         --create-namespace \
-        --version "16.2.1" \
+        --version "18.2.0" \
         --set auth.username=trino \
         --set auth.password=pass0000 \
         --set auth.database=resource_groups \
@@ -169,7 +169,7 @@ for test_name in "${TEST_NAMES[@]}"; do
         echo 1>&2 "✅ Test $test_name completed"
     fi
     if [ "$CLEANUP_NAMESPACE" == "true" ]; then
-        for release in $(helm --namespace "$NAMESPACE" ls --all --short | grep -v 'prometheus-operator'); do
+        for release in $(helm --namespace "$NAMESPACE" ls --short | grep -v 'prometheus-operator'); do
             echo 1>&2 "Cleaning up Helm release $release"
             helm --namespace "$NAMESPACE" delete "$release"
         done
