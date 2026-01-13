@@ -1,0 +1,18 @@
+# Test values for Gateway API configuration with HTTPS
+server:
+  workers: 1
+  config:
+    https:
+      enabled: true
+      port: 8443
+
+gateway:
+  enabled: true
+  parentRefs:
+    - name: trino-gateway
+  hostnames:
+    - trino-secure.example.com
+  rules:
+    - path:
+        type: PathPrefix
+        value: /

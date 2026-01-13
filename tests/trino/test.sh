@@ -11,6 +11,7 @@ declare -A testCases=(
     [exchange_manager_values]="--values test-exchange-manager-values.yaml"
     [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
     [resource_groups_properties]="--values test-resource-groups-properties-values.yaml"
+    [gateway]="--values test-gateway-values.yaml"
 )
 
 declare -A testCaseCharts=(
@@ -22,6 +23,7 @@ declare -A testCaseCharts=(
     [exchange_manager_values]="../../charts/trino"
     [graceful_shutdown]="../../charts/trino"
     [resource_groups_properties]="../../charts/trino"
+    [gateway]="../../charts/trino"
 )
 
 function join_by {
@@ -41,7 +43,7 @@ CT_ARGS=(
     --helm-extra-args="--timeout 2m"
 )
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown resource_groups_properties)
+TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown resource_groups_properties gateway)
 
 usage() {
     cat <<EOF 1>&2
@@ -153,6 +155,14 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz resource_groups_properties; then
     kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql --timeout=300s -n "$DB_NAMESPACE"
 fi
 
+# only install Gateway API CRDs when running the `gateway` test
+if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz gateway; then
+    echo 1>&2 "Installing Gateway API CRDs"
+    kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+    kubectl wait --for condition=established --timeout=60s crd/gateways.gateway.networking.k8s.io
+    kubectl wait --for condition=established --timeout=60s crd/httproutes.gateway.networking.k8s.io
+fi
+
 CT_ARGS+=(--namespace "$NAMESPACE")
 
 result=0
@@ -183,7 +193,7 @@ if [ "$CLEANUP_NAMESPACE" == "true" ]; then
     kubectl delete namespace "$NAMESPACE"
     helm -n "$KEDA_NAMESPACE" uninstall keda --ignore-not-found
     kubectl delete namespace "$KEDA_NAMESPACE"
-    for api_group in monitoring.coreos.com eventing.keda.sh keda.sh; do
+    for api_group in monitoring.coreos.com eventing.keda.sh keda.sh gateway.networking.k8s.io; do
         mapfile -t crds < <(kubectl api-resources --api-group="$api_group" --output name)
         if [ ${#crds[@]} -ne 0 ]; then
             kubectl delete crd "${crds[@]}"
