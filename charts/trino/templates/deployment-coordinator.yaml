@@ -47,6 +47,9 @@ spec:
         {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.coordinator.priorityClassName }}
+      priorityClassName: {{ .Values.coordinator.priorityClassName }}
+      {{- end }}
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:

@@ -113,7 +113,7 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     # prometheus
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
-        --version "60.0.2" \
+        --version "68.2.1" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
         --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
         --set grafana.enabled=false \

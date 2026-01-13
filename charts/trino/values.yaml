@@ -731,6 +731,8 @@ coordinator:
   #    mountPath: /usr/share/extras
   #    readOnly: true
 
+  priorityClassName: ~
+
   annotations: {}
   # coordinator.annotations -- Annotations to add to the coordinator pod.
   # @raw
@@ -953,6 +955,8 @@ worker:
   #    mountPath: /usr/share/extras
   #    readOnly: true
   # ```
+
+  priorityClassName: ~
 
   annotations: {}
   # worker.annotations -- Annotations to add to the worker pods.
