@@ -11,107 +11,99 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * <https://github.com/trinodb/charts>
 * <https://github.com/trinodb/trino/tree/master/core/docker>
 
-## Values
-* `nameOverride` - string, default: `nil`  
+## StatefulSet Support
 
-  Override resource names to avoid name conflicts when deploying multiple releases in the same namespace.
-  Example:
-  ```yaml
-  coordinatorNameOverride: trino-coordinator-adhoc
-  workerNameOverride: trino-worker-adhoc
-  nameOverride: trino-adhoc
-  ```
-* `coordinatorNameOverride` - string, default: `nil`
-* `workerNameOverride` - string, default: `nil`
-* `image.registry` - string, default: `""`  
+This chart now supports deploying Trino coordinators and workers as **StatefulSets** instead of Deployments. This enables:
 
-  Image registry, defaults to empty, which results in DockerHub usage
-* `image.repository` - string, default: `"trinodb/trino"`  
+- ✅ **Persistent storage per pod** using volumeClaimTemplates
+- ✅ **Unique per-pod FQDN** (required for Istio STRICT mTLS)
+- ✅ **Stable pod identities** with predictable naming (e.g., `trino-worker-0`, `trino-worker-1`)
+- ✅ **Ordered or parallel pod management** for controlled rollouts
 
-  Repository location of the Trino image, typically `organization/imagename`
-* `image.tag` - string, default: `""`  
+### Quick Start with StatefulSet
 
-  Image tag, defaults to the Trino release version specified as `appVersion` from Chart.yaml
-* `image.digest` - string, default: `""`  
+Enable StatefulSet for workers with persistent storage:
 
-  Optional digest value of the image specified as `sha256:abcd...`. A specified value overrides `tag`.
-* `image.useRepositoryAsSoleImageReference` - bool, default: `false`  
+```yaml
+worker:
+  statefulset:
+    enabled: true
+    volumeClaimTemplates:
+      - metadata:
+          name: data
+        mountPath: /data/trino
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 10Gi
+```
 
-  When true, only the content in `repository` is used as image reference
-* `image.pullPolicy` - string, default: `"IfNotPresent"`
-* `imagePullSecrets` - list, default: `[]`  
+Or use Helm CLI:
 
-  An optional list of references to secrets in the same namespace to use for pulling images.
-  Example:
-  ```yaml
-  imagePullSecrets:
-    - name: registry-credentials
-  ```
-* `server.workers` - int, default: `2`
-* `server.node.environment` - string, default: `"production"`  
+```bash
+helm install my-trino trino/trino \
+  --set worker.statefulset.enabled=true \
+  --set 'worker.statefulset.volumeClaimTemplates[0].metadata.name=data' \
+  --set 'worker.statefulset.volumeClaimTemplates[0].mountPath=/data/trino' \
+  --set 'worker.statefulset.volumeClaimTemplates[0].spec.accessModes[0]=ReadWriteOnce' \
+  --set 'worker.statefulset.volumeClaimTemplates[0].spec.storageClassName=gp3' \
+  --set 'worker.statefulset.volumeClaimTemplates[0].spec.resources.requests.storage=10Gi'
+```
 
-  Supports templating with `tpl`.
-* `server.node.dataDir` - string, default: `"/data/trino"`
-* `server.node.pluginDir` - string, default: `"/usr/lib/trino/plugin"`
-* `server.log.trino.level` - string, default: `"INFO"`
-* `server.config.path` - string, default: `"/etc/trino"`
-* `server.config.https.enabled` - bool, default: `false`
-* `server.config.https.port` - int, default: `8443`
-* `server.config.https.keystore.path` - string, default: `""`
-* `server.config.authenticationType` - string, default: `""`  
+### StatefulSet vs Deployment
 
-  Trino supports multiple [authentication types](https://trino.io/docs/current/security/authentication-types.html): PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
-* `server.config.query.maxMemory` - string, default: `"4GB"`
-* `server.exchangeManager` - object, default: `{}`  
+| Feature | Deployment (Default) | StatefulSet |
+|---------|---------------------|-------------|
+| Pod Names | Random suffix (e.g., `trino-worker-7b5f4c8d9-xk2lm`) | Ordinal index (e.g., `trino-worker-0`) |
+| Persistent Storage | Requires manual PVC setup | Built-in volumeClaimTemplates |
+| Pod Identity | New identity on restart | Stable identity across restarts |
+| DNS Names | Service-level only | Unique per-pod FQDN |
+| Use Case | Stateless workloads | Stateful workloads, Istio mTLS |
 
-  Mandatory [exchange manager configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1). Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations. To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
-  Example:
-  ```yaml
-  server:
-    exchangeManager:
-      name: "filesystem"
-      baseDir:
-        - "/tmp/trino-local-file-system-exchange-manager"
-  additionalConfigProperties:
-    - retry-policy=TASK
-  additionalExchangeManagerProperties:
-    - exchange.sink-buffer-pool-min-size=10
-    - exchange.sink-buffers-per-partition=2
-    - exchange.source-concurrent-readers=4
-  ```
-* `server.workerExtraConfig` - string, default: `""`
-* `server.coordinatorExtraConfig` - string, default: `""`
-* `server.autoscaling` - object, default: `{"behavior":{},"enabled":false,"maxReplicas":5,"targetCPUUtilizationPercentage":50,"targetMemoryUtilizationPercentage":80}`  
+### Example: Full StatefulSet with Multiple Volumes
 
-  Configure [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) for workers (`server.keda.enabled` must be `false`).
-* `server.autoscaling.targetCPUUtilizationPercentage` - int, default: `50`  
+```yaml
+coordinator:
+  statefulset:
+    enabled: true
+    volumeClaimTemplates:
+      - metadata:
+          name: data
+        mountPath: /data/trino
+        spec:
+          accessModes: [ReadWriteOnce]
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 5Gi
+```
 
-  Target average CPU utilization, represented as a percentage of requested CPU. To disable scaling based on CPU, set to an empty string.
-* `server.autoscaling.targetMemoryUtilizationPercentage` - int, default: `80`  
+## Configuration
 
-  Target average memory utilization, represented as a percentage of requested memory. To disable scaling based on memory, set to an empty string.
-* `server.autoscaling.behavior` - object, default: `{}`  
+Configuration for scaling up and down.
 
-  Configuration for scaling up and down.
-  Example:
-  ```yaml
-   scaleDown:
-     stabilizationWindowSeconds: 300
-     policies:
-     - type: Percent
-       value: 100
-       periodSeconds: 15
-   scaleUp:
-     stabilizationWindowSeconds: 0
-     policies:
-     - type: Percent
-       value: 100
-       periodSeconds: 15
-     - type: Pods
-       value: 4
-       periodSeconds: 15
-     selectPolicy: Max
-  ```
+Example:
+```yaml
+scaleDown:
+  stabilizationWindowSeconds: 300
+  policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+scaleUp:
+  stabilizationWindowSeconds: 0
+  policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+    - type: Pods
+      value: 4
+      periodSeconds: 15
+  selectPolicy: Max
+```
 * `server.keda` - object, default: `{"advanced":{},"annotations":{},"cooldownPeriod":300,"enabled":false,"fallback":{},"initialCooldownPeriod":0,"maxReplicaCount":5,"minReplicaCount":0,"pollingInterval":30,"triggers":[]}`  
 
   Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers (`server.autoscaling.enabled` must be `false`).
@@ -957,10 +949,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   [Ingress rules](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
   Example:
   ```yaml
-   - host: trino.example.com
-     paths:
-       - path: /
-         pathType: ImplementationSpecific
+  coordinatorNameOverride: trino-coordinator-adhoc
+  workerNameOverride: trino-worker-adhoc
+  nameOverride: trino-adhoc
   ```
 * `ingress.tls` - list, default: `[]`  
 

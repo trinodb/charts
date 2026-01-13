@@ -1,0 +1,34 @@
+coordinator:
+  statefulset:
+    enabled: true
+    podManagementPolicy: OrderedReady
+    volumeClaimTemplates:
+      - metadata:
+          name: data
+        mountPath: /data/trino
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: local-path
+          resources:
+            requests:
+              storage: 5Gi
+
+worker:
+  statefulset:
+    enabled: true
+    podManagementPolicy: Parallel
+    volumeClaimTemplates:
+      - metadata:
+          name: data
+        mountPath: /data/trino
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: local-path
+          resources:
+            requests:
+              storage: 10Gi
+
+server:
+  workers: 2

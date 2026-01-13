@@ -1,7 +1,7 @@
-{{- if not .Values.coordinator.statefulset.enabled -}}
+{{- if .Values.coordinator.statefulset.enabled -}}
 {{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ template "trino.coordinator" . }}
   namespace: {{ .Release.Namespace }}
@@ -13,14 +13,17 @@ metadata:
     {{- tpl (toYaml .Values.coordinator.labels) . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- toYaml .Values.coordinator.deployment.annotations | nindent 4 }}
+    {{- toYaml .Values.coordinator.statefulset.annotations | nindent 4 }}
 spec:
+  serviceName: {{ template "trino.coordinator" . }}
   replicas: 1
-  progressDeadlineSeconds: {{ .Values.coordinator.deployment.progressDeadlineSeconds }}
-  revisionHistoryLimit: {{ .Values.coordinator.deployment.revisionHistoryLimit }}
-  {{- if .Values.coordinator.deployment.strategy }}
-  strategy:
-    {{- toYaml .Values.coordinator.deployment.strategy | nindent 4 }}
+  revisionHistoryLimit: {{ .Values.coordinator.statefulset.revisionHistoryLimit }}
+  {{- if .Values.coordinator.statefulset.podManagementPolicy }}
+  podManagementPolicy: {{ .Values.coordinator.statefulset.podManagementPolicy }}
+  {{- end }}
+  {{- if .Values.coordinator.statefulset.updateStrategy }}
+  updateStrategy:
+    {{- toYaml .Values.coordinator.statefulset.updateStrategy | nindent 4 }}
   {{- end }}
   selector:
     matchLabels:
@@ -48,9 +51,6 @@ spec:
         {{- tpl (toYaml .Values.coordinator.labels) . | nindent 8 }}
         {{- end }}
     spec:
-      {{- if .Values.coordinator.priorityClassName }}
-      priorityClassName: {{ .Values.coordinator.priorityClassName }}
-      {{- end }}
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:
@@ -197,6 +197,10 @@ spec:
             - mountPath: {{ .Values.server.config.path }}/auth/group
               name: file-groups-authentication-volume
             {{- end }}
+            {{- range .Values.coordinator.statefulset.volumeClaimTemplates }}
+            - name: {{ .metadata.name }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
             {{- with .Values.coordinator.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}
             {{- end }}
@@ -277,4 +281,39 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- if .Values.coordinator.statefulset.volumeClaimTemplates }}
+  volumeClaimTemplates:
+    {{- range .Values.coordinator.statefulset.volumeClaimTemplates }}
+    - metadata:
+        name: {{ .metadata.name }}
+        {{- if .metadata.labels }}
+        labels:
+          {{- toYaml .metadata.labels | nindent 10 }}
+        {{- end }}
+        {{- if .metadata.annotations }}
+        annotations:
+          {{- toYaml .metadata.annotations | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- toYaml .spec.accessModes | nindent 10 }}
+        {{- if .spec.storageClassName }}
+        storageClassName: {{ .spec.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .spec.resources.requests.storage }}
+        {{- if .spec.selector }}
+        selector:
+          {{- toYaml .spec.selector | nindent 10 }}
+        {{- end }}
+        {{- if .spec.volumeMode }}
+        volumeMode: {{ .spec.volumeMode }}
+        {{- end }}
+        {{- if .spec.dataSource }}
+        dataSource:
+          {{- toYaml .spec.dataSource | nindent 10 }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
 {{- end }}
