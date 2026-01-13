@@ -1,8 +1,8 @@
-{{- if not .Values.worker.statefulset.enabled -}}
+{{- if .Values.worker.statefulset.enabled -}}
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
 {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ template "trino.worker" . }}
   namespace: {{ .Release.Namespace }}
@@ -14,13 +14,16 @@ metadata:
     {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- toYaml .Values.worker.deployment.annotations | nindent 4 }}
+    {{- toYaml .Values.worker.statefulset.annotations | nindent 4 }}
 spec:
-  progressDeadlineSeconds: {{ .Values.worker.deployment.progressDeadlineSeconds }}
-  revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
-  {{- if .Values.worker.deployment.strategy }}
-  strategy:
-    {{- toYaml .Values.worker.deployment.strategy | nindent 4 }}
+  serviceName: {{ template "trino.worker" . }}
+  revisionHistoryLimit: {{ .Values.worker.statefulset.revisionHistoryLimit }}
+  {{- if .Values.worker.statefulset.podManagementPolicy }}
+  podManagementPolicy: {{ .Values.worker.statefulset.podManagementPolicy }}
+  {{- end }}
+  {{- if .Values.worker.statefulset.updateStrategy }}
+  updateStrategy:
+    {{- toYaml .Values.worker.statefulset.updateStrategy | nindent 4 }}
   {{- end }}
   {{- if and (not .Values.server.autoscaling.enabled) (not .Values.server.keda.enabled) }}
   replicas: {{ .Values.server.workers }}
@@ -167,6 +170,10 @@ spec:
               subPath: {{ .subPath }}
               {{- end }}
             {{- end }}
+            {{- range .Values.worker.statefulset.volumeClaimTemplates }}
+            - name: {{ .metadata.name }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
             {{- with .Values.worker.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}
             {{- end }}
@@ -271,5 +278,40 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- if .Values.worker.statefulset.volumeClaimTemplates }}
+  volumeClaimTemplates:
+    {{- range .Values.worker.statefulset.volumeClaimTemplates }}
+    - metadata:
+        name: {{ .metadata.name }}
+        {{- if .metadata.labels }}
+        labels:
+          {{- toYaml .metadata.labels | nindent 10 }}
+        {{- end }}
+        {{- if .metadata.annotations }}
+        annotations:
+          {{- toYaml .metadata.annotations | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- toYaml .spec.accessModes | nindent 10 }}
+        {{- if .spec.storageClassName }}
+        storageClassName: {{ .spec.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .spec.resources.requests.storage }}
+        {{- if .spec.selector }}
+        selector:
+          {{- toYaml .spec.selector | nindent 10 }}
+        {{- end }}
+        {{- if .spec.volumeMode }}
+        volumeMode: {{ .spec.volumeMode }}
+        {{- end }}
+        {{- if .spec.dataSource }}
+        dataSource:
+          {{- toYaml .spec.dataSource | nindent 10 }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
 {{- end }}
 {{- end }}

@@ -594,6 +594,55 @@ secretMounts: []
 # ```
 
 coordinator:
+  # coordinator.statefulset -- StatefulSet configuration for coordinator. When enabled, the coordinator will be deployed as a StatefulSet instead of a Deployment.
+  # This allows for persistent storage using volumeClaimTemplates.
+  statefulset:
+    # -- Enable StatefulSet deployment for coordinator (disables Deployment)
+    enabled: false
+    annotations: {}
+    revisionHistoryLimit: 10
+    # coordinator.statefulset.revisionHistoryLimit -- The number of old revisions to retain to allow rollback
+
+    podManagementPolicy: OrderedReady
+    # coordinator.statefulset.podManagementPolicy -- Pod management policy for StatefulSet (OrderedReady or Parallel)
+
+    updateStrategy: {}
+    # coordinator.statefulset.updateStrategy -- Update strategy for StatefulSet
+    # @raw
+    # Example:
+    # ```yaml
+    #  type: RollingUpdate
+    #  rollingUpdate:
+    #    partition: 0
+    # ```
+
+    volumeClaimTemplates: []
+    # coordinator.statefulset.volumeClaimTemplates -- Volume claim templates for persistent storage
+    # @raw
+    # Example:
+    # ```yaml
+    #  - metadata:
+    #      name: data
+    #    mountPath: /data/trino
+    #    spec:
+    #      accessModes:
+    #        - ReadWriteOnce
+    #      storageClassName: gp3
+    #      resources:
+    #        requests:
+    #          storage: 10Gi
+    #  - metadata:
+    #      name: logs
+    #    mountPath: /var/log/trino
+    #    spec:
+    #      accessModes:
+    #        - ReadWriteOnce
+    #      storageClassName: gp3
+    #      resources:
+    #        requests:
+    #          storage: 5Gi
+    # ```
+
   deployment:
     annotations: {}
     progressDeadlineSeconds: 600
@@ -775,6 +824,65 @@ coordinator:
   # ```
 
 worker:
+  # worker.statefulset -- StatefulSet configuration for workers. When enabled, workers will be deployed as a StatefulSet instead of a Deployment.
+  # This allows for persistent storage using volumeClaimTemplates and unique per-pod FQDN (useful for Istio STRICT mTLS).
+  statefulset:
+    # -- Enable StatefulSet deployment for workers (disables Deployment)
+    enabled: false
+    annotations: {}
+    revisionHistoryLimit: 10
+    # worker.statefulset.revisionHistoryLimit -- The number of old revisions to retain to allow rollback
+
+    podManagementPolicy: OrderedReady
+    # worker.statefulset.podManagementPolicy -- Pod management policy for StatefulSet (OrderedReady or Parallel)
+
+    updateStrategy: {}
+    # worker.statefulset.updateStrategy -- Update strategy for StatefulSet
+    # @raw
+    # Example:
+    # ```yaml
+    #  type: RollingUpdate
+    #  rollingUpdate:
+    #    partition: 0
+    # ```
+
+    volumeClaimTemplates: []
+    # worker.statefulset.volumeClaimTemplates -- Volume claim templates for persistent storage
+    # @raw
+    # Example:
+    # ```yaml
+    #  - metadata:
+    #      name: data
+    #    mountPath: /data/trino
+    #    spec:
+    #      accessModes:
+    #        - ReadWriteOnce
+    #      storageClassName: gp3
+    #      resources:
+    #        requests:
+    #          storage: 10Gi
+    #  - metadata:
+    #      name: logs
+    #    mountPath: /var/log/trino
+    #    spec:
+    #      accessModes:
+    #        - ReadWriteOnce
+    #      storageClassName: gp3
+    #      resources:
+    #        requests:
+    #          storage: 5Gi
+    #  - metadata:
+    #      name: cache
+    #    mountPath: /var/cache/trino
+    #    spec:
+    #      accessModes:
+    #        - ReadWriteOnce
+    #      storageClassName: gp3
+    #      resources:
+    #        requests:
+    #          storage: 20Gi
+    # ```
+
   deployment:
     annotations: {}
     progressDeadlineSeconds: 600
