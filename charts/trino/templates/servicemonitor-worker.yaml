@@ -21,4 +21,7 @@ spec:
   endpoints:
     - port: jmx-exporter
       interval: {{ $workerServiceMonitor.interval }}
+      {{- if $workerServiceMonitor.scrapeTimeout }}
+      scrapeTimeout: {{ $workerServiceMonitor.scrapeTimeout }}
+      {{- end }}
 {{- end }}

@@ -928,6 +928,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `serviceMonitor.interval` - string, default: `"30s"`  
 
   The serviceMonitor web endpoint interval
+* `serviceMonitor.scrapeTimeout` - string, default: `""`  
+
+  Maximum time to wait for a response. If empty or not set, uses the Prometheus global default.
 * `serviceMonitor.coordinator` - object, default: `{}`  
 
   Override ServiceMonitor configurations for the Trino coordinator.
