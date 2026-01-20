@@ -1133,6 +1133,9 @@ serviceMonitor:
     prometheus: kube-prometheus
   # serviceMonitor.interval -- The serviceMonitor web endpoint interval
   interval: "30s"
+  # serviceMonitor.scrapeTimeout -- Maximum time to wait for a response.
+  # If empty or not set, uses the Prometheus global default.
+  scrapeTimeout: ""
   coordinator: {}
   # serviceMonitor.coordinator -- Override ServiceMonitor configurations for the Trino coordinator.
   # @raw
