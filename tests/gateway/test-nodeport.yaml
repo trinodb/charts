@@ -6,6 +6,10 @@ config:
     http-server.https.port: 8443
     http-server.https.keystore.path: /etc/scratch/tls.pem
 
+# Disable ServiceMonitor - Prometheus is only installed for complete_values test
+serviceMonitor:
+  enabled: false
+
 service:
   type: NodePort
   ports:
