@@ -265,3 +265,13 @@ strategy:
   rollingUpdate:
     maxSurge: 25%
     maxUnavailable: 25%
+
+serviceMonitor:
+  # -- Set to true to create resources for the
+  # [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
+  enabled: false
+  # -- Labels for serviceMonitor, so that Prometheus can select it
+  labels:
+    prometheus: kube-prometheus
+  # -- The serviceMonitor web endpoint interval
+  interval: "30s"

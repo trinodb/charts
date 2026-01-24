@@ -1,0 +1,123 @@
+{{- if .Values.serviceMonitor.enabled -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino-gateway.fullname" . }}-test-servicemonitor
+  labels:
+    {{- include "trino-gateway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: servicemonitor
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  containers:
+    - name: service-monitor
+      image: python:3-slim
+      command: ["python", "/tests/test.py"]
+      args: ["{{ include "trino-gateway.fullname" . }}", "{{ .Values.serviceName }}"]
+      volumeMounts:
+        - name: tests
+          mountPath: /tests
+  volumes:
+    - name: tests
+      configMap:
+        name: {{ include "trino-gateway.fullname" . }}-test-servicemonitor
+  restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "trino-gateway.fullname" . }}-test-servicemonitor
+  labels:
+    {{- include "trino-gateway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: servicemonitor
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+data:
+  test.py: |
+    from urllib.request import urlopen
+    from urllib.error import URLError, HTTPError
+    import json
+    import logging
+    import sys
+    import time
+
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+    logger = logging.getLogger(__name__)
+
+    servicemonitor_name = sys.argv[1]
+    expected_service = sys.argv[2]
+    namespace = "{{ .Release.Namespace }}"
+    url = f"http://prometheus-operator-kube-p-prometheus:9090/api/v1/targets?scrapePool=serviceMonitor/{namespace}/{servicemonitor_name}/0&state=active"
+    all_targets_url = "http://prometheus-operator-kube-p-prometheus:9090/api/v1/targets"
+
+    max_retries = 90  # 3 minutes max (90 * 2 seconds)
+    retry_count = 0
+
+    logger.info(f"Looking for ServiceMonitor '{servicemonitor_name}' in namespace '{namespace}'")
+    logger.info(f"Expected service name: '{expected_service}'")
+
+    while retry_count < max_retries:
+      try:
+        with urlopen(url, timeout=10) as response:
+          data = json.load(response)
+      except (URLError, HTTPError) as e:
+          retry_count += 1
+          logger.warning(f"Error fetching targets (attempt {retry_count}/{max_retries}), Prometheus service might not be ready: {e}")
+          if retry_count >= max_retries:
+              logger.error(f"Failed to connect to Prometheus after {max_retries} attempts")
+              sys.exit(1)
+          time.sleep(2)  # Retry after 2 seconds
+          continue
+
+      try:
+        active_targets = data.get("data", {}).get("activeTargets", [])
+        if not active_targets:
+            retry_count += 1
+            # Log diagnostic info every 10 attempts
+            if retry_count % 10 == 0:
+                try:
+                    with urlopen(all_targets_url, timeout=10) as all_response:
+                        all_data = json.load(all_response)
+                        all_active = all_data.get("data", {}).get("activeTargets", [])
+                        logger.info(f"Prometheus has {len(all_active)} total active targets")
+                        # Find ServiceMonitor scrape pools
+                        servicemonitor_pools = [t.get("scrapePool", "") for t in all_active if "serviceMonitor" in t.get("scrapePool", "")]
+                        if servicemonitor_pools:
+                            logger.info(f"Found ServiceMonitor scrape pools: {servicemonitor_pools[:5]}")  # Show first 5
+                except Exception as e:
+                    logger.debug(f"Could not fetch all targets for diagnostics: {e}")
+            logger.warning(f"No active targets found (attempt {retry_count}/{max_retries}), waiting for ServiceMonitor to be discovered...")
+            if retry_count >= max_retries:
+                logger.error(f"No active targets found after {max_retries} attempts")
+                logger.error(f"ServiceMonitor '{servicemonitor_name}' was not discovered by Prometheus")
+                sys.exit(1)
+            time.sleep(2)  # Retry after 2 seconds
+            continue
+        service_name = active_targets[0]["discoveredLabels"]["__meta_kubernetes_service_name"]
+      except (KeyError, IndexError) as e:
+        retry_count += 1
+        logger.warning(f"Invalid Prometheus response (attempt {retry_count}/{max_retries}): {e}")
+        if retry_count >= max_retries:
+            logger.error(f"Invalid Prometheus response after {max_retries} attempts")
+            sys.exit(1)
+        time.sleep(2)  # Retry after 2 seconds
+        continue
+
+      if service_name == expected_service:
+        logger.info(f"Found expected service '{service_name}' in Prometheus targets!")
+        sys.exit(0)
+      else:
+        retry_count += 1
+        logger.warning(f"Service name mismatch: expected '{expected_service}', got '{service_name}' (attempt {retry_count}/{max_retries})")
+        if retry_count >= max_retries:
+            logger.error(f"Service name mismatch after {max_retries} attempts")
+            sys.exit(1)
+        time.sleep(2)
+
+    logger.error(f"Test failed after {max_retries} attempts")
+    sys.exit(1)
+{{- end }}
