@@ -20,7 +20,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   coordinatorNameOverride: trino-coordinator-adhoc
   workerNameOverride: trino-worker-adhoc
   nameOverride: trino-adhoc
+  fullnameOverride: trino-adhoc
   ```
+* `fullnameOverride` - string, default: `nil`
 * `coordinatorNameOverride` - string, default: `nil`
 * `workerNameOverride` - string, default: `nil`
 * `image.registry` - string, default: `""`  
