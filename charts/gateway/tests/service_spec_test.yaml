@@ -102,3 +102,26 @@ tests:
     asserts:
       - failedTemplate:
           errorMessage: "Error: No port defined in serverConfig!"
+
+  - it: puts service annotations on the metadata and keeps them out of the spec
+    # .Values.service becomes the spec wholesale, so annotations have to be
+    # removed from it or Kubernetes rejects the Service
+    set:
+      service.annotations:
+        external-dns.alpha.kubernetes.io/hostname: gateway.example.com
+        service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            external-dns.alpha.kubernetes.io/hostname: gateway.example.com
+            service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+      - notExists:
+          path: spec.annotations
+
+  - it: omits the annotations key entirely when none are configured
+    asserts:
+      - notExists:
+          path: metadata.annotations
+      - notExists:
+          path: spec.annotations

@@ -41,3 +41,9 @@ serviceMonitor:
   labels:
     prometheus: default
   interval: "1s"
+
+service:
+  # exercises that the API server accepts a Service carrying annotations, which
+  # the rendering tests cannot establish on their own
+  annotations:
+    trino.io/test-annotation: service-annotations
