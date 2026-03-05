@@ -1,0 +1,10 @@
+server:
+  workers: 0
+  config:
+    authenticationType: HEADER
+
+headerAuthenticator:
+  properties: |
+    header-authenticator.name=my-header-authenticator
+    header-authenticator.username-header=X-Authenticated-User
+    header-authenticator.groups-header=X-Authenticated-Groups

@@ -60,9 +60,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `server.config.https.enabled` - bool, default: `false`
 * `server.config.https.port` - int, default: `8443`
 * `server.config.https.keystore.path` - string, default: `""`
-* `server.config.authenticationType` - string, default: `""`  
+* `server.config.authenticationType` - string, default: `""`
 
-  Trino supports multiple [authentication types](https://trino.io/docs/current/security/authentication-types.html): PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
+  Trino supports multiple [authentication types](https://trino.io/docs/current/security/authentication-types.html): PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS, HEADER.
 * `server.config.query.maxMemory` - string, default: `"4GB"`
 * `server.exchangeManager` - object, default: `{}`  
 
@@ -243,7 +243,18 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
          ]
        }
   ```
-* `resourceGroups` - object, default: `{}`  
+* `headerAuthenticator` - object, default: `{}`
+
+  [Header authenticator](https://trino.io/docs/current/develop/header-authenticator.html) configuration. Required when `server.config.authenticationType` contains `HEADER`.
+  Provide the plugin configuration properties. The `header-authenticator.name` value must match the name of the installed authenticator plugin.
+  ```yaml
+  headerAuthenticator:
+    properties: |
+      header-authenticator.name=my-header-authenticator
+      header-authenticator.username-header=X-Authenticated-User
+      header-authenticator.groups-header=X-Authenticated-Groups
+  ```
+* `resourceGroups` - object, default: `{}`
 
   [Resource groups control](https://trino.io/docs/current/admin/resource-groups.html)
   Set the type property to either:

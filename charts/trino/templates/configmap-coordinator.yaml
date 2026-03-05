@@ -158,6 +158,15 @@ data:
     file.password-file={{ .Values.server.config.path }}/auth/password/password.db
   {{- end }}{{- end }}
 
+  {{- if contains "HEADER" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "header-authenticator.properties") }}
+  header-authenticator.properties: |
+    {{- if .Values.headerAuthenticator.properties }}
+    {{- .Values.headerAuthenticator.properties | nindent 4 }}
+    {{- else }}
+    {{- fail "headerAuthenticator.properties is required when server.config.authenticationType contains 'HEADER'." }}
+    {{- end }}
+  {{- end }}{{- end }}
+
   {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}{{- if not (index .Values.coordinator.additionalConfigFiles "group-provider.properties") }}
   group-provider.properties: |
     group-provider.name=file
