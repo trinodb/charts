@@ -58,7 +58,7 @@ server:
         path: ""
     # -- Trino supports multiple [authentication
     # types](https://trino.io/docs/current/security/authentication-types.html):
-    # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
+    # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS, HEADER.
     authenticationType: ""
     query:
       maxMemory: "4GB"
@@ -251,6 +251,19 @@ accessControl: {}
 #          }
 #        ]
 #      }
+# ```
+
+headerAuthenticator: {}
+# headerAuthenticator -- [Header authenticator](https://trino.io/docs/current/develop/header-authenticator.html)
+# configuration. Required when `server.config.authenticationType` contains `HEADER`.
+# @raw
+# Provide the plugin configuration properties. The `header-authenticator.name` value must
+# match the name of the installed authenticator plugin.
+# ```yaml
+# headerAuthenticator:
+#   properties: |
+#     header-authenticator.name=my-header-authenticator
+#     header-authenticator.username-header=X-Authenticated-User
 # ```
 
 resourceGroups: {}
