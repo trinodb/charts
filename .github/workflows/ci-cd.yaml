@@ -80,7 +80,7 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.8.0
       - name: Create kind cluster
-        uses: helm/kind-action@v1.13.0
+        uses: helm/kind-action@v1.14.0
         with:
           version: v0.31.0
       - name: Run tests
@@ -105,7 +105,7 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.8.0
       - name: Create kind cluster
-        uses: helm/kind-action@v1.13.0
+        uses: helm/kind-action@v1.14.0
         with:
           version: v0.31.0
       - name: Run gateway tests
