@@ -4,6 +4,10 @@ metadata:
   name: {{ .Values.serviceName }}
   labels:
     {{- include "trino-gateway.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- $gatewayPort := "" }}
 {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
     {{- $gatewayPort = index .Values "config" "serverConfig" "http-server.http.port" }}
@@ -22,6 +26,7 @@ metadata:
 {{- $additionalPorts := .Values.service.ports | default list | rest }}
 {{- $allPorts := concat $ports $additionalPorts}}
 {{- $spec := .Values.service }}
+{{- $_ := unset $spec "annotations" }}
 {{- $_2 := set $spec "ports" $allPorts }}
 {{- $selectorLabels := include "trino-gateway.selectorLabels" . | fromYaml }}
 {{- $_3 := set $spec "selector" $selectorLabels }}
