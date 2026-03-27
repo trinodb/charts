@@ -625,6 +625,13 @@ coordinator:
 
   jvm:
     maxHeapSize: "8G"
+    minHeapSize: "8G"
+    maxHeapPercent:
+    # coordinator.jvm.maxHeapPercent -- Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
+    initialHeapPercent:
+    # coordinator.jvm.initialHeapPercent -- sets the starting heap size as a percentage of container memory limits.
+    #
+    # NOTE: to disable dynamic heap resizing when setting the size as a percent, add `-XX:MaxHeapFreeRatio=100` or `-XX:-UseAdaptiveSizePolicy` to `additionalJVMConfig`.
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -808,6 +815,13 @@ worker:
 
   jvm:
     maxHeapSize: "8G"
+    minHeapSize: "8G"
+    maxHeapPercent:
+    # jvm.maxHeapPercent -- Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
+    initialHeapPercent:
+    # jvm.initialHeapPercent -- sets the starting heap size as a percentage of container memory limits.
+    #
+    # NOTE: to disable dynamic heap resizing when setting the size as a percent, add `-XX:MaxHeapFreeRatio=100` or `-XX:-UseAdaptiveSizePolicy` to `additionalJVMConfig`.
     gcMethod:
       type: "UseG1GC"
       g1:
