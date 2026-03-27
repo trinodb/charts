@@ -625,7 +625,7 @@ coordinator:
 
   jvm:
     maxHeapSize: "8G"
-    minHeapSize: "8G"
+    minHeapSize:
     maxHeapPercent:
     # coordinator.jvm.maxHeapPercent -- Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
     initialHeapPercent:
@@ -815,7 +815,7 @@ worker:
 
   jvm:
     maxHeapSize: "8G"
-    minHeapSize: "8G"
+    minHeapSize:
     maxHeapPercent:
     # jvm.maxHeapPercent -- Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
     initialHeapPercent:

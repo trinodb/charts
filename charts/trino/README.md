@@ -521,7 +521,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   The deployment strategy to use to replace existing pods with new ones.
 * `coordinator.jvm.maxHeapSize` - string, default: `"8G"`
-* `coordinator.jvm.minHeapSize` - string, default: `"8G"`
+* `coordinator.jvm.minHeapSize` - string, default: `nil`
 * `coordinator.jvm.maxHeapPercent` - string, default: `nil`  
 
   Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
@@ -667,7 +667,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   The deployment strategy to use to replace existing pods with new ones.
 * `worker.jvm.maxHeapSize` - string, default: `"8G"`
-* `worker.jvm.minHeapSize` - string, default: `"8G"`
+* `worker.jvm.minHeapSize` - string, default: `nil`
 * `worker.jvm.maxHeapPercent` - string, default: `nil`
 * `worker.jvm.initialHeapPercent` - string, default: `nil`
 * `worker.jvm.gcMethod.type` - string, default: `"UseG1GC"`

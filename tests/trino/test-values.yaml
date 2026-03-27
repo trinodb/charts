@@ -38,7 +38,6 @@ server:
             sum by (service)
             (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
 
-
 additionalConfigProperties:
   - internal-communication.shared-secret=random-value-999
   - http-server.authentication.allow-insecure-over-http=true
@@ -64,7 +63,7 @@ auth:
 
 secretMounts:
   - name: certificates
-    secretName: '{{ .Release.Namespace }}-certificates'
+    secretName: "{{ .Release.Namespace }}-certificates"
     path: /etc/trino/certificates
 
 coordinator:
@@ -80,7 +79,8 @@ coordinator:
         maxUnavailable: 50%
 
   jvm:
-    maxHeapSize: "8G"
+    maxHeapSize: "7G"
+    minHeapSize: "7G"
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -116,7 +116,10 @@ worker:
         maxUnavailable: 50%
 
   jvm:
-    maxHeapSize: "8G"
+    maxHeapSize:
+    minHeapSize:
+    maxHeapPercent: 80
+    initialHeapPercent: 50
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -161,7 +164,12 @@ initContainers:
     - name: init-coordinator
       image: busybox:1.36
       imagePullPolicy: IfNotPresent
-      command: ['sh', '-c', "cat /etc/trino/certificates/tls.crt /etc/trino/certificates/tls.key > /etc/trino/generated/tls.pem"]
+      command:
+        [
+          "sh",
+          "-c",
+          "cat /etc/trino/certificates/tls.crt /etc/trino/certificates/tls.key > /etc/trino/generated/tls.pem",
+        ]
       volumeMounts:
         - name: certificates
           readOnly: true
@@ -280,7 +288,6 @@ resourceGroups:
         }
       ]
     }
-
 
 jmx:
   enabled: true
