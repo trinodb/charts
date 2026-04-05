@@ -62,7 +62,7 @@ spec:
         - name: config-volume
           configMap:
             name: {{ template "trino.coordinator" . }}
-            {{- if or .Values.additionalCatalogs (gt (len .Values.catalogs) 0) }}
+          {{- if or .Values.additionalCatalogs (gt (len .Values.catalogs) 0) }}
         - name: catalog-volume
           configMap:
             name: {{ template "trino.catalog" . }}
