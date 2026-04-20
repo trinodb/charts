@@ -165,7 +165,7 @@ initContainers:
     - name: init-coordinator
       image: busybox:1.36
       imagePullPolicy: IfNotPresent
-      command: ['sh', '-c', 'cat /etc/trino/certificates/tls.crt /etc/trino/certificates/tls.key > /etc/trino/generated/tls.pem']
+      command: ['sh', '-c', "cat /etc/trino/certificates/tls.crt /etc/trino/certificates/tls.key > /etc/trino/generated/tls.pem"]
       volumeMounts:
         - name: certificates
           readOnly: true
