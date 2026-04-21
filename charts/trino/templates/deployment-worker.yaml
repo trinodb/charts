@@ -211,6 +211,14 @@ spec:
             timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.worker.readinessProbe.successThreshold | default 1 }}
+          startupProbe:
+            exec:
+              command: [/usr/lib/trino/bin/health-check]
+            initialDelaySeconds: {{ .Values.worker.startupProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .Values.worker.startupProbe.periodSeconds | default 2 }}
+            timeoutSeconds: {{ .Values.worker.startupProbe.timeoutSeconds | default 2 }}
+            failureThreshold: {{ .Values.worker.startupProbe.failureThreshold | default 60 }}
+            successThreshold: {{ .Values.worker.startupProbe.successThreshold | default 1 }}
           lifecycle:
             {{- if .Values.worker.lifecycle }}
             {{- if .Values.worker.gracefulShutdown.enabled }}

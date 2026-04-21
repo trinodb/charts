@@ -238,6 +238,14 @@ spec:
             timeoutSeconds: {{ .Values.coordinator.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.coordinator.readinessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.coordinator.readinessProbe.successThreshold | default 1 }}
+          startupProbe:
+            exec:
+              command: [/usr/lib/trino/bin/health-check]
+            initialDelaySeconds: {{ .Values.coordinator.startupProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .Values.coordinator.startupProbe.periodSeconds | default 2 }}
+            timeoutSeconds: {{ .Values.coordinator.startupProbe.timeoutSeconds | default 2 }}
+            failureThreshold: {{ .Values.coordinator.startupProbe.failureThreshold | default 60 }}
+            successThreshold: {{ .Values.coordinator.startupProbe.successThreshold | default 1 }}
           lifecycle:
             {{- tpl (toYaml .Values.coordinator.lifecycle) . | nindent 12 }}
           resources:

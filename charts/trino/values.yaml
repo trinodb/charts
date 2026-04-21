@@ -707,6 +707,19 @@ coordinator:
   #  successThreshold: 1
   # ```
 
+  startupProbe: {}
+  # coordinator.startupProbe -- [Startup
+  # probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  # @raw
+  # Example:
+  # ```yaml
+  #  initialDelaySeconds: 10
+  #  periodSeconds: 2
+  #  timeoutSeconds: 2
+  #  failureThreshold: 60
+  #  successThreshold: 1
+  # ```
+
   lifecycle: {}
   # coordinator.lifecycle -- Coordinator container [lifecycle
   # events](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/)
@@ -886,6 +899,19 @@ worker:
   #  periodSeconds: 10
   #  timeoutSeconds: 5
   #  failureThreshold: 6
+  #  successThreshold: 1
+  # ```
+
+  startupProbe: {}
+  # worker.startupProbe -- [Startup
+  # probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  # @raw
+  # Example:
+  # ```yaml
+  #  initialDelaySeconds: 10
+  #  periodSeconds: 2
+  #  timeoutSeconds: 2
+  #  failureThreshold: 60
   #  successThreshold: 1
   # ```
 

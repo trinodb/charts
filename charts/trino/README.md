@@ -582,6 +582,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    failureThreshold: 6
    successThreshold: 1
   ```
+* `coordinator.startupProbe` - object, default: `{}`  
+
+  [Startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  Example:
+  ```yaml
+   initialDelaySeconds: 10
+   periodSeconds: 2
+   timeoutSeconds: 2
+   failureThreshold: 60
+   successThreshold: 1
+  ```
 * `coordinator.lifecycle` - object, default: `{}`  
 
   Coordinator container [lifecycle events](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/)
@@ -718,6 +729,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    periodSeconds: 10
    timeoutSeconds: 5
    failureThreshold: 6
+   successThreshold: 1
+  ```
+* `worker.startupProbe` - object, default: `{}`  
+
+  [Startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  Example:
+  ```yaml
+   initialDelaySeconds: 10
+   periodSeconds: 2
+   timeoutSeconds: 2
+   failureThreshold: 60
    successThreshold: 1
   ```
 * `worker.lifecycle` - object, default: `{}`  
