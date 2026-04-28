@@ -20,7 +20,18 @@ data:
   jvm.config: |
     -server
     -agentpath:/usr/lib/trino/bin/libjvmkill.so
+    {{- if .Values.worker.jvm.maxHeapSize }}
     -Xmx{{ .Values.worker.jvm.maxHeapSize }}
+    {{- end }}
+    {{- if .Values.worker.jvm.minHeapSize }}
+    -Xms{{ .Values.worker.jvm.minHeapSize }}
+    {{- end }}
+    {{- if .Values.worker.jvm.maxHeapPercent }}
+    -XX:MaxRAMPercentage={{ .Values.worker.jvm.maxHeapPercent }}
+    {{- end }}
+    {{- if .Values.worker.jvm.initialHeapPercent }}
+    -XX:InitialRAMPercentage={{ .Values.worker.jvm.initialHeapPercent }}
+    {{- end }}
     -XX:+{{ .Values.worker.jvm.gcMethod.type }}
     -XX:G1HeapRegionSize={{ .Values.worker.jvm.gcMethod.g1.heapRegionSize }}
     -XX:+ExplicitGCInvokesConcurrent

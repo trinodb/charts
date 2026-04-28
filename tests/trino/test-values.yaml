@@ -80,7 +80,8 @@ coordinator:
         maxUnavailable: 50%
 
   jvm:
-    maxHeapSize: "8G"
+    maxHeapSize: "7G"
+    minHeapSize: "7G"
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -116,7 +117,10 @@ worker:
         maxUnavailable: 50%
 
   jvm:
-    maxHeapSize: "8G"
+    maxHeapSize:
+    minHeapSize:
+    maxHeapPercent: 80
+    initialHeapPercent: 50
     gcMethod:
       type: "UseG1GC"
       g1:
