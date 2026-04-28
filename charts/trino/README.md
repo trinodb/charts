@@ -521,6 +521,13 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   The deployment strategy to use to replace existing pods with new ones.
 * `coordinator.jvm.maxHeapSize` - string, default: `"8G"`
+* `coordinator.jvm.minHeapSize` - string, default: `nil`
+* `coordinator.jvm.maxHeapPercent` - string, default: `nil`  
+
+  Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
+* `coordinator.jvm.initialHeapPercent` - string, default: `nil`  
+
+  sets the starting heap size as a percentage of container memory limits.  NOTE: to disable dynamic heap resizing when setting the size as a percent, add `-XX:MaxHeapFreeRatio=100` or `-XX:-UseAdaptiveSizePolicy` to `additionalJVMConfig`.
 * `coordinator.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `coordinator.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
 * `coordinator.config.memory.heapHeadroomPerNode` - string, default: `""`
@@ -573,6 +580,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    periodSeconds: 10
    timeoutSeconds: 5
    failureThreshold: 6
+   successThreshold: 1
+  ```
+* `coordinator.startupProbe` - object, default: `{}`  
+
+  [Startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  Example:
+  ```yaml
+   initialDelaySeconds: 10
+   periodSeconds: 2
+   timeoutSeconds: 2
+   failureThreshold: 60
    successThreshold: 1
   ```
 * `coordinator.lifecycle` - object, default: `{}`  
@@ -660,6 +678,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   The deployment strategy to use to replace existing pods with new ones.
 * `worker.jvm.maxHeapSize` - string, default: `"8G"`
+* `worker.jvm.minHeapSize` - string, default: `nil`
+* `worker.jvm.maxHeapPercent` - string, default: `nil`
+* `worker.jvm.initialHeapPercent` - string, default: `nil`
 * `worker.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `worker.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
 * `worker.config.memory.heapHeadroomPerNode` - string, default: `""`
@@ -708,6 +729,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
    periodSeconds: 10
    timeoutSeconds: 5
    failureThreshold: 6
+   successThreshold: 1
+  ```
+* `worker.startupProbe` - object, default: `{}`  
+
+  [Startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  Example:
+  ```yaml
+   initialDelaySeconds: 10
+   periodSeconds: 2
+   timeoutSeconds: 2
+   failureThreshold: 60
    successThreshold: 1
   ```
 * `worker.lifecycle` - object, default: `{}`  
