@@ -463,6 +463,7 @@ catalogs:
 #    connector.name=memory
 #    memory.max-data-per-node=128MB
 # ```
+# Supports templating with `tpl`.
 
 additionalCatalogs: {}
 # additionalCatalogs -- Deprecated, use `catalogs` instead. Configure additional

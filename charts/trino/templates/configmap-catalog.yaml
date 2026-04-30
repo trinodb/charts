@@ -8,7 +8,11 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: catalogs
 data:
-{{- $merged := merge .Values.catalogs .Values.additionalCatalogs }}
+{{- $templatedCatalogs := dict }}
+{{- range $catalogName, $catalogProperties := .Values.catalogs }}
+{{- $templatedCatalogs = set $templatedCatalogs $catalogName (tpl $catalogProperties $) }}
+{{- end }}
+{{- $merged := merge $templatedCatalogs .Values.additionalCatalogs }}
 {{- range $catalogName, $catalogProperties := $merged }}
   {{ $catalogName }}.properties: |
     {{- $catalogProperties | nindent 4 }}

@@ -391,6 +391,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      connector.name=memory
      memory.max-data-per-node=128MB
   ```
+  Supports templating with `tpl`.
 * `additionalCatalogs` - object, default: `{}`  
 
   Deprecated, use `catalogs` instead. Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
