@@ -468,7 +468,6 @@ catalogs:
 additionalCatalogs: {}
 # additionalCatalogs -- Deprecated, use `catalogs` instead. Configure additional
 # [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
-# Supports templating with `tpl`.
 
 env: []
 # env -- additional environment variables added to every pod, specified as a list with explicit values

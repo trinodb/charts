@@ -394,7 +394,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   Supports templating with `tpl`.
 * `additionalCatalogs` - object, default: `{}`  
 
-  Deprecated, use `catalogs` instead. Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties). Supports templating with `tpl`.
+  Deprecated, use `catalogs` instead. Configure additional [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
 * `env` - list, default: `[]`  
 
   additional environment variables added to every pod, specified as a list with explicit values
