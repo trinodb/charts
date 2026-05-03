@@ -81,8 +81,27 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
     - exchange.sink-buffers-per-partition=2
     - exchange.source-concurrent-readers=4
   ```
-* `server.workerExtraConfig` - string, default: `""`
-* `server.coordinatorExtraConfig` - string, default: `""`
+* `server.workerExtraConfig` - string, default: `""`  
+
+  Extra lines appended to the **worker** `config.properties` only. Use this for properties that are valid on workers but would make the coordinator reject startup if set there. Properties listed in `additionalConfigProperties` are merged into *both* coordinator and worker `config.properties`, so role-specific properties must use `workerExtraConfig` or `coordinatorExtraConfig` instead — otherwise Trino's strict `Configuration property 'X' was not used` check crashes the pod that does not recognise the property.
+  Example:
+  ```yaml
+  server:
+    workerExtraConfig: |
+      task.writer-count=2
+  ```
+* `server.coordinatorExtraConfig` - string, default: `""`  
+
+  Extra lines appended to the **coordinator** `config.properties` only. Use this for coordinator-exclusive properties (typically HTTP-server authentication settings such as OAuth2, JWT, or PASSWORD) that workers do not accept — adding them via `additionalConfigProperties` crashes workers with `Configuration property 'http-server.authentication.type' was not used`.
+  Example (JWT authentication):
+  ```yaml
+  server:
+    coordinatorExtraConfig: |
+      http-server.authentication.type=JWT
+      http-server.authentication.jwt.key-file=https://idp.example.com/realms/my-realm/protocol/openid-connect/certs
+      http-server.authentication.jwt.required-issuer=https://idp.example.com/realms/my-realm
+      http-server.authentication.jwt.principal-field=preferred_username
+  ```
 * `server.autoscaling` - object, default: `{"behavior":{},"enabled":false,"maxReplicas":5,"targetCPUUtilizationPercentage":50,"targetMemoryUtilizationPercentage":80}`  
 
   Configure [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) for workers (`server.keda.enabled` must be `false`).
