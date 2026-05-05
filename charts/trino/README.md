@@ -485,6 +485,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `serviceAccount.create` - bool, default: `false`  
 
   Specifies whether a service account should be created
+* `serviceAccount.automount` - bool, default: `true`  
+
+  Automatically mount a ServiceAccount's API credentials
 * `serviceAccount.name` - string, default: `""`  
 
   The name of the service account to use. If not set and create is true, a name is generated using the fullname template

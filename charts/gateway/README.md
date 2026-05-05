@@ -195,7 +195,7 @@ A Helm chart for Trino Gateway
   Specifies whether a service account should be created
 * `serviceAccount.automount` - bool, default: `true`  
 
-  Automatically mount a ServiceAccount's API credentials?
+  Automatically mount a ServiceAccount's API credentials
 * `serviceAccount.annotations` - object, default: `{}`  
 
   Annotations to add to the service account
