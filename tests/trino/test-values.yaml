@@ -295,6 +295,9 @@ jmx:
     image: bitnamilegacy/jmx-exporter:1.4.0
     pullPolicy: Always
     port: 5556
+    env:
+      - name: JAVA_TOOL_OPTIONS
+        value: -XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints --module-path=/opt/bitnami/bc-fips/ -Djava.security.properties==/opt/bitnami/java/conf/security/java.security.restricted
     configProperties: |
       startDelaySeconds: 0
       hostPort: 127.0.0.1:{{- .Values.jmx.registryPort }}
@@ -302,6 +305,17 @@ jmx:
         - pattern: 'trino.memory*'
         - pattern: 'trino.execution<name=QueryManager>*'
         - pattern: 'trino.execution<name=ClusterSizeMonitor>*'
+    coordinator:
+      env:
+        - name: JAVA_TOOL_OPTIONS
+          value: -Xmx800m --module-path=/opt/bitnami/bc-fips/ -Djava.security.properties==/opt/bitnami/java/conf/security/java.security.restricted
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 250m
+          memory: 512Mi
 
 serviceMonitor:
   enabled: true
