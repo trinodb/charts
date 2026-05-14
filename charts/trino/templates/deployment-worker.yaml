@@ -252,6 +252,10 @@ spec:
           args:
             - "{{ $workerJmx.exporter.port }}"
             - /etc/jmx-exporter/jmx-exporter-config.yaml
+          env:
+            {{- toYaml $workerJmx.exporter.env | nindent 12 }}
+          envFrom:
+            {{- tpl (toYaml $workerJmx.exporter.envFrom) . | nindent 12 }}
           volumeMounts:
             - mountPath: /etc/jmx-exporter/
               name: jmx-exporter-config-volume
