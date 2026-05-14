@@ -101,6 +101,7 @@ command:
 
 service:
   type: ClusterIP
+  annotations: {}
   ports:
     - protocol: TCP
       name: gateway
