@@ -206,7 +206,6 @@ topologySpreadConstraints: []
 #    whenUnsatisfiable: ScheduleAnyway
 # ```
 
-
 affinity: {}
 
 # -- Labels that get applied to every resource's metadata
@@ -275,3 +274,15 @@ serviceMonitor:
     prometheus: kube-prometheus
   # -- The serviceMonitor web endpoint interval
   interval: "30s"
+
+# extraManifests -- Array of extra kubernetes manifests to deploy with the release.
+# Strings are evaluated as a template and can use template expansions and functions.
+# All other objects are used as yaml.
+extraManifests: []
+  # - |
+  #   apiVersion: v1
+  #   kind: ConfigMap
+  #   metadata:
+  #     name: extra-configmap
+  #   data:
+  #     key: {{ .Values.myCustomValue | quote }}
