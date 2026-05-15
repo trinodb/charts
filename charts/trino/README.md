@@ -459,6 +459,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `service.annotations` - object, default: `{}`
 * `service.type` - string, default: `"ClusterIP"`
 * `service.port` - int, default: `8080`
+* `service.appProtocol` - string, default: `"kubernetes.io/h2c"`  
+
+  A hint for gateways indicating the application protocol the service uses. The default value is the kubernetes-defined prefixed name for http2 over cleartext. some gateway implementations like istio expect `http2` as the protocol name instead. If `internal-communication.http2.enabled=false` is set in the server configuration, set this to `http` to indicate the gateway should use http1.1.
 * `service.nodePort` - string, default: `""`  
 
   The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
