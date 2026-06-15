@@ -1,0 +1,70 @@
+suite: Pod annotations can override the generated configuration checksums
+templates:
+  - templates/deployment-coordinator.yaml
+  - templates/deployment-worker.yaml
+  # the deployments include these to checksum them into pod annotations
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-access-control-worker.yaml
+  - templates/configmap-catalog.yaml
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-worker.yaml
+tests:
+  - it: keeps the generated checksums next to the user annotations
+    set:
+      coordinator.annotations:
+        prometheus.io/scrape: "true"
+      worker.annotations:
+        prometheus.io/scrape: "true"
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+        template: templates/deployment-coordinator.yaml
+      - isNotEmpty:
+          path: spec.template.metadata.annotations["checksum/coordinator-config"]
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.template.metadata.annotations["prometheus.io/scrape"]
+          value: "true"
+        template: templates/deployment-worker.yaml
+      - isNotEmpty:
+          path: spec.template.metadata.annotations["checksum/worker-config"]
+        template: templates/deployment-worker.yaml
+
+  # a duplicated key is valid enough for Helm, but strict YAML parsers such as
+  # kustomize reject it, which breaks post-render pipelines
+  - it: emits an overridden checksum exactly once on the coordinator
+    template: templates/deployment-coordinator.yaml
+    set:
+      accessControl.type: configmap
+      accessControl.rules:
+        rules.json: "{}"
+      coordinator.annotations:
+        checksum/access-control-config: ""
+        checksum/catalog-config: ""
+        checksum/coordinator-config: ""
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations
+          value:
+            checksum/access-control-config: ""
+            checksum/catalog-config: ""
+            checksum/coordinator-config: ""
+
+  - it: emits an overridden checksum exactly once on the worker
+    template: templates/deployment-worker.yaml
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.gracefulShutdown.gracePeriodSeconds: 120
+      worker.terminationGracePeriodSeconds: 300
+      worker.annotations:
+        checksum/access-control-config: ""
+        checksum/catalog-config: ""
+        checksum/worker-config: ""
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations
+          value:
+            checksum/access-control-config: ""
+            checksum/catalog-config: ""
+            checksum/worker-config: ""
