@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-faker-seed
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: faker-seed
+data:
+  seed.sh: |
+    #!/bin/sh
+    # Applies /seed/schemas.sql to the Trino coordinator via the REST API.
+    # Runs as a sidecar in the coordinator pod; talks to the coordinator over localhost.
+    # Re-runs on every pod start, so the in-memory faker tables are recreated after restarts.
+    set -eu
+
+    SERVER="${TRINO_SERVER:-http://localhost:8080}"
+    SQL_FILE="${SQL_FILE:-/seed/schemas.sql}"
+
+    # --- Auth (Trino http-server.authentication.type=HEADER) -----------------------------------------
+    # The mTLS-terminating nginx normally injects these client-cert headers and the Trino header
+    # authenticator maps them to a principal. This sidecar talks to localhost directly (bypassing
+    # nginx), so it asserts the same headers itself. Set CLIENT_DN to a DN whose mapped identity is
+    # authorized to CREATE/DROP tables in the `test` catalog (scope it tightly — not an admin).
+    # Confirm the exact header names against your authenticator; these are the ingress-nginx defaults.
+    CLIENT_DN="${CLIENT_DN:-CN=seed-bot,OU=platform,O=example}"
+    # -------------------------------------------------------------------------------------------------
+
+    # Submit one SQL statement and follow the nextUri chain until the query completes.
+    submit() {
+      body=$(curl -sS -XPOST "$SERVER/v1/statement" \
+        -H 'X-Trino-User: seed' -H 'X-Trino-Catalog: test' -H 'X-Trino-Schema: default' \
+        -H 'ssl-client-verify: SUCCESS' \
+        -H "ssl-client-subject-dn: $CLIENT_DN" \
+        --data "$1") || return 1
+
+      while :; do
+        case "$body" in *'"error"'*) echo "FAILED: $1"; echo "$body"; return 1 ;; esac
+        next=$(printf '%s' "$body" | grep -o '"nextUri":"[^"]*"' | head -1 | cut -d'"' -f4)
+        [ -z "$next" ] && return 0
+        body=$(curl -sS "$next" \
+          -H 'ssl-client-verify: SUCCESS' \
+          -H "ssl-client-subject-dn: $CLIENT_DN") || return 1
+      done
+    }
+
+    # Wait until the coordinator (same pod) accepts queries.
+    until submit "SELECT 1"; do echo "waiting for coordinator..."; sleep 5; done
+
+    # Split the SQL file into ';'-separated statements and run each one.
+    tr '\n' ' ' < "$SQL_FILE" | awk 'BEGIN { RS = ";" } /[^ \t]/ { print }' | while IFS= read -r stmt; do
+      echo ">> $(printf '%s' "$stmt" | sed 's/^ *//' | cut -c1-60)..."
+      submit "$stmt" || { echo "seeding failed"; exit 1; }
+    done
+
+    echo "faker schema applied."
+    sleep infinity   # stay alive so this re-runs whenever the pod restarts
+
+  schemas.sql: |
+    -- Fake test-data schema for the `test` (faker) catalog.
+    -- Plain SQL. Statements are separated by ';'. Avoid ';' inside a statement.
+    -- Every table is DROP-then-CREATE so re-seeding (on each coordinator restart) is idempotent.
+    --
+    -- Rule of thumb:
+    --   * columns testers filter on by exact value  -> allowed_values = ARRAY[...]
+    --   * realistic free text (display only)         -> generator = '#{...}'
+    --   * specific types                             -> just declare them (IPADDRESS, UUID, ...)
+    --
+    -- Note: `generator` columns produce realistic values but are NOT filterable by exact value
+    -- (WHERE email = '...' returns 0 rows). To get realistic AND filterable in one column, skip the
+    -- generator and curate a pool of realistic literals in allowed_values, e.g.:
+    --   email VARCHAR WITH (allowed_values = ARRAY[
+    --     'jane.doe@gmail.com','john.smith@outlook.com','m.patel@company.com']),
+    --   ip    IPADDRESS WITH (allowed_values = ARRAY['10.0.0.5','192.168.1.10','172.16.0.20'])
+    -- The values look real and `WHERE email = 'jane.doe@gmail.com'` works; trade-off is fixed cardinality.
+
+    DROP TABLE IF EXISTS test.default.cars;
+    CREATE TABLE test.default.cars (
+      id     BIGINT  WITH (min = 1, max = 1000, step = 1),
+      name   VARCHAR WITH (generator = '#{Vehicle.model}'),
+      brand  VARCHAR WITH (allowed_values = ARRAY['ford','toyota','bmw','vw']),
+      engine VARCHAR WITH (allowed_values = ARRAY['v6','v8','electric','hybrid']),
+      vin    UUID
+    );
+
+    DROP TABLE IF EXISTS test.default.users;
+    CREATE TABLE test.default.users (
+      id           BIGINT  WITH (min = 1, max = 10000, step = 1),
+      full_name    VARCHAR WITH (generator = '#{Name.fullName}'),
+      email        VARCHAR WITH (generator = '#{Internet.emailAddress}'),
+      email_domain VARCHAR WITH (allowed_values = ARRAY['gmail.com','outlook.com','company.com']),
+      status       VARCHAR WITH (allowed_values = ARRAY['active','invited','suspended']),
+      created_at   DATE    WITH (min = DATE '2023-01-01', max = DATE '2025-12-31')
+    );
+
+    DROP TABLE IF EXISTS test.default.servers;
+    CREATE TABLE test.default.servers (
+      id       BIGINT    WITH (min = 1, max = 1000, step = 1),
+      hostname VARCHAR   WITH (generator = '#{Internet.domainName}'),
+      ip       IPADDRESS,
+      ip_text  VARCHAR   WITH (generator = '#{Internet.ipV4Address}'),
+      ip_pool  IPADDRESS WITH (allowed_values = ARRAY['10.0.0.1','10.0.0.2','10.0.0.3','192.168.1.5']),
+      region   VARCHAR   WITH (allowed_values = ARRAY['us-east','us-west','eu-central','ap-south'])
+    );
+
+    DROP TABLE IF EXISTS test.default.contacts;
+    CREATE TABLE test.default.contacts (
+      id           BIGINT  WITH (min = 1, max = 5000, step = 1),
+      name         VARCHAR WITH (generator = '#{Name.fullName}'),
+      phone        VARCHAR WITH (generator = '#{PhoneNumber.phoneNumber}'),
+      cell         VARCHAR WITH (generator = '#{PhoneNumber.cellPhone}'),
+      country_code VARCHAR WITH (allowed_values = ARRAY['+1','+44','+33','+49','+91']),
+      kind         VARCHAR WITH (allowed_values = ARRAY['mobile','home','work']),
+      opted_in     BOOLEAN WITH (allowed_values = ARRAY['true','false'])
+    );
