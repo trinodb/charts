@@ -449,6 +449,11 @@ catalogs:
   tpcds: |
     connector.name=tpcds
     tpcds.splits-per-node=4
+  test: |
+    connector.name=faker
+    faker.default-limit=1000
+    faker.null-probability=0
+    # faker.locale=en
 # catalogs -- Configure
 # [catalogs](https://trino.io/docs/current/installation/deployment.html#catalog-properties).
 # @raw
