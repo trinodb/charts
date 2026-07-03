@@ -13,7 +13,7 @@ data:
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   jvm.config: |
@@ -73,7 +73,7 @@ data:
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
     {{- end }}
     {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
     {{- end }}
     {{- if .Values.server.config.https.enabled }}
     http-server.https.enabled=true
@@ -153,14 +153,14 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
     exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
@@ -190,7 +190,7 @@ data:
 {{ if .Values.eventListenerProperties }}
   event-listener.properties: |
   {{- range $configValue := .Values.eventListenerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 {{ end }}
 

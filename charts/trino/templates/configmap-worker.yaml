@@ -14,7 +14,7 @@ data:
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
   jvm.config: |
@@ -70,7 +70,7 @@ data:
     {{- end }}
     discovery.uri=http://{{ template "trino.fullname" . }}:{{ .Values.service.port }}
     {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
     {{- end }}
     {{- if $workerJmx.enabled }}
     jmx.rmiregistry.port={{- $workerJmx.registryPort }}
@@ -94,20 +94,20 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
     exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 
 {{ if .Values.eventListenerProperties }}
   event-listener.properties: |
   {{- range $configValue := .Values.eventListenerProperties }}
-    {{ $configValue }}
+    {{ tpl $configValue $ }}
   {{- end }}
 {{ end }}
 
