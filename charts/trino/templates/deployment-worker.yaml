@@ -102,6 +102,14 @@ spec:
           secret:
             secretName: {{ tpl .secretName $ }}
         {{- end }}
+        {{- range .Values.worker.csiSecretMounts }}
+        - name: {{ .name }}
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ tpl .secretProviderClass $ }}
+        {{- end }}
         {{- with .Values.worker.additionalVolumes }}
         {{- tpl (. | toYaml) $ | nindent 8 }}
         {{- end }}
@@ -163,6 +171,13 @@ spec:
               {{- end }}
             {{- end }}
             {{- range .Values.worker.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            {{- range .Values.worker.csiSecretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
               {{- if .subPath }}

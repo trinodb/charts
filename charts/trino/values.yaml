@@ -812,6 +812,23 @@ coordinator:
   #    subPath: sample.json
   # ```
 
+  csiSecretMounts: []
+  # coordinator.csiSecretMounts -- Allows mounting secrets on the coordinator
+  # node using the [Secrets Store CSI
+  # driver](https://secrets-store-csi-driver.sigs.k8s.io/). Each entry creates a
+  # volume of type `secrets-store.csi.k8s.io` referencing a `SecretProviderClass`
+  # and a matching volume mount on the Trino container. This enables consuming
+  # secrets from external stores (AWS Secrets Manager, HashiCorp Vault, Azure Key
+  # Vault, etc.) without first materialising a Kubernetes `Secret`.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - name: trino-spc
+  #    secretProviderClass: trino-aws-secrets
+  #    path: /mnt/secrets-store
+  #    subPath: config.json
+  # ```
+
 worker:
   deployment:
     annotations: {}
@@ -1055,6 +1072,23 @@ worker:
   #    secretName: sample-secret
   #    path: /secrets/sample.json
   #    subPath: sample.json
+  # ```
+
+  csiSecretMounts: []
+  # worker.csiSecretMounts -- Allows mounting secrets on all worker nodes using
+  # the [Secrets Store CSI
+  # driver](https://secrets-store-csi-driver.sigs.k8s.io/). Each entry creates a
+  # volume of type `secrets-store.csi.k8s.io` referencing a `SecretProviderClass`
+  # and a matching volume mount on the Trino container. This enables consuming
+  # secrets from external stores (AWS Secrets Manager, HashiCorp Vault, Azure Key
+  # Vault, etc.) without first materialising a Kubernetes `Secret`.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - name: trino-spc
+  #    secretProviderClass: trino-aws-secrets
+  #    path: /mnt/secrets-store
+  #    subPath: config.json
   # ```
 
 kafka:
