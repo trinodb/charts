@@ -740,7 +740,7 @@ coordinator:
 
   affinity: {}
 
-  hostAliases:
+  hostAliases: []
   # coordinator.hostAliases -- [Adding entries to Pod /etc/hosts with HostAliases] (https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/).
   # @raw
   # Example:
@@ -978,6 +978,8 @@ worker:
   #    - name-2
   #    - name-3
   #    ip: 1.1.1.1
+  # ```
+
   topologySpreadConstraints: []
   # worker.topologySpreadConstraints -- Configure [topology spread
   # constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)
