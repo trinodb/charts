@@ -101,6 +101,11 @@ coordinator:
       mountPath: /etc/trino/generated
       readOnly: false
 
+  hostAliases:
+    - hostnames:
+      - test
+      ip: 192.168.1.44
+
   annotations:
     custom/name: value
 
@@ -137,6 +142,11 @@ worker:
       name: extra-port
       port: 9483
       protocol: TCP
+
+  hostAliases:
+    - hostnames:
+      - test
+      ip: 192.168.1.44
 
   annotations:
     custom/name: value
