@@ -2,8 +2,14 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+global:
+  env: "dev"
+  region: "region_test"
+
 server:
-  workers: 2
+  node:
+    environment: "{{ .Values.global.env }}_{{ .Values.global.region }}"
+  workers: 0
   config:
     https:
       enabled: true
@@ -14,7 +20,24 @@ server:
     query.client.timeout=5m
     query.execution-policy=phased
   autoscaling:
+    enabled: false
+  keda:
     enabled: true
+    pollingInterval: 5
+    minReplicaCount: 0
+    maxReplicaCount: 2
+    cooldownPeriod: 300
+    triggers:
+      - type: prometheus
+        metricType: Value
+        metadata:
+          serverAddress: http://prometheus-operator-kube-p-prometheus.{{ .Release.Namespace }}:9090
+          threshold: "1"
+          metricName: required_workers
+          query: >-
+            sum by (service)
+            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+
 
 additionalConfigProperties:
   - internal-communication.shared-secret=random-value-999
@@ -41,11 +64,13 @@ auth:
 
 secretMounts:
   - name: certificates
-    secretName: certificates
+    secretName: '{{ .Release.Namespace }}-certificates'
     path: /etc/trino/certificates
 
 coordinator:
   deployment:
+    annotations:
+      custom/name: value
     progressDeadlineSeconds: 500
     revisionHistoryLimit: 5
     strategy:
@@ -55,7 +80,8 @@ coordinator:
         maxUnavailable: 50%
 
   jvm:
-    maxHeapSize: "8G"
+    maxHeapSize: "7G"
+    minHeapSize: "7G"
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -75,15 +101,13 @@ coordinator:
       mountPath: /etc/trino/generated
       readOnly: false
 
-  additionalExposedPorts:
-    https:
-      servicePort: 8443
-      name: https
-      port: 8443
-      protocol: TCP
+  annotations:
+    custom/name: value
 
 worker:
   deployment:
+    annotations:
+      custom/name: value
     progressDeadlineSeconds: 500
     revisionHistoryLimit: 5
     strategy:
@@ -93,7 +117,10 @@ worker:
         maxUnavailable: 50%
 
   jvm:
-    maxHeapSize: "8G"
+    maxHeapSize:
+    minHeapSize:
+    maxHeapPercent: 80
+    initialHeapPercent: 50
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -103,6 +130,32 @@ worker:
       heapHeadroomPerNode: "2GB"
     query:
       maxMemoryPerNode: "2GB"
+
+  additionalExposedPorts:
+    extra-port:
+      servicePort: 9483
+      name: extra-port
+      port: 9483
+      protocol: TCP
+
+  annotations:
+    custom/name: value
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "kubernetes.io/hostname"
+      whenUnsatisfiable: "ScheduleAnyway"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
+    - maxSkew: 1
+      topologyKey: "topology.kubernetes.io/zone"
+      whenUnsatisfiable: "ScheduleAnyway"
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: trino
+          app.kubernetes.io/component: worker
 
 commonLabels:
   extra-label: extra-value
@@ -159,8 +212,79 @@ accessControl:
             "user": "alice",
             "owner": false
           }
+        ],
+        "system_session_properties": [
+          {
+            "role": "admin",
+            "allow": true
+          },
+          {
+            "user": ".*",
+            "property": "query_max_execution_time",
+            "allow": true
+          }
         ]
       }
+
+resourceGroups:
+  type: configmap
+  resourceGroupsConfig: |-
+    {
+      "rootGroups": [
+        {
+          "name": "global",
+          "softMemoryLimit": "80%",
+          "hardConcurrencyLimit": 100,
+          "maxQueued": 100,
+          "schedulingPolicy": "fair",
+          "jmxExport": true,
+          "subGroups": [
+            {
+              "name": "admin",
+              "softMemoryLimit": "30%",
+              "hardConcurrencyLimit": 20,
+              "maxQueued": 10
+            },
+            {
+              "name": "finance_human_resources",
+              "softMemoryLimit": "20%",
+              "hardConcurrencyLimit": 15,
+              "maxQueued": 10
+            },
+            {
+              "name": "general",
+              "softMemoryLimit": "30%",
+              "hardConcurrencyLimit": 20,
+              "maxQueued": 10
+            },
+            {
+              "name": "readonly",
+              "softMemoryLimit": "10%",
+              "hardConcurrencyLimit": 5,
+              "maxQueued": 5
+            }
+          ]
+        }
+      ],
+      "selectors": [
+        {
+          "user": "admin",
+          "group": "global.admin"
+        },
+        {
+          "group": "finance|human_resources",
+          "group": "global.finance_human_resources"
+        },
+        {
+          "user": "alice",
+          "group": "global.readonly"
+        },
+        {
+          "group": "global.general"
+        }
+      ]
+    }
+
 
 jmx:
   enabled: true
@@ -168,7 +292,7 @@ jmx:
   serverPort: 9081
   exporter:
     enabled: true
-    image: bitnami/jmx-exporter:latest
+    image: bitnamilegacy/jmx-exporter:1.4.0
     pullPolicy: Always
     port: 5556
     configProperties: |
@@ -177,12 +301,13 @@ jmx:
       rules:
         - pattern: 'trino.memory*'
         - pattern: 'trino.execution<name=QueryManager>*'
+        - pattern: 'trino.execution<name=ClusterSizeMonitor>*'
 
 serviceMonitor:
   enabled: true
   labels:
     prometheus: default
-  interval: "30s"
+  interval: "1s"
 
 ingress:
   enabled: true
@@ -201,3 +326,31 @@ networkPolicy:
               - key: test
                 operator: NotIn
                 values: [network-policy]
+sessionProperties:
+  type: configmap
+  sessionPropertiesConfig: |-
+    [
+      {
+        "group": "global.admin",
+        "sessionProperties": {
+          "query_max_execution_time": "8h"
+        }
+      },
+      {
+        "group": "global.readonly",
+        "sessionProperties": {
+          "query_max_execution_time": "1h"
+        }
+      },
+      {
+        "group": "global.(finance_human_resources|general)",
+        "sessionProperties": {
+          "query_max_execution_time": "10m"
+        }
+      }
+    ]
+
+catalogs:
+  tpch: |
+    connector.name=tpch
+    tpch.splits-per-node=4

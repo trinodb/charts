@@ -1,5 +1,5 @@
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
-{{- if gt (int .Values.server.workers) 0 }}
+{{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/component: worker
 data:
   node.properties: |
-    node.environment={{ .Values.server.node.environment }}
+    node.environment={{ tpl .Values.server.node.environment . }}
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
@@ -20,7 +20,18 @@ data:
   jvm.config: |
     -server
     -agentpath:/usr/lib/trino/bin/libjvmkill.so
+    {{- if .Values.worker.jvm.maxHeapSize }}
     -Xmx{{ .Values.worker.jvm.maxHeapSize }}
+    {{- end }}
+    {{- if .Values.worker.jvm.minHeapSize }}
+    -Xms{{ .Values.worker.jvm.minHeapSize }}
+    {{- end }}
+    {{- if .Values.worker.jvm.maxHeapPercent }}
+    -XX:MaxRAMPercentage={{ .Values.worker.jvm.maxHeapPercent }}
+    {{- end }}
+    {{- if .Values.worker.jvm.initialHeapPercent }}
+    -XX:InitialRAMPercentage={{ .Values.worker.jvm.initialHeapPercent }}
+    {{- end }}
     -XX:+{{ .Values.worker.jvm.gcMethod.type }}
     -XX:G1HeapRegionSize={{ .Values.worker.jvm.gcMethod.g1.heapRegionSize }}
     -XX:+ExplicitGCInvokesConcurrent
@@ -81,7 +92,7 @@ data:
 {{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}

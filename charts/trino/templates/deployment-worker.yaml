@@ -1,5 +1,5 @@
 {{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
-{{- if gt (int .Values.server.workers) 0 }}
+{{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,12 +12,16 @@ metadata:
     {{- if .Values.worker.labels }}
     {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
     {{- end }}
+  annotations:
+    {{- toYaml .Values.worker.deployment.annotations | nindent 4 }}
 spec:
   progressDeadlineSeconds: {{ .Values.worker.deployment.progressDeadlineSeconds }}
   revisionHistoryLimit: {{ .Values.worker.deployment.revisionHistoryLimit }}
+  {{- if .Values.worker.deployment.strategy }}
   strategy:
     {{- toYaml .Values.worker.deployment.strategy | nindent 4 }}
-  {{- if not .Values.server.autoscaling.enabled }}
+  {{- end }}
+  {{- if and (not .Values.server.autoscaling.enabled) (not .Values.server.keda.enabled) }}
   replicas: {{ .Values.server.workers }}
   {{- end }}
   selector:
@@ -45,6 +49,9 @@ spec:
         {{- tpl (toYaml .Values.worker.labels) . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.worker.priorityClassName }}
+      priorityClassName: {{ .Values.worker.priorityClassName }}
+      {{- end }}
       serviceAccountName: {{ include "trino.serviceAccountName" . }}
       {{- with .Values.securityContext }}
       securityContext:
@@ -78,25 +85,25 @@ spec:
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
-            name: {{ .configMap }}
+            name: {{ tpl .configMap $ }}
         {{- end }}
         {{- range .Values.worker.configMounts }}
         - name: {{ .name }}
           configMap:
-            name: {{ .configMap }}
+            name: {{ tpl .configMap $ }}
         {{- end }}
         {{- range .Values.secretMounts }}
         - name: {{ .name }}
           secret:
-            secretName: {{ .secretName }}
+            secretName: {{ tpl .secretName $ }}
         {{- end }}
         {{- range .Values.worker.secretMounts }}
         - name: {{ .name }}
           secret:
-            secretName: {{ .secretName }}
+            secretName: {{ tpl .secretName $ }}
         {{- end }}
         {{- with .Values.worker.additionalVolumes }}
-        {{- . | toYaml | nindent 8 }}
+        {{- tpl (. | toYaml) $ | nindent 8 }}
         {{- end }}
       {{- if .Values.initContainers.worker }}
       initContainers:
@@ -124,7 +131,7 @@ spec:
           env:
             {{- toYaml .Values.env | nindent 12 }}
           envFrom:
-            {{- toYaml .Values.envFrom | nindent 12 }}
+            {{- tpl (toYaml .Values.envFrom) . | nindent 12 }}
           volumeMounts:
             - mountPath: {{ .Values.server.config.path }}
               name: config-volume
@@ -141,18 +148,30 @@ spec:
             {{- range .Values.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.worker.configMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- range .Values.worker.secretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
             {{- end }}
             {{- with .Values.worker.additionalVolumeMounts }}
             {{- . | toYaml | nindent 12 }}
@@ -161,6 +180,11 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            {{- if .Values.server.config.https.enabled }}
+            - name: https
+              containerPort: {{ .Values.server.config.https.port }}
+              protocol: TCP
+            {{- end }}
             {{- if $workerJmx.enabled }}
             - name: jmx-registry
               containerPort: {{ $workerJmx.registryPort }}
@@ -191,24 +215,35 @@ spec:
             timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds | default 5 }}
             failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold | default 6 }}
             successThreshold: {{ .Values.worker.readinessProbe.successThreshold | default 1 }}
+          startupProbe:
+            exec:
+              command: [/usr/lib/trino/bin/health-check]
+            initialDelaySeconds: {{ .Values.worker.startupProbe.initialDelaySeconds | default 10 }}
+            periodSeconds: {{ .Values.worker.startupProbe.periodSeconds | default 2 }}
+            timeoutSeconds: {{ .Values.worker.startupProbe.timeoutSeconds | default 2 }}
+            failureThreshold: {{ .Values.worker.startupProbe.failureThreshold | default 60 }}
+            successThreshold: {{ .Values.worker.startupProbe.successThreshold | default 1 }}
           lifecycle:
             {{- if .Values.worker.lifecycle }}
             {{- if .Values.worker.gracefulShutdown.enabled }}
             {{- fail "The `worker.lifecycle` configuration conflicts with `worker.gracefulShutdown`. Either disable `worker.gracefulShutdown` and apply the related configurations manually, or remove `worker.lifecycle`." }}
             {{- end }}
-            {{- toYaml .Values.worker.lifecycle | nindent 12 }}
+            {{- tpl (toYaml .Values.worker.lifecycle) . | nindent 12 }}
             {{- else if .Values.worker.gracefulShutdown.enabled }}
             preStop:
               exec:
                 command:
                   - /bin/sh
                   - -c
-                  - >-
-                    curl -v -X PUT
-                    -d '"SHUTTING_DOWN"'
-                    -H 'Content-type: application/json'
-                    -H 'X-Trino-User: admin'
-                    http://localhost:{{- .Values.service.port -}}/v1/info/state
+                  - |-
+                    # send shutdown request to worker
+                    curl -v -X PUT \
+                      -d '"SHUTTING_DOWN"' \
+                      -H 'Content-type: application/json' \
+                      -H 'X-Trino-User: admin' \
+                      http://localhost:{{- .Values.service.port -}}/v1/info/state
+                    # wait for shutdown to complete
+                    tail --pid=1 -f /dev/null
             {{- end }}
           resources:
             {{- toYaml .Values.worker.resources | nindent 12 }}
@@ -236,6 +271,10 @@ spec:
       {{- end }}
       {{- with .Values.worker.nodeSelector }}
       nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.worker.topologySpreadConstraints }}
+      topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.worker.affinity }}

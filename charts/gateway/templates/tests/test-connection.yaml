@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "trino-gateway.fullname" . }}-test-connection"
+  labels:
+    {{- include "trino-gateway.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: connection
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: curl
+      image: alpine/curl
+      env:
+        - name: NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+      # Get the list of backends, which should return an empty list, "[]". For this test to pass
+      # the gateway must successfully connect to an initialized backend database
+      command:
+        - "sh"
+        - "-c"
+        - |
+        {{ $curlOpts := "--fail --retry 5 --retry-all-errors --connect-timeout 10 --retry-delay 10 --verbose" }}
+        {{- if eq .Values.service.type "NodePort" }}
+          if curl {{ $curlOpts }} --insecure https://${NODE_IP}:30443/entity/GATEWAY_BACKEND; then
+            echo "HTTPS connection to NodePort service successful"
+          else
+            echo "HTTPS connection to NodePort service failed"
+            exit 1
+          fi
+          if curl {{ $curlOpts }} http://${NODE_IP}:30080/entity/GATEWAY_BACKEND; then
+            echo "HTTP connection to NodePort service successful"
+          else
+            echo "HTTP connection to NodePort service failed"
+            exit 1
+          fi
+        {{- end }}
+        {{- if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+          if curl {{ $curlOpts }} --insecure https://{{ .Values.serviceName }}:8443/entity/GATEWAY_BACKEND; then
+            echo "HTTPS connection to service successful"
+          else
+            echo "HTTPS connection to service failed"
+            exit 1
+          fi
+        {{- end }}
+        {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+          if curl {{ $curlOpts }} http://{{ .Values.serviceName }}:8080/entity/GATEWAY_BACKEND; then
+            echo "HTTP connection to service successful"
+          else
+            echo "HTTP connection to service failed"
+            exit 1
+          fi
+        {{- end }}
+  volumes:
+    - name: persistence-sql
+      emptyDir:
+        sizeLimit: 10Mi
+
+  restartPolicy: Never

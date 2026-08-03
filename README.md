@@ -3,13 +3,16 @@ Trino Community Kubernetes Helm Charts
 ===========
 [![CI/CD](https://github.com/trinodb/charts/actions/workflows/ci-cd.yaml/badge.svg?branch=main)](https://github.com/trinodb/charts/actions/workflows/ci-cd.yaml)
 
-Fast distributed SQL query engine for big data analytics that helps you explore your data universe
+A repository of Helm charts for the Trino community. The following charts are
+included:
 
+* `trino/trino` for [Trino](https://trino.io/)
+* `trino/trino-gateway` for [Trino Gateway](https://trinodb.github.io/trino-gateway)
 
 ## Usage
 
 [Helm](https://helm.sh) must be installed to use the charts.
-Please refer to Helm's [documentation](https://helm.sh/docs/) to get started.
+Refer to Helm's [documentation](https://helm.sh/docs/) to get started.
 
 Once Helm is set up properly, add the repo as follows:
 
@@ -17,12 +20,22 @@ Once Helm is set up properly, add the repo as follows:
 helm repo add trino https://trinodb.github.io/charts/
 ```
 
-You can then run `helm search repo trino` to see the charts.
+Run `helm search repo trino` to see the latest charts with the string `trino` in
+the name to get an output similar to the following:
 
-Then you can install chart using:
+```
+NAME               	CHART VERSION	APP VERSION	DESCRIPTION
+trino/trino        	1.42.2       	480        	Fast distributed SQL query engine for big data ...
+trino/trino-gateway	1.20.0       	20         	A Helm chart for Trino Gateway
+```
+
+Use `helm search repo trino -l` for information about all available versions.
+
+After configuring your Kubernetes cluster, you can install Trino with the chart
+`trino/trino` using:
 
 ```console
-helm install my-trino trino/trino --version 0.33.0
+helm install my-trino trino/trino --version 1.42.2
 ```
 
 Also, you can check the manifests using:
@@ -31,9 +44,19 @@ Also, you can check the manifests using:
 helm template my-trino trino/trino --namespace <YOUR_NAMESPACE>
 ```
 
+Similarly install Trino Gateway with the `trino/trino-gateway` chart.
+
 ## Documentation
 
-You can find documentation about the chart [here](./charts/trino/README.md).
+More information about Trino, Trino Gateway, and the charts is available in the
+following resources:
+
+* [Trino Kubernetes documentation](https://trino.io/docs/current/installation/kubernetes.html)
+* [trino/trino chart configuration](./charts/trino/README.md)
+* [Trino documentation](https://trino.io/docs/current/index.html)
+* [Trino Gateway Kubernetes documentation](https://trinodb.github.io/trino-gateway/installation/#helm)
+* [trino/trino-gateway chart configuration](./charts/gateway/README.md)
+* [Trino Gateway documentation](https://trinodb.github.io/trino-gateway)
 
 ## Development
 
@@ -49,7 +72,7 @@ ct install
 
 To run tests with specific values:
 ```console
-ct install --helm-extra-set-args "--set image.tag=464"
+ct install --helm-extra-set-args "--set image.tag=480"
 ```
 
 Use the `test.sh` script to run a suite of tests, with different chart values.

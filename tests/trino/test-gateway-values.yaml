@@ -1,0 +1,17 @@
+# Test values for Gateway API configuration
+server:
+  workers: 1
+
+gateway:
+  enabled: true
+  annotations:
+    gateway.networking.k8s.io/test: "true"
+  parentRefs:
+    - name: trino-gateway
+      namespace: gateway-system
+  hostnames:
+    - trino.example.com
+  rules:
+    - path:
+        type: PathPrefix
+        value: /

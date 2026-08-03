@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/component: coordinator
 data:
   node.properties: |
-    node.environment={{ .Values.server.node.environment }}
+    node.environment={{ tpl .Values.server.node.environment . }}
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
@@ -19,7 +19,18 @@ data:
   jvm.config: |
     -server
     -agentpath:/usr/lib/trino/bin/libjvmkill.so
+    {{- if .Values.coordinator.jvm.maxHeapSize }}
     -Xmx{{ .Values.coordinator.jvm.maxHeapSize }}
+    {{- end }}
+    {{- if .Values.coordinator.jvm.minHeapSize }}
+    -Xms{{ .Values.coordinator.jvm.minHeapSize }}
+    {{- end }}
+    {{- if .Values.coordinator.jvm.maxHeapPercent }}
+    -XX:MaxRAMPercentage={{ .Values.coordinator.jvm.maxHeapPercent }}
+    {{- end }}
+    {{- if .Values.coordinator.jvm.initialHeapPercent }}
+    -XX:InitialRAMPercentage={{ .Values.coordinator.jvm.initialHeapPercent }}
+    {{- end }}
     -XX:+{{ .Values.coordinator.jvm.gcMethod.type }}
     -XX:G1HeapRegionSize={{ .Values.coordinator.jvm.gcMethod.g1.heapRegionSize }}
     -XX:+ExplicitGCInvokesConcurrent
@@ -50,11 +61,7 @@ data:
 
   config.properties: |
     coordinator=true
-    {{- if gt (int .Values.server.workers) 0 }}
-    node-scheduler.include-coordinator=false
-    {{- else }}
-    node-scheduler.include-coordinator=true
-    {{- end }}
+    node-scheduler.include-coordinator={{ .Values.coordinator.config.nodeScheduler.includeCoordinator }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
     query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
@@ -105,15 +112,46 @@ data:
 {{- end }}
 
 {{- if .Values.resourceGroups }}
+  {{- if eq .Values.resourceGroups.type "configmap" }}
   resource-groups.properties: |
     resource-groups.configuration-manager=file
     resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
+  {{- else if eq .Values.resourceGroups.type "properties" }}
+  resource-groups.properties: |
+    {{- if .Values.resourceGroups.properties }}
+    {{- .Values.resourceGroups.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "resourceGroups.properties is required when resourceGroups.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid resourceGroups.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
+{{- end }}
+
+{{- if .Values.sessionProperties }}
+  {{- if eq .Values.sessionProperties.type "configmap" }}
+  session-property-config.properties: |
+    session-property-config.configuration-manager=file
+    session-property-manager.config-file={{ .Values.server.config.path }}/session-property-config.json
+
+  session-property-config.json: |
+    {{- .Values.sessionProperties.sessionPropertiesConfig | nindent 4 }}
+  {{- else if eq .Values.sessionProperties.type "properties" }}
+  session-property-config.properties: |
+    {{- if .Values.sessionProperties.properties }}
+    {{- .Values.sessionProperties.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "sessionProperties.properties is required when sessionProperties.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid sessionProperties.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
 {{- end }}
 
 {{- if .Values.server.exchangeManager }}
   exchange-manager.properties: |
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
-    exchange.base-directories={{ .Values.server.exchangeManager.baseDir }}
+    exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
     {{ $configValue }}
   {{- end }}
@@ -128,13 +166,22 @@ data:
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
   password-authenticator.properties: |
     password-authenticator.name=file
-    file.password-file={{ .Values.server.config.path }}/auth/password.db
+    file.password-file={{ .Values.server.config.path }}/auth/password/password.db
   {{- end }}{{- end }}
 
-  {{- if .Values.auth.groups }}{{- if not (index .Values.coordinator.additionalConfigFiles "group-provider.properties") }}
+  {{- if contains "HEADER" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "header-authenticator.properties") }}
+  header-authenticator.properties: |
+    {{- if .Values.headerAuthenticator.properties }}
+    {{- .Values.headerAuthenticator.properties | nindent 4 }}
+    {{- else }}
+    {{- fail "headerAuthenticator.properties is required when server.config.authenticationType contains 'HEADER'." }}
+    {{- end }}
+  {{- end }}{{- end }}
+
+  {{- if or .Values.auth.groups .Values.auth.groupsAuthSecret }}{{- if not (index .Values.coordinator.additionalConfigFiles "group-provider.properties") }}
   group-provider.properties: |
     group-provider.name=file
-    file.group-file={{ .Values.server.config.path }}/auth/group.db
+    file.group-file={{ .Values.server.config.path }}/auth/group/group.db
     {{- if .Values.auth.refreshPeriod }}
     file.refresh-period={{ .Values.auth.refreshPeriod }}
     {{- end }}
@@ -151,7 +198,7 @@ data:
   {{ $fileName }}: |
     {{- tpl $fileContent $ | nindent 4 }}
 {{- end }}
-{{- if .Values.resourceGroups }}
+{{- if eq .Values.resourceGroups.type "configmap" }}
 ---
 apiVersion: v1
 kind: ConfigMap

@@ -1,0 +1,13 @@
+{{- with .Values.podDisruptionBudget }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "trino-gateway.fullname" $ }}-pdb
+  labels:
+    {{- include "trino-gateway.labels" $ | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "trino-gateway.selectorLabels" $ | nindent 6 }}
+  {{- toYaml . | nindent 2 }}
+{{- end }}

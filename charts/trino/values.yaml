@@ -10,8 +10,10 @@
 # coordinatorNameOverride: trino-coordinator-adhoc
 # workerNameOverride: trino-worker-adhoc
 # nameOverride: trino-adhoc
+# fullnameOverride: trino-adhoc
 # ```
 nameOverride:
+fullnameOverride:
 coordinatorNameOverride:
 workerNameOverride:
 
@@ -40,6 +42,7 @@ imagePullSecrets: []
 server:
   workers: 2
   node:
+    # server.node.environment -- Supports templating with `tpl`.
     environment: production
     dataDir: /data/trino
     pluginDir: /usr/lib/trino/plugin
@@ -55,23 +58,24 @@ server:
         path: ""
     # -- Trino supports multiple [authentication
     # types](https://trino.io/docs/current/security/authentication-types.html):
-    # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS.
+    # PASSWORD, CERTIFICATE, OAUTH2, JWT, KERBEROS, HEADER.
     authenticationType: ""
     query:
       maxMemory: "4GB"
   exchangeManager: {}
   # server.exchangeManager -- Mandatory [exchange manager
   # configuration](https://trino.io/docs/current/admin/fault-tolerant-execution.html#id1).
-  # Used to set the name and location(s) of the spooling storage destination. To enable fault-tolerant execution,
-  # set the `retry-policy` property in `additionalConfigProperties`. Additional exchange manager configurations can be
-  # added to `additionalExchangeManagerProperties`.
+  # Used to set the name and location(s) of spooling data storage. For multiple destinations use a list or a comma separated URI locations.
+  # To enable fault-tolerant execution, set the `retry-policy` property in `additionalConfigProperties`.
+  # Additional exchange manager configurations can be added to `additionalExchangeManagerProperties`.
   # @raw
   # Example:
   # ```yaml
   # server:
   #   exchangeManager:
   #     name: "filesystem"
-  #     baseDir: "/tmp/trino-local-file-system-exchange-manager"
+  #     baseDir:
+  #       - "/tmp/trino-local-file-system-exchange-manager"
   # additionalConfigProperties:
   #   - retry-policy=TASK
   # additionalExchangeManagerProperties:
@@ -82,6 +86,8 @@ server:
 
   workerExtraConfig: ""
   coordinatorExtraConfig: ""
+  # server.autoscaling -- Configure [Horizontal Pod Autoscaling](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
+  # for workers (`server.keda.enabled` must be `false`).
   autoscaling:
     enabled: false
     maxReplicas: 5
@@ -112,6 +118,71 @@ server:
     #      value: 4
     #      periodSeconds: 15
     #    selectPolicy: Max
+    # ```
+
+  # server.keda -- Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers
+  # (`server.autoscaling.enabled` must be `false`).
+  keda:
+    enabled: false
+    pollingInterval: 30
+    # -- Period (in seconds) to wait after the last trigger reported active before scaling the resource back to 0
+    cooldownPeriod: 300
+    # -- The delay (in seconds) before the `cooldownPeriod` starts after the initial creation of the `ScaledObject`.
+    initialCooldownPeriod: 0
+    # -- Minimum number of replicas KEDA will scale the resource down to.
+    # By default, it’s scale to zero, but you can use it with some other value as well.
+    minReplicaCount: 0
+    # -- This setting is passed to the HPA definition that KEDA will create for a given resource and
+    # holds the maximum number of replicas of the target resource.
+    maxReplicaCount: 5
+    fallback: {}
+    # server.keda.fallback -- Defines a number of replicas to fall back to if a scaler is in an error state.
+    # @raw
+    # Example:
+    # ```yaml
+    # fallback:             # Optional. Section to specify fallback options
+    #   failureThreshold: 3 # Mandatory if fallback section is included
+    #   replicas: 6         # Mandatory if fallback section is included
+    # ```
+    advanced: {}
+    # server.keda.advanced -- Specifies HPA related options
+    # @raw
+    # Example:
+    # ```yaml
+    # advanced:
+    #   horizontalPodAutoscalerConfig:
+    #     behavior:
+    #       scaleDown:
+    #         stabilizationWindowSeconds: 300
+    #         policies:
+    #           - type: Percent
+    #             value: 100
+    #             periodSeconds: 15
+    # ```
+    triggers: []
+    # server.keda.triggers -- List of triggers to activate scaling of the target resource
+    # @raw
+    # Example:
+    # ```yaml
+    # triggers:
+    #   - type: prometheus
+    #     metricType: Value
+    #     metadata:
+    #       serverAddress: "http://prometheus.example.com"
+    #       threshold: "1"
+    #       metricName: required_workers
+    #       query: >-
+    #         sum by (service)
+    #         (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+    # ```
+    annotations: {}
+    # server.keda.annotations -- Annotations to apply to the ScaledObject CRD.
+    # @raw
+    # Example:
+    # ```yaml
+    # annotations:
+    #   autoscaling.keda.sh/paused-replicas: "0"
+    #   autoscaling.keda.sh/paused: "true"
     # ```
 
 accessControl: {}
@@ -182,11 +253,38 @@ accessControl: {}
 #      }
 # ```
 
-resourceGroups: {}
-# resourceGroups -- Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
+headerAuthenticator: {}
+# headerAuthenticator -- [Header authenticator](https://trino.io/docs/current/develop/header-authenticator.html)
+# configuration. Required when `server.config.authenticationType` contains `HEADER`.
 # @raw
-# Example:
+# Provide the plugin configuration properties. The `header-authenticator.name` value must
+# match the name of the installed authenticator plugin.
 # ```yaml
+# headerAuthenticator:
+#   properties: |
+#     header-authenticator.name=my-header-authenticator
+#     header-authenticator.username-header=X-Authenticated-User
+# ```
+
+resourceGroups: {}
+# resourceGroups -- [Resource groups control](https://trino.io/docs/current/admin/resource-groups.html)
+# @raw
+# Set the type property to either:
+# * `configmap`, and provide the Resource groups file contents in `resourceGroupsConfig`,
+# * `properties`, and provide configuration properties in `properties`.
+# Properties example:
+# ```yaml
+#  type: properties
+#  properties: |
+#    resource-groups.configuration-manager=db
+#    resource-groups.config-db-url=jdbc:postgresql://trino-postgresql.postgresql.svc.cluster.local:3306/resource_groups
+#    resource-groups.config-db-user=username
+#    resource-groups.config-db-password=password
+# ```
+# Config map example:
+# ```yaml
+#  type: configmap
+#  # Resource groups file is mounted to /etc/trino/resource-groups/resource-groups.json
 #  resourceGroupsConfig: |-
 #      {
 #        "rootGroups": [
@@ -285,6 +383,50 @@ additionalExchangeManagerProperties: []
 #  - exchange.s3.aws-secret-key=your-secret-key
 # ```
 
+sessionProperties: {}
+# sessionProperties -- [Session properties manager config
+# file](https://trino.io/docs/current/admin/session-property-managers.html) is
+# mounted to {{ .Values.server.config.path }}/session-property-config.json
+# @raw
+# Set the type property to either:
+# * `configmap`, and provide the session properties manager file contents in `sessionPropertiesConfig`,
+# * `properties`, and provide configuration properties in `properties`.
+
+# Properties example:
+# ```yaml
+# type: properties
+# properties: |
+#   session-property-config.configuration-manager=file
+#   session-property-manager.config-file=/etc/trino/session-property-config.json
+
+# Configmap Example:
+# ```yaml
+# type: configmap
+# sessionPropertiesConfig: |-
+#   [
+#     {
+#       "group": "global.*",
+#       "sessionProperties": {
+#         "query_max_execution_time": "8h"
+#       }
+#     },
+#     {
+#       "group": "global.interactive.*",
+#       "sessionProperties": {
+#         "query_max_execution_time": "1h"
+#       }
+#     },
+#     {
+#       "group": "global.pipeline.*",
+#       "clientTags": ["etl"],
+#       "sessionProperties": {
+#         "scale_writers": "true",
+#         "hive.insert_existing_partitions_behavior": "overwrite"
+#       }
+#     }
+#   ]
+# ```
+
 eventListenerProperties: []
 # eventListenerProperties -- [Event
 # listener](https://trino.io/docs/current/develop/event-listener.html#event-listener)
@@ -321,6 +463,7 @@ catalogs:
 #    connector.name=memory
 #    memory.max-data-per-node=128MB
 # ```
+# Supports templating with `tpl`.
 
 additionalCatalogs: {}
 # additionalCatalogs -- Deprecated, use `catalogs` instead. Configure additional
@@ -428,6 +571,10 @@ auth: {}
 #  refreshPeriod: 5s
 #  groups: "group_name:user_1,user_2,user_3"
 # ```
+# Set the name of a secret containing this file in the group.db key
+# ```yaml
+#  groupsAuthSecret: "trino-groups-authentication"
+# ```
 
 serviceAccount:
   # -- Specifies whether a service account should be created
@@ -447,6 +594,7 @@ configMounts: []
 #  - name: sample-config-mount
 #    configMap: sample-config-map
 #    path: /config-map/sample.json
+#    subPath: sample.json
 # ```
 
 secretMounts: []
@@ -458,10 +606,12 @@ secretMounts: []
 #  - name: sample-secret
 #    secretName: sample-secret
 #    path: /secrets/sample.json
+#    subPath: sample.json
 # ```
 
 coordinator:
   deployment:
+    annotations: {}
     progressDeadlineSeconds: 600
     # coordinator.deployment.progressDeadlineSeconds -- The maximum time in seconds for a deployment to make progress before it
     # is considered failed. The deployment controller continues to
@@ -471,15 +621,18 @@ coordinator:
     revisionHistoryLimit: 10
     # coordinator.deployment.revisionHistoryLimit -- The number of old ReplicaSets to retain to allow rollback.
 
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 25%
-        maxUnavailable: 25%
+    strategy: {}
     # coordinator.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
   jvm:
     maxHeapSize: "8G"
+    minHeapSize:
+    maxHeapPercent:
+    # coordinator.jvm.maxHeapPercent -- Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
+    initialHeapPercent:
+    # coordinator.jvm.initialHeapPercent -- sets the starting heap size as a percentage of container memory limits.
+    #
+    # NOTE: to disable dynamic heap resizing when setting the size as a percent, add `-XX:MaxHeapFreeRatio=100` or `-XX:-UseAdaptiveSizePolicy` to `additionalJVMConfig`.
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -488,6 +641,12 @@ coordinator:
   config:
     memory:
       heapHeadroomPerNode: ""
+    nodeScheduler:
+      includeCoordinator: false
+      # coordinator.config.nodeScheduler.includeCoordinator -- Allows scheduling work on the coordinator so that a
+      # single machine can function as both coordinator and worker. For large clusters, processing work on the
+      # coordinator can negatively impact query performance because the machine's resources are not available for the
+      # critical coordinator tasks of scheduling, managing, and monitoring query execution.
     query:
       maxMemoryPerNode: "1GB"
 
@@ -549,6 +708,19 @@ coordinator:
   #  successThreshold: 1
   # ```
 
+  startupProbe: {}
+  # coordinator.startupProbe -- [Startup
+  # probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  # @raw
+  # Example:
+  # ```yaml
+  #  initialDelaySeconds: 10
+  #  periodSeconds: 2
+  #  timeoutSeconds: 2
+  #  failureThreshold: 60
+  #  successThreshold: 1
+  # ```
+
   lifecycle: {}
   # coordinator.lifecycle -- Coordinator container [lifecycle
   # events](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/)
@@ -607,7 +779,24 @@ coordinator:
   #    mountPath: /usr/share/extras
   #    readOnly: true
 
+  priorityClassName: ~
+
   annotations: {}
+  # coordinator.annotations -- Annotations to add to the coordinator pod.
+  # @raw
+  # By default, the following annotations are added to the coordinator pod:
+  # - `checksum/access-control-config` - checksum of the coordinator access control config file;
+  # - `checksum/catalog-config` - checksum of the catalog config file;
+  # - `checksum/coordinator-config` - checksum of the coordinator config file.
+  # This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  # setting these annotations to fixed constants in the `coordinator.annotations` section.
+  # Example:
+  # ```yaml
+  #  annotations:
+  #    checksum/access-control-config: ""
+  #    checksum/catalog-config: ""
+  #    checksum/coordinator-config: ""
+  # ```
 
   labels: {}
 
@@ -620,6 +809,7 @@ coordinator:
   #  - name: sample-config-mount
   #    configMap: sample-config-mount
   #    path: /config-mount/sample.json
+  #    subPath: sample.json
   # ```
 
   secretMounts: []
@@ -631,10 +821,12 @@ coordinator:
   #  - name: sample-secret
   #    secretName: sample-secret
   #    path: /secrets/sample.json
+  #    subPath: sample.json
   # ```
 
 worker:
   deployment:
+    annotations: {}
     progressDeadlineSeconds: 600
     # worker.deployment.progressDeadlineSeconds -- The maximum time in seconds for a deployment to make progress before it
     # is considered failed. The deployment controller continues to
@@ -644,15 +836,18 @@ worker:
     revisionHistoryLimit: 10
     # worker.deployment.revisionHistoryLimit -- The number of old ReplicaSets to retain to allow rollback.
 
-    strategy:
-      type: RollingUpdate
-      rollingUpdate:
-        maxSurge: 25%
-        maxUnavailable: 25%
+    strategy: {}
     # worker.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
   jvm:
     maxHeapSize: "8G"
+    minHeapSize:
+    maxHeapPercent:
+    # jvm.maxHeapPercent -- Alternative method of setting heap size as a percentage of container memory limits, which is recommended for better JVM ergonomics. `maxHeapSize` must be unset for this to work.
+    initialHeapPercent:
+    # jvm.initialHeapPercent -- sets the starting heap size as a percentage of container memory limits.
+    #
+    # NOTE: to disable dynamic heap resizing when setting the size as a percent, add `-XX:MaxHeapFreeRatio=100` or `-XX:-UseAdaptiveSizePolicy` to `additionalJVMConfig`.
     gcMethod:
       type: "UseG1GC"
       g1:
@@ -667,7 +862,7 @@ worker:
   additionalJVMConfig: []
 
   additionalExposedPorts: {}
-  # worker.additionalExposedPorts -- Additional container ports configured in all worker pods.
+  # worker.additionalExposedPorts -- Additional container ports configured in all worker pods and the worker service.
   # @raw
   # Example:
   # ```yaml
@@ -717,6 +912,19 @@ worker:
   #  periodSeconds: 10
   #  timeoutSeconds: 5
   #  failureThreshold: 6
+  #  successThreshold: 1
+  # ```
+
+  startupProbe: {}
+  # worker.startupProbe -- [Startup
+  # probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes)
+  # @raw
+  # Example:
+  # ```yaml
+  #  initialDelaySeconds: 10
+  #  periodSeconds: 2
+  #  timeoutSeconds: 2
+  #  failureThreshold: 60
   #  successThreshold: 1
   # ```
 
@@ -770,6 +978,31 @@ worker:
   #    - name-2
   #    - name-3
   #    ip: 1.1.1.1
+  topologySpreadConstraints: []
+  # worker.topologySpreadConstraints -- Configure [topology spread
+  # constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)
+  # to control how worker pods are spread across your cluster among failure-domains
+  # such as nodes, zones, and regions. This is a best practice for achieving high
+  # availability and preventing resource hotspots.
+  #
+  # @raw
+  # Example of spreading workers across hostnames and zones:
+  # ```yaml
+  # topologySpreadConstraints:
+  #   - maxSkew: 1
+  #     topologyKey: "kubernetes.io/hostname"
+  #     whenUnsatisfiable: "ScheduleAnyway"
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: trino
+  #         app.kubernetes.io/component: worker
+  #   - maxSkew: 1
+  #     topologyKey: "topology.kubernetes.io/zone"
+  #     whenUnsatisfiable: "DoNotSchedule"
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: trino
+  #         app.kubernetes.io/component: worker
   # ```
 
   additionalConfigFiles: {}
@@ -801,7 +1034,24 @@ worker:
   #    readOnly: true
   # ```
 
+  priorityClassName: ~
+
   annotations: {}
+  # worker.annotations -- Annotations to add to the worker pods.
+  # @raw
+  # By default, the following annotations are added to the worker pods:
+  # - `checksum/access-control-config` - checksum of the worker access control config file;
+  # - `checksum/catalog-config` - checksum of the catalog config file;
+  # - `checksum/worker-config` - checksum of the worker config file.
+  # This allows for automatic rolling updates on configuration changes. This behaviour can be disabled by manually
+  # setting these annotations to fixed constants in the `worker.annotations` section.
+  # Example:
+  # ```yaml
+  #  annotations:
+  #    checksum/access-control-config: ""
+  #    checksum/catalog-config: ""
+  #    checksum/worker-config: ""
+  # ```
 
   labels: {}
 
@@ -814,6 +1064,7 @@ worker:
   # - name: sample-config-mount
   #   configMap: sample-config-mount
   #   path: /config-mount/sample.json
+  #   subPath: sample.json
   # ```
 
   secretMounts: []
@@ -825,6 +1076,7 @@ worker:
   #  - name: sample-secret
   #    secretName: sample-secret
   #    path: /secrets/sample.json
+  #    subPath: sample.json
   # ```
 
 kafka:
@@ -876,7 +1128,7 @@ jmx:
   exporter:
     # jmx.exporter.enabled -- Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
     enabled: false
-    image: bitnami/jmx-exporter:latest
+    image: bitnamilegacy/jmx-exporter:1.4.0
     pullPolicy: Always
     port: 5556
     configProperties: ""
@@ -931,7 +1183,7 @@ jmx:
   # coordinator:
   #   enabled: true
   #   exporter:
-  #     enable: true
+  #     enabled: true
   #     configProperties: |-
   #       hostPort: localhost:{{- .Values.jmx.registryPort }}
   #       startDelaySeconds: 0
@@ -945,18 +1197,23 @@ jmx:
   # worker:
   #   enabled: true
   #   exporter:
-  #     enable: true
+  #     enabled: true
   # ```
 
 serviceMonitor:
   # serviceMonitor.enabled -- Set to true to create resources for the
   # [prometheus-operator](https://github.com/prometheus-operator/prometheus-operator).
   enabled: false
+
+  apiVersion: monitoring.coreos.com/v1
   # serviceMonitor.labels -- Labels for serviceMonitor, so that Prometheus can select it
   labels:
     prometheus: kube-prometheus
   # serviceMonitor.interval -- The serviceMonitor web endpoint interval
   interval: "30s"
+  # serviceMonitor.scrapeTimeout -- Maximum time to wait for a response.
+  # If empty or not set, uses the Prometheus global default.
+  scrapeTimeout: ""
   coordinator: {}
   # serviceMonitor.coordinator -- Override ServiceMonitor configurations for the Trino coordinator.
   # @raw
@@ -1006,6 +1263,73 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+  # ```
+
+gateway:
+  # gateway.enabled -- Set to true to create HTTPRoute resources for [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/).
+  # The Gateway API is the successor to the Ingress API and provides more advanced routing capabilities.
+  # @raw
+  # > [!NOTE]
+  # > - Requires Gateway API CRDs to be installed in the cluster
+  # > - Not recommended to use together with `ingress.enabled` (choose one or the other)
+  # > - Requires a Gateway resource to be configured separately
+  enabled: false
+  annotations: {}
+  # gateway.annotations -- Annotations to add to the HTTPRoute resource.
+  # @raw
+  # Example:
+  # ```yaml
+  #  gateway.networking.k8s.io/example: "value"
+  # ```
+  parentRefs: []
+  # gateway.parentRefs -- References to the Gateway resources that this HTTPRoute should attach to.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - name: trino-gateway
+  #    namespace: gateway-system
+  #    sectionName: https
+  # ```
+  hostnames: []
+  # gateway.hostnames -- Hostnames to match for routing traffic.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - trino.example.com
+  #  - trino-prod.example.com
+  # ```
+  rules: []
+  # gateway.rules -- HTTPRoute rules for routing traffic to Trino.
+  # Each rule can use either the simplified `path` format for basic routing,
+  # or the full `matches` format for advanced use cases.
+  # @raw
+  # Simple path-based routing example:
+  # ```yaml
+  #  - path:
+  #      type: PathPrefix
+  #      value: /
+  #    filters:
+  #      - type: RequestHeaderModifier
+  #        requestHeaderModifier:
+  #          set:
+  #            - name: X-Forwarded-Proto
+  #              value: https
+  # ```
+  # Advanced matching example with headers:
+  # ```yaml
+  #  - matches:
+  #      - path:
+  #          type: PathPrefix
+  #          value: /ui
+  #        headers:
+  #          - name: X-Custom-Header
+  #            value: custom-value
+  #    filters:
+  #      - type: RequestHeaderModifier
+  #        requestHeaderModifier:
+  #          set:
+  #            - name: X-Forwarded-Proto
+  #              value: https
   # ```
 
 networkPolicy:
