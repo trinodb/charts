@@ -649,6 +649,9 @@ coordinator:
       # critical coordinator tasks of scheduling, managing, and monitoring query execution.
     query:
       maxMemoryPerNode: "1GB"
+      # coordinator.config.query.maxMemoryPerNode -- Maximum amount of user memory a query may use on a single node.
+      # Set to an empty string to omit the property, so that Trino applies its own default of 30% of the heap and
+      # the limit stays proportional to `jvm.maxHeapSize` / `jvm.maxHeapPercent`.
 
   additionalJVMConfig: []
 
@@ -858,6 +861,9 @@ worker:
       heapHeadroomPerNode: ""
     query:
       maxMemoryPerNode: "1GB"
+      # worker.config.query.maxMemoryPerNode -- Maximum amount of user memory a query may use on a single node.
+      # Set to an empty string to omit the property, so that Trino applies its own default of 30% of the heap and
+      # the limit stays proportional to `jvm.maxHeapSize` / `jvm.maxHeapPercent`.
 
   additionalJVMConfig: []
 
