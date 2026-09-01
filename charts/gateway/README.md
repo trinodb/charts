@@ -1,6 +1,6 @@
 # trino-gateway
 
-![Version: 1.20.0](https://img.shields.io/badge/Version-1.20.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 20](https://img.shields.io/badge/AppVersion-20-informational?style=flat-square)
+![Version: 1.21.0](https://img.shields.io/badge/Version-1.21.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 21](https://img.shields.io/badge/AppVersion-21-informational?style=flat-square)
 
 A Helm chart for Trino Gateway
 
@@ -53,7 +53,6 @@ A Helm chart for Trino Gateway
       command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
   ```
 * `config.serverConfig."node.environment"` - string, default: `"test"`
-* `config.serverConfig."http-server.http.port"` - int, default: `8080`
 * `config.serverConfig."http-server.http.enabled"` - bool, default: `true`
 * `config.dataStore.jdbcUrl` - string, default: `"jdbc:postgresql://localhost:5432/gateway"`  
 
