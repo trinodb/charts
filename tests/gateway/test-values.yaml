@@ -8,7 +8,6 @@ image:
 config:
   serverConfig:
     node.environment: test
-    http-server.http.port: 8080
   dataStore:
     # The connection details for the backend database for Trino Gateway and Trino query history
     jdbcUrl: jdbc:postgresql://gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local:5432/gateway

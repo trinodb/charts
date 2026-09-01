@@ -53,7 +53,6 @@ A Helm chart for Trino Gateway
       command: ['sh', '-c', 'echo The worker is running! && sleep 3600']
   ```
 * `config.serverConfig."node.environment"` - string, default: `"test"`
-* `config.serverConfig."http-server.http.port"` - int, default: `8080`
 * `config.serverConfig."http-server.http.enabled"` - bool, default: `true`
 * `config.dataStore.jdbcUrl` - string, default: `"jdbc:postgresql://localhost:5432/gateway"`  
 

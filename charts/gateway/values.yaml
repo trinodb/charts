@@ -51,7 +51,6 @@ initContainers: {}
 config:
   serverConfig:
     node.environment: test
-    http-server.http.port: 8080
     http-server.http.enabled: true
   dataStore:
     # -- The connection details for the backend database for Trino Gateway and Trino query history

@@ -6,10 +6,10 @@ metadata:
     {{- include "trino-gateway.labels" . | nindent 4 }}
 {{- $gatewayPort := "" }}
 {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
-    {{- $gatewayPort = index .Values "config" "serverConfig" "http-server.http.port" }}
+    {{- $gatewayPort = include "trino-gateway.httpPort" . | int }}
 {{- end }}
 {{- if index .Values "config" "serverConfig" "http-server.https.enabled" }}
-{{- $gatewayPort = index .Values "config" "serverConfig" "http-server.https.port" }}
+{{- $gatewayPort = include "trino-gateway.httpsPort" . | int }}
 {{- end }}
 {{- if empty $gatewayPort }}
 {{- fail "Error: No port defined in serverConfig!" $gatewayPort }}

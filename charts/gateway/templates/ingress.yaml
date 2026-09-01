@@ -3,9 +3,9 @@
 {{- $fullName := .Values.serviceName -}}
 {{- $svcPort := -1 }}
 {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
-  {{- $svcPort =  index .Values "config" "serverConfig" "http-server.http.port" }}
+  {{- $svcPort = include "trino-gateway.httpPort" . | int }}
 {{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
-  {{  $svcPort =  index .Values "config" "serverConfig" "http-server.https.port" }}
+  {{  $svcPort = include "trino-gateway.httpsPort" . | int }}
 {{- else }}
   {{- fail "Error: Either https or http must be enabled in serverConfig!" }}
 {{- end }}

@@ -63,3 +63,21 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+The HTTP port the gateway listens on. Defaults to the Trino Gateway default,
+so that the port is only present in the rendered configuration file when it is
+set explicitly.
+*/}}
+{{- define "trino-gateway.httpPort" -}}
+{{- index .Values.config.serverConfig "http-server.http.port" | default 8080 }}
+{{- end }}
+
+{{/*
+The HTTPS port the gateway listens on. Defaults to the Trino Gateway default,
+so that the port is only present in the rendered configuration file when it is
+set explicitly.
+*/}}
+{{- define "trino-gateway.httpsPort" -}}
+{{- index .Values.config.serverConfig "http-server.https.port" | default 8443 }}
+{{- end }}

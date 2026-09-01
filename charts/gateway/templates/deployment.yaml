@@ -1,10 +1,10 @@
 {{- $probePort := -1 }}
 {{- $probeScheme := "" }}
 {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
-{{- $probePort =  index .Values "config" "serverConfig" "http-server.http.port" }}
+{{- $probePort = include "trino-gateway.httpPort" . | int }}
 {{- $probeScheme = "HTTP" }}
 {{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
-{{  $probePort =  index .Values "config" "serverConfig" "http-server.https.port" }}
+{{  $probePort = include "trino-gateway.httpsPort" . | int }}
 {{- $probeScheme = "HTTPS" }}
 {{- else }}
   {{- fail "Error: Either https or http must be enabled in serverConfig!" }}
@@ -63,12 +63,12 @@ spec:
           ports:
             {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
             - name: http
-              containerPort: {{ index .Values "config" "serverConfig" "http-server.http.port" }}
+              containerPort: {{ include "trino-gateway.httpPort" . }}
               protocol: TCP
             {{- end }}
             {{- if index .Values "config" "serverConfig" "http-server.https.enabled" }}
             - name: https
-              containerPort: {{ index .Values "config" "serverConfig" "http-server.https.port" }}
+              containerPort: {{ include "trino-gateway.httpsPort" . }}
               protocol: TCP
             {{- end }}
           livenessProbe:
