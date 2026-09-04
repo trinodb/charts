@@ -64,7 +64,9 @@ data:
     node-scheduler.include-coordinator={{ .Values.coordinator.config.nodeScheduler.includeCoordinator }}
     http-server.http.port={{ .Values.service.port }}
     query.max-memory={{ .Values.server.config.query.maxMemory }}
+    {{- if .Values.coordinator.config.query.maxMemoryPerNode }}
     query.max-memory-per-node={{ .Values.coordinator.config.query.maxMemoryPerNode }}
+    {{- end }}
     {{- if .Values.coordinator.config.memory.heapHeadroomPerNode }}
     memory.heap-headroom-per-node={{ .Values.coordinator.config.memory.heapHeadroomPerNode }}
     {{- end }}

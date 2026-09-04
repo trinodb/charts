@@ -535,7 +535,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `coordinator.config.nodeScheduler.includeCoordinator` - bool, default: `false`  
 
   Allows scheduling work on the coordinator so that a single machine can function as both coordinator and worker. For large clusters, processing work on the coordinator can negatively impact query performance because the machine's resources are not available for the critical coordinator tasks of scheduling, managing, and monitoring query execution.
-* `coordinator.config.query.maxMemoryPerNode` - string, default: `"1GB"`
+* `coordinator.config.query.maxMemoryPerNode` - string, default: `"1GB"`  
+
+  Maximum amount of user memory a query may use on a single node. Set to an empty string to omit the property, so that Trino applies its own default of 30% of the heap and the limit stays proportional to `jvm.maxHeapSize` / `jvm.maxHeapPercent`.
 * `coordinator.additionalJVMConfig` - list, default: `[]`
 * `coordinator.additionalExposedPorts` - object, default: `{}`  
 
@@ -696,7 +698,9 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.jvm.gcMethod.type` - string, default: `"UseG1GC"`
 * `worker.jvm.gcMethod.g1.heapRegionSize` - string, default: `"32M"`
 * `worker.config.memory.heapHeadroomPerNode` - string, default: `""`
-* `worker.config.query.maxMemoryPerNode` - string, default: `"1GB"`
+* `worker.config.query.maxMemoryPerNode` - string, default: `"1GB"`  
+
+  Maximum amount of user memory a query may use on a single node. Set to an empty string to omit the property, so that Trino applies its own default of 30% of the heap and the limit stays proportional to `jvm.maxHeapSize` / `jvm.maxHeapPercent`.
 * `worker.additionalJVMConfig` - list, default: `[]`
 * `worker.additionalExposedPorts` - object, default: `{}`  
 
