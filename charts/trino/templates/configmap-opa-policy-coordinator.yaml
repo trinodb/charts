@@ -1,0 +1,28 @@
+{{- if .Values.opa.enabled }}
+{{- if and (gt (len .Values.opa.policy) 0) .Values.opa.policyConfigMap }}
+{{- fail "opa.policy and opa.policyConfigMap are mutually exclusive: set exactly one." }}
+{{- end }}
+{{- with .Values.image }}
+{{- if and (eq .repository "trinodb/trino") (not .useRepositoryAsSoleImageReference) (not .registry) (not .digest) (lt (default $.Chart.AppVersion .tag | int) 438) }}
+{{- fail "opa.enabled requires Trino 438 or later (the OPA access-control plugin was introduced in release 438). Set image.tag to 438+ or use a custom image." }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.opa.enabled (not .Values.opa.policyConfigMap) }}
+{{- if eq (len .Values.opa.policy) 0 }}
+{{- fail "opa.enabled is true but no policy was provided. Set either opa.policy (map of filename: content) or opa.policyConfigMap (name of an existing ConfigMap)." }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "trino.fullname" . }}-opa-policy-coordinator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: opa
+data:
+  {{- range $name, $content := .Values.opa.policy }}
+  {{ $name }}: |-
+    {{- $content | nindent 4 }}
+  {{- end }}
+{{- end }}

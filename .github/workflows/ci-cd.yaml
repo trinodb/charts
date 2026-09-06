@@ -67,8 +67,9 @@ jobs:
           - { label: default, args: '' }
           # last Trino version that requires JDK 21
           - { label: 446, args: '-a "--set image.tag=446"' }
-          # last Trino version that requires JDK 17
-          - { label: 435, args: '-a "--set image.tag=435"' }
+          # last Trino version that requires JDK 17; OPA access-control was
+          # introduced in Trino 438, so the `opa` test scenario is excluded
+          - { label: 435, args: '-a "--set image.tag=435" -x opa' }
           # skip cleanup to test deploying multiple releases in a single namespace
           - { label: overrides, args: '-s -t default,overrides' }
     steps:

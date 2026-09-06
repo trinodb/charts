@@ -109,6 +109,28 @@ data:
   {{- else}}
   {{- fail "Invalid accessControl.type value. It must be either 'configmap' or 'properties'." }}
   {{- end }}
+{{- else if .Values.opa.enabled }}
+  access-control.properties: |
+    access-control.name=opa
+    opa.policy.uri={{ .Values.opa.policyUri }}
+    {{- if .Values.opa.columnMaskingUri }}
+    opa.policy.column-masking-uri={{ .Values.opa.columnMaskingUri }}
+    {{- end }}
+    {{- if .Values.opa.rowFiltersUri }}
+    opa.policy.row-filters-uri={{ .Values.opa.rowFiltersUri }}
+    {{- end }}
+    {{- if .Values.opa.batchedUri }}
+    opa.policy.batched-uri={{ .Values.opa.batchedUri }}
+    {{- end }}
+    {{- if .Values.opa.logRequests }}
+    opa.log-requests=true
+    {{- end }}
+    {{- if .Values.opa.logResponses }}
+    opa.log-responses=true
+    {{- end }}
+    {{- if .Values.opa.allowPermissionManagementOperations }}
+    opa.allow-permission-management-operations=true
+    {{- end }}
 {{- end }}
 
 {{- if .Values.resourceGroups }}

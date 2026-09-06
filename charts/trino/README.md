@@ -1,6 +1,6 @@
 # trino
 
-![Version: 1.42.2](https://img.shields.io/badge/Version-1.42.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 480](https://img.shields.io/badge/AppVersion-480-informational?style=flat-square)
+![Version: 1.43.0](https://img.shields.io/badge/Version-1.43.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 480](https://img.shields.io/badge/AppVersion-480-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -243,6 +243,92 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
          ]
        }
   ```
+* `opa.enabled` - bool, default: `false`  
+
+  Set to true to deploy an [Open Policy Agent](https://www.openpolicyagent.org/) sidecar container on the Trino coordinator pod.
+  When `opa.enabled` is true and `accessControl` is left at its default
+  (empty `{}`), the chart automatically wires Trino's access-control plugin
+  to this sidecar using `opa.policyUri` and the optional `opa.*Uri` /
+  `opa.log*` / `opa.allowPermissionManagementOperations` values. To
+  customize further, set `accessControl.type: properties` and provide the
+  full `accessControl.properties` block; any `accessControl` value disables
+  auto-wiring.
+* `opa.image` - string, default: `"openpolicyagent/opa:1.16.2-static"`  
+
+  OPA container image. The `-static` variant is recommended: it ships without a shell which keeps the attack surface small. Check for newer versions at https://hub.docker.com/r/openpolicyagent/opa/tags
+* `opa.pullPolicy` - string, default: `"IfNotPresent"`
+* `opa.listenAddress` - string, default: `"0.0.0.0"`  
+
+  Address OPA binds to inside the coordinator pod. Must remain reachable from the kubelet (which probes the pod IP), so binding to a non-routable address such as `127.0.0.1` will break the default `httpGet` probes.
+* `opa.port` - int, default: `8181`  
+
+  Port OPA listens on inside the coordinator pod. Must match the host portion of `opa.policyUri` and the other URI values.
+* `opa.policyUri` - string, default: `"http://127.0.0.1:8181/v1/data/trino/allow"`  
+
+  URI Trino uses to fetch authorization decisions from OPA.
+* `opa.columnMaskingUri` - string, default: `""`  
+
+  Optional URI for column-masking decisions. When set, the auto-wired access-control adds `opa.policy.column-masking-uri`. Leave empty to omit.
+* `opa.rowFiltersUri` - string, default: `""`  
+
+  Optional URI for row-filter decisions. When set, the auto-wired access-control adds `opa.policy.row-filters-uri`. Leave empty to omit.
+* `opa.batchedUri` - string, default: `""`  
+
+  Optional URI for batched authorization decisions. When set, the auto-wired access-control adds `opa.policy.batched-uri`. Leave empty to omit.
+* `opa.logRequests` - bool, default: `false`  
+
+  When true, the auto-wired access-control adds `opa.log-requests=true`, logging every request Trino sends to OPA.
+* `opa.logResponses` - bool, default: `false`  
+
+  When true, the auto-wired access-control adds `opa.log-responses=true`, logging every response Trino receives from OPA.
+* `opa.allowPermissionManagementOperations` - bool, default: `false`  
+
+  When true, the auto-wired access-control adds `opa.allow-permission-management-operations=true`, allowing CREATE/DROP ROLE, GRANT, REVOKE, and similar statements without OPA evaluation.
+* `opa.policy` - object, default: `{}`  
+
+  Rego policy files to render into a ConfigMap and mount into the OPA container at `opa.policyMountPath`. Provide one or more entries, each keyed by file name (e.g. `policy.rego`, `data.json`). Mutually exclusive with `opa.policyConfigMap`. Exactly one of the two must be set when `opa.enabled` is true.
+  Example:
+  ```yaml
+  policy:
+    policy.rego: |
+      package trino
+      import rego.v1
+      default allow := false
+      allow if {
+        input.context.identity.user == "alice"
+      }
+  ```
+* `opa.policyConfigMap` - string, default: `""`  
+
+  Name of an existing ConfigMap holding the OPA policy files. Mutually exclusive with `opa.policy`.
+* `opa.policyMountPath` - string, default: `"/policies"`  
+
+  Directory inside the OPA container where the policy files are mounted.
+* `opa.extraArgs` - list, default: `[]`  
+
+  Additional flags appended to the `opa run` command, before the policy directory positional argument.
+  Example:
+  ```yaml
+  extraArgs:
+    - --log-level=debug
+  ```
+* `opa.securityContext` - object, default: `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsGroup":65532,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}}`  
+
+  [Security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) for the OPA container. Defaults to a hardened, non-root, read-only-root configuration. Override fields explicitly if your environment requires it.
+* `opa.resources` - object, default: `{"limits":{"memory":"512Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}`  
+
+  Resource requests and limits for the OPA container.
+  Set to `{}` to opt out of any resource defaults.
+* `opa.livenessProbe.initialDelaySeconds` - int, default: `5`
+* `opa.livenessProbe.periodSeconds` - int, default: `10`
+* `opa.livenessProbe.timeoutSeconds` - int, default: `5`
+* `opa.livenessProbe.failureThreshold` - int, default: `3`
+* `opa.livenessProbe.successThreshold` - int, default: `1`
+* `opa.readinessProbe.initialDelaySeconds` - int, default: `5`
+* `opa.readinessProbe.periodSeconds` - int, default: `10`
+* `opa.readinessProbe.timeoutSeconds` - int, default: `5`
+* `opa.readinessProbe.failureThreshold` - int, default: `3`
+* `opa.readinessProbe.successThreshold` - int, default: `1`
 * `headerAuthenticator` - object, default: `{}`  
 
   [Header authenticator](https://trino.io/docs/current/develop/header-authenticator.html) configuration. Required when `server.config.authenticationType` contains `HEADER`.

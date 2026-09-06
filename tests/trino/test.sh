@@ -12,6 +12,7 @@ declare -A testCases=(
     [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
     [resource_groups_properties]="--values test-resource-groups-properties-values.yaml"
     [gateway]="--values test-gateway-values.yaml"
+    [opa]="--values test-opa-values.yaml"
 )
 
 declare -A testCaseCharts=(
@@ -24,6 +25,7 @@ declare -A testCaseCharts=(
     [graceful_shutdown]="../../charts/trino"
     [resource_groups_properties]="../../charts/trino"
     [gateway]="../../charts/trino"
+    [opa]="../../charts/trino"
 )
 
 function join_by {
@@ -43,22 +45,24 @@ CT_ARGS=(
     --helm-extra-args="--timeout 2m"
 )
 CLEANUP_NAMESPACE=true
-TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown resource_groups_properties gateway)
+TEST_NAMES=(default single_node complete_values access_control_properties_values exchange_manager_values graceful_shutdown resource_groups_properties gateway opa)
+EXCLUDE_TESTS=()
 
 usage() {
     cat <<EOF 1>&2
-Usage: $0 [-h] [-n <NAMESPACE>] [-a <HELM_EXTRA_SET_ARGS>] [-t <TESTS>] [-s]
+Usage: $0 [-h] [-n <NAMESPACE>] [-a <HELM_EXTRA_SET_ARGS>] [-t <TESTS>] [-x <TESTS>] [-s]
 Test the Trino chart
 
 -h       Display help
 -n       Kubernetes namespace, a randomly generated one is used if not provided
 -a       Extra Helm set args
 -t       Test names to run, comma separated; defaults to $(join_by , "${TEST_NAMES[@]}")
+-x       Test names to exclude, comma separated; applied after -t
 -s       Skip chart cleanup
 EOF
 }
 
-while getopts ":a:n:t:sh:" OPTKEY; do
+while getopts ":a:n:t:x:sh:" OPTKEY; do
     case "${OPTKEY}" in
         a)
             HELM_EXTRA_SET_ARGS=${OPTARG}
@@ -68,6 +72,9 @@ while getopts ":a:n:t:sh:" OPTKEY; do
             ;;
         t)
             IFS=, read -ra TEST_NAMES <<<"$OPTARG"
+            ;;
+        x)
+            IFS=, read -ra EXCLUDE_TESTS <<<"$OPTARG"
             ;;
         s)
             CLEANUP_NAMESPACE=false
@@ -83,6 +90,24 @@ while getopts ":a:n:t:sh:" OPTKEY; do
     esac
 done
 shift $((OPTIND - 1))
+
+# Apply -x exclusions to TEST_NAMES
+if [ ${#EXCLUDE_TESTS[@]} -gt 0 ]; then
+    FILTERED=()
+    for name in "${TEST_NAMES[@]}"; do
+        skip=false
+        for excluded in "${EXCLUDE_TESTS[@]}"; do
+            if [ "$name" = "$excluded" ]; then
+                skip=true
+                break
+            fi
+        done
+        if [ "$skip" = false ]; then
+            FILTERED+=("$name")
+        fi
+    done
+    TEST_NAMES=("${FILTERED[@]}")
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 cd "${SCRIPT_DIR}" || exit 2

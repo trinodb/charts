@@ -101,6 +101,11 @@ spec:
           configMap:
             name: {{ template "trino.fullname" . }}-jmx-exporter-config-coordinator
         {{- end }}
+        {{- if .Values.opa.enabled }}
+        - name: opa-policy-volume
+          configMap:
+            name: {{ .Values.opa.policyConfigMap | default (printf "%s-opa-policy-coordinator" (include "trino.fullname" .)) }}
+        {{- end }}
         {{- range .Values.configMounts }}
         - name: {{ .name }}
           configMap:
@@ -272,6 +277,52 @@ spec:
             - name: jmx-exporter
               containerPort: {{ $coordinatorJmx.exporter.port }}
               protocol: TCP
+      {{- end }}
+      {{- if .Values.opa.enabled }}
+        - name: opa
+          image: {{ .Values.opa.image }}
+          imagePullPolicy: {{ .Values.opa.pullPolicy }}
+          {{- with .Values.opa.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          args:
+            - run
+            - --server
+            - --addr={{ .Values.opa.listenAddress }}:{{ .Values.opa.port }}
+            - --log-format=json
+            - --watch
+            - --ignore=..*
+            {{- range .Values.opa.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+            - {{ .Values.opa.policyMountPath }}
+          volumeMounts:
+            - name: opa-policy-volume
+              mountPath: {{ .Values.opa.policyMountPath }}
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.opa.port }}
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.opa.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.opa.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.opa.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.opa.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.opa.livenessProbe.successThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /health?plugins
+              port: {{ .Values.opa.port }}
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.opa.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.opa.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.opa.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.opa.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.opa.readinessProbe.successThreshold }}
+          resources:
+            {{- toYaml .Values.opa.resources | nindent 12 }}
       {{- end }}
       {{- if .Values.sidecarContainers.coordinator }}
         {{- toYaml .Values.sidecarContainers.coordinator | nindent 8 }}

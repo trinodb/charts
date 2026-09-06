@@ -253,6 +253,121 @@ accessControl: {}
 #      }
 # ```
 
+opa:
+  # -- Set to true to deploy an [Open Policy Agent](https://www.openpolicyagent.org/)
+  # sidecar container on the Trino coordinator pod.
+  # @raw
+  # When `opa.enabled` is true and `accessControl` is left at its default
+  # (empty `{}`), the chart automatically wires Trino's access-control plugin
+  # to this sidecar using `opa.policyUri` and the optional `opa.*Uri` /
+  # `opa.log*` / `opa.allowPermissionManagementOperations` values. To
+  # customize further, set `accessControl.type: properties` and provide the
+  # full `accessControl.properties` block; any `accessControl` value disables
+  # auto-wiring.
+  enabled: false
+  # -- OPA container image. The `-static` variant is recommended: it ships
+  # without a shell which keeps the attack surface small. Check for newer
+  # versions at https://hub.docker.com/r/openpolicyagent/opa/tags
+  image: openpolicyagent/opa:1.16.2-static
+  pullPolicy: IfNotPresent
+  # -- Address OPA binds to inside the coordinator pod. Must remain reachable
+  # from the kubelet (which probes the pod IP), so binding to a non-routable
+  # address such as `127.0.0.1` will break the default `httpGet` probes.
+  listenAddress: 0.0.0.0
+  # -- Port OPA listens on inside the coordinator pod.
+  # Must match the host portion of `opa.policyUri` and the other URI values.
+  port: 8181
+  # -- URI Trino uses to fetch authorization decisions from OPA.
+  policyUri: http://127.0.0.1:8181/v1/data/trino/allow
+  # -- Optional URI for column-masking decisions. When set, the auto-wired
+  # access-control adds `opa.policy.column-masking-uri`. Leave empty to omit.
+  columnMaskingUri: ""
+  # -- Optional URI for row-filter decisions. When set, the auto-wired
+  # access-control adds `opa.policy.row-filters-uri`. Leave empty to omit.
+  rowFiltersUri: ""
+  # -- Optional URI for batched authorization decisions. When set, the
+  # auto-wired access-control adds `opa.policy.batched-uri`. Leave empty to
+  # omit.
+  batchedUri: ""
+  # -- When true, the auto-wired access-control adds `opa.log-requests=true`,
+  # logging every request Trino sends to OPA.
+  logRequests: false
+  # -- When true, the auto-wired access-control adds `opa.log-responses=true`,
+  # logging every response Trino receives from OPA.
+  logResponses: false
+  # -- When true, the auto-wired access-control adds
+  # `opa.allow-permission-management-operations=true`, allowing CREATE/DROP
+  # ROLE, GRANT, REVOKE, and similar statements without OPA evaluation.
+  allowPermissionManagementOperations: false
+  # -- Rego policy files to render into a ConfigMap and mount into the OPA
+  # container at `opa.policyMountPath`. Provide one or more entries, each keyed
+  # by file name (e.g. `policy.rego`, `data.json`). Mutually exclusive with
+  # `opa.policyConfigMap`. Exactly one of the two must be set when
+  # `opa.enabled` is true.
+  # @raw
+  # Example:
+  # ```yaml
+  # policy:
+  #   policy.rego: |
+  #     package trino
+  #     import rego.v1
+  #     default allow := false
+  #     allow if {
+  #       input.context.identity.user == "alice"
+  #     }
+  # ```
+  policy: {}
+  # -- Name of an existing ConfigMap holding the OPA policy files.
+  # Mutually exclusive with `opa.policy`.
+  policyConfigMap: ""
+  # -- Directory inside the OPA container where the policy files are mounted.
+  policyMountPath: /policies
+  # -- Additional flags appended to the `opa run` command, before the policy
+  # directory positional argument.
+  # @raw
+  # Example:
+  # ```yaml
+  # extraArgs:
+  #   - --log-level=debug
+  # ```
+  extraArgs: []
+  # -- [Security
+  # context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container)
+  # for the OPA container. Defaults to a hardened, non-root, read-only-root
+  # configuration. Override fields explicitly if your environment requires it.
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+  # -- Resource requests and limits for the OPA container.
+  # @raw
+  # Set to `{}` to opt out of any resource defaults.
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
 headerAuthenticator: {}
 # headerAuthenticator -- [Header authenticator](https://trino.io/docs/current/develop/header-authenticator.html)
 # configuration. Required when `server.config.authenticationType` contains `HEADER`.
