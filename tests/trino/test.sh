@@ -113,7 +113,7 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     # prometheus
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
-        --version "68.2.1" \
+        --version "91.7.0" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
         --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
         --set grafana.enabled=false \
@@ -137,7 +137,7 @@ if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     helm repo add kedacore https://kedacore.github.io/charts
     helm upgrade --install keda kedacore/keda -n "$KEDA_NAMESPACE" \
         --create-namespace \
-        --version "2.18.3" \
+        --version "2.21.0" \
         --set webhooks.enabled=false \
         --set asciiArt=false
     kubectl rollout status --watch deployments -l app.kubernetes.io/instance=keda -n "$KEDA_NAMESPACE"
@@ -147,7 +147,7 @@ fi
 if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz resource_groups_properties; then
     helm upgrade --install trino-resource-groups-db oci://registry-1.docker.io/bitnamicharts/postgresql -n "$DB_NAMESPACE" \
         --create-namespace \
-        --version "18.2.0" \
+        --version "18.12.2" \
         --set auth.username=trino \
         --set auth.password=pass0000 \
         --set auth.database=resource_groups \
@@ -158,7 +158,7 @@ fi
 # only install Gateway API CRDs when running the `gateway` test
 if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz gateway; then
     echo 1>&2 "Installing Gateway API CRDs"
-    kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+    kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.2/standard-install.yaml
     kubectl wait --for condition=established --timeout=60s crd/gateways.gateway.networking.k8s.io
     kubectl wait --for condition=established --timeout=60s crd/httproutes.gateway.networking.k8s.io
 fi

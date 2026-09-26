@@ -35,7 +35,7 @@ kubectl create namespace "${DB_NAMESPACE}" --dry-run=client --output yaml | kube
 if printf '%s\0' "${TEST_NAMES[@]}" | grep -qwz complete_values; then
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm upgrade --install prometheus-operator prometheus-community/kube-prometheus-stack -n "$NAMESPACE" \
-        --version "68.2.1" \
+        --version "91.7.0" \
         --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
         --set prometheus.prometheusSpec.serviceMonitorSelector.matchLabels.prometheus=default \
         --set grafana.enabled=false \
@@ -127,8 +127,7 @@ DB_PASSWORD=pass0000
 DB_INSTALLATION_NAME=gateway-backend-db
 helm upgrade --install ${DB_INSTALLATION_NAME} oci://registry-1.docker.io/bitnamicharts/postgresql -n "$DB_NAMESPACE" \
     --create-namespace \
-    --version "16.7.27" \
-    --set image.repository=bitnamilegacy/postgresql \
+    --version "18.12.2" \
     --set common.resources.preset=micro \
     --set auth.username=gateway \
     --set auth.password=${DB_PASSWORD} \
