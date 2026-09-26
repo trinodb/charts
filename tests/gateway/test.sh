@@ -128,7 +128,7 @@ DB_INSTALLATION_NAME=gateway-backend-db
 helm upgrade --install ${DB_INSTALLATION_NAME} oci://registry-1.docker.io/bitnamicharts/postgresql -n "$DB_NAMESPACE" \
     --create-namespace \
     --version "18.12.2" \
-    --set common.resources.preset=micro \
+    --set primary.resourcesPreset=micro \
     --set auth.username=gateway \
     --set auth.password=${DB_PASSWORD} \
     --set auth.database=gateway \
