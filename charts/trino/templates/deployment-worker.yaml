@@ -31,16 +31,17 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if or .Values.catalogs .Values.additionalCatalogs }}
-        checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
+        {{- $annotations := deepCopy (.Values.worker.annotations | default dict) }}
+        {{- if and (or .Values.catalogs .Values.additionalCatalogs) (not (hasKey $annotations "checksum/catalog-config")) }}
+        {{- $_ := set $annotations "checksum/catalog-config" (include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum) }}
         {{- end }}
-        checksum/worker-config: {{ include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum }}
-      {{- if .Values.worker.gracefulShutdown.enabled }}
-        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control-worker.yaml") . | sha256sum }}
-      {{- end }}
-      {{- if .Values.worker.annotations }}
-      {{- tpl (toYaml .Values.worker.annotations) . | nindent 8 }}
-      {{- end }}
+        {{- if not (hasKey $annotations "checksum/worker-config") }}
+        {{- $_ := set $annotations "checksum/worker-config" (include (print $.Template.BasePath "/configmap-worker.yaml") . | sha256sum) }}
+        {{- end }}
+        {{- if and .Values.worker.gracefulShutdown.enabled (not (hasKey $annotations "checksum/access-control-config")) }}
+        {{- $_ := set $annotations "checksum/access-control-config" (include (print $.Template.BasePath "/configmap-access-control-worker.yaml") . | sha256sum) }}
+        {{- end }}
+        {{- tpl (toYaml $annotations) . | nindent 8 }}
       labels:
         {{- include "trino.labels" . | nindent 8 }}
         app.kubernetes.io/component: worker

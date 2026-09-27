@@ -87,6 +87,22 @@ shift $((OPTIND - 1))
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 cd "${SCRIPT_DIR}" || exit 2
 
+# Rendered manifests must not contain duplicate keys. Helm tolerates them, but strict
+# YAML parsers such as kustomize reject them, breaking post-render pipelines.
+echo 1>&2 "🧪 Verifying rendered manifests"
+RENDER_DIR=$(mktemp -d)
+trap 'rm -rf "$RENDER_DIR"' EXIT
+printf 'resources:\n  - resources.yaml\n' >"$RENDER_DIR"/kustomization.yaml
+for component in coordinator worker; do
+    key=checksum/$component-config
+    # overriding a generated checksum annotation must replace it, not duplicate it
+    helm template test ../../charts/trino --set "$component.annotations.$key=overridden" >"$RENDER_DIR"/resources.yaml
+    if ! kubectl kustomize "$RENDER_DIR" | grep -q "^ *$key: overridden$"; then
+        echo 1>&2 "❌ Expected $component.annotations.$key to override the generated checksum annotation"
+        exit 1
+    fi
+done
+
 echo 1>&2 "Generating a self-signed TLS certificate"
 openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
     -subj "/O=Trino Software Foundation" \

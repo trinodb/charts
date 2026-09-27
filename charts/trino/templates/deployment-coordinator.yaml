@@ -28,16 +28,17 @@ spec:
   template:
     metadata:
       annotations:
-        {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
-        checksum/access-control-config: {{ include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum }}
+        {{- $annotations := deepCopy (.Values.coordinator.annotations | default dict) }}
+        {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) (not (hasKey $annotations "checksum/access-control-config")) }}
+        {{- $_ := set $annotations "checksum/access-control-config" (include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum) }}
         {{- end }}
-        {{- if or .Values.catalogs .Values.additionalCatalogs }}
-        checksum/catalog-config: {{ include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum }}
+        {{- if and (or .Values.catalogs .Values.additionalCatalogs) (not (hasKey $annotations "checksum/catalog-config")) }}
+        {{- $_ := set $annotations "checksum/catalog-config" (include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum) }}
         {{- end }}
-        checksum/coordinator-config: {{ include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum }}
-      {{- if .Values.coordinator.annotations }}
-      {{- tpl (toYaml .Values.coordinator.annotations) . | nindent 8 }}
-      {{- end }}
+        {{- if not (hasKey $annotations "checksum/coordinator-config") }}
+        {{- $_ := set $annotations "checksum/coordinator-config" (include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum) }}
+        {{- end }}
+        {{- tpl (toYaml $annotations) . | nindent 8 }}
 
       labels:
         {{- include "trino.labels" . | nindent 8 }}
