@@ -121,6 +121,8 @@ worker:
         maxSurge: 25%
         maxUnavailable: 50%
 
+  podDisruptionBudget: {}
+
   jvm:
     maxHeapSize:
     minHeapSize:

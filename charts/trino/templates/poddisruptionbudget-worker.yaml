@@ -1,0 +1,28 @@
+{{- $workerPdb := .Values.worker.podDisruptionBudget | default dict -}}
+{{- $hasMinAvailable := hasKey $workerPdb "minAvailable" -}}
+{{- $hasMaxUnavailable := hasKey $workerPdb "maxUnavailable" -}}
+
+{{- if and $hasMinAvailable $hasMaxUnavailable -}}
+{{- fail "The `worker.podDisruptionBudget` configuration must define only one of `minAvailable` or `maxUnavailable`." -}}
+{{- end -}}
+
+{{- if and (or (gt (int .Values.server.workers) 0) .Values.server.keda.enabled) (or $hasMinAvailable $hasMaxUnavailable) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "trino.worker" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  selector:
+    matchLabels:
+      {{- include "trino.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  {{- if $hasMinAvailable }}
+  minAvailable: {{ $workerPdb.minAvailable }}
+  {{- else }}
+  maxUnavailable: {{ $workerPdb.maxUnavailable }}
+  {{- end }}
+{{- end }}

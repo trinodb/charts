@@ -839,6 +839,20 @@ worker:
     strategy: {}
     # worker.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
+  podDisruptionBudget: {}
+  # worker.podDisruptionBudget -- Worker [PodDisruptionBudget](https://kubernetes.io/docs/tasks/run-application/configure-pdb/)
+  # configuration.
+  # Configure one of the following options:
+  # `minAvailable` - minimum number of worker pods that must stay available.
+  # `maxUnavailable` - maximum number of worker pods that can be unavailable.
+  #
+  # @raw
+  # Example:
+  # ```yaml
+  # podDisruptionBudget:
+  #   minAvailable: 1
+  # ```
+
   jvm:
     maxHeapSize: "8G"
     minHeapSize:
