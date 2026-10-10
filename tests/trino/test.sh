@@ -48,7 +48,7 @@ Test the Trino chart
 EOF
 }
 
-while getopts ":a:n:t:sh:" OPTKEY; do
+while getopts ":a:n:t:sh" OPTKEY; do
     case "${OPTKEY}" in
         a)
             HELM_EXTRA_SET_ARGS=${OPTARG}

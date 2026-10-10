@@ -13,6 +13,17 @@ CHART=../../charts/gateway
 
 TEST_NAMES=(complete_values env_from nodeport https)
 
+HELM_EXTRA_SET_ARGS=
+CT_ARGS=(
+    --skip-clean-up
+    --helm-extra-args="--timeout 4m"
+)
+CLEANUP_NAMESPACE=true
+
+# default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
+NAMESPACE=trino-gateway-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
+DB_NAMESPACE=postgres-gateway
+
 function join_by {
     local d=${1-} f=${2-}
     if shift 2; then
@@ -20,9 +31,50 @@ function join_by {
     fi
 }
 
-# default to randomly generated namespace, same as chart-testing would do, but we need to load secrets into the same namespace
-NAMESPACE=trino-gateway-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
-DB_NAMESPACE=postgres-gateway
+usage() {
+    cat <<EOF 1>&2
+Usage: $0 [-h] [-n <NAMESPACE>] [-a <HELM_EXTRA_SET_ARGS>] [-t <TESTS>] [-s]
+Test the Trino Gateway chart
+
+-h       Display help
+-n       Kubernetes namespace, a randomly generated one is used if not provided
+-a       Extra Helm set args
+-t       Test names to run, comma separated; defaults to $(join_by , "${TEST_NAMES[@]}")
+-s       Skip chart cleanup
+EOF
+}
+
+while getopts ":a:n:t:sh" OPTKEY; do
+    case "${OPTKEY}" in
+        a)
+            HELM_EXTRA_SET_ARGS=${OPTARG}
+            ;;
+        n)
+            NAMESPACE=${OPTARG}
+            ;;
+        t)
+            IFS=, read -ra TEST_NAMES <<<"$OPTARG"
+            ;;
+        s)
+            CLEANUP_NAMESPACE=false
+            ;;
+        h)
+            usage
+            exit 0
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+cd "${SCRIPT_DIR}" || exit 2
+
+CT_ARGS+=(--namespace "$NAMESPACE")
+
 kubectl create namespace "${NAMESPACE}" --dry-run=client --output yaml | kubectl apply --filename -
 kubectl create namespace "${DB_NAMESPACE}" --dry-run=client --output yaml | kubectl apply --filename -
 
@@ -66,57 +118,6 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
     -keyout cert.key -out cert.crt
 kubectl -n "$NAMESPACE" create secret tls certificates --cert=cert.crt --key=cert.key --dry-run=client --output yaml | kubectl apply --filename -
 
-HELM_EXTRA_SET_ARGS=
-CT_ARGS=(
-    --skip-clean-up
-    --helm-extra-args="--timeout 4m"
-)
-CLEANUP_NAMESPACE=true
-
-usage() {
-    cat <<EOF 1>&2
-Usage: $0 [-h] [-n <NAMESPACE>] [-a <HELM_EXTRA_SET_ARGS>] [-t <TESTS>] [-s]
-Test the Trino chart
-
--h       Display help
--n       Kubernetes namespace, a randomly generated one is used if not provided
--a       Extra Helm set args
--t       Test names to run, comma separated; defaults to $(join_by , "${TEST_NAMES[@]}")
--s       Skip chart cleanup
-EOF
-}
-
-while getopts ":a:n:t:sh:" OPTKEY; do
-    case "${OPTKEY}" in
-        a)
-            HELM_EXTRA_SET_ARGS=${OPTARG}
-            ;;
-        n)
-            NAMESPACE=${OPTARG}
-            ;;
-        t)
-            IFS=, read -ra TEST_NAMES <<<"$OPTARG"
-            ;;
-        s)
-            CLEANUP_NAMESPACE=false
-            ;;
-        h)
-            usage
-            exit 0
-            ;;
-        *)
-            usage
-            exit 1
-            ;;
-    esac
-done
-shift $((OPTIND - 1))
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-cd "${SCRIPT_DIR}" || exit 2
-
-CT_ARGS+=(--namespace "$NAMESPACE")
-
 DB_PASSWORD=pass0000
 
 DB_INSTALLATION_NAME=gateway-backend-db
@@ -137,8 +138,8 @@ for test_name in "${TEST_NAMES[@]}"; do
     echo 1>&2 ""
     echo 1>&2 "🧪 Running test $test_name"
     echo 1>&2 ""
-    HELM_EXTRA_SET_ARGS="$HELM_EXTRA_SET_ARGS --set=serviceName=trino-gateway-${test_name//_/-}"
-    if ! time ct install "${CT_ARGS[@]}" --charts="$CHART" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
+    case_set_args="$HELM_EXTRA_SET_ARGS --set=serviceName=trino-gateway-${test_name//_/-}"
+    if ! time ct install "${CT_ARGS[@]}" --charts="$CHART" --helm-extra-set-args "$case_set_args ${testCases[$test_name]}"; then
         echo 1>&2 "❌ Test $test_name failed"
         echo 1>&2 "Test logs:"
         kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test --all-containers=true --prefix=true
