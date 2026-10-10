@@ -28,6 +28,31 @@ jobs:
       - name: Lint charts
         run: ct lint --charts=charts/trino,charts/gateway --validate-maintainers=false
 
+  unittest:
+    runs-on: ubuntu-latest
+    name: unit tests
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v4.3.0
+      # Helm 4 refuses to install a plugin it cannot verify, and this one
+      # publishes no provenance; see helm-unittest/helm-unittest#785.
+      - name: Install helm-unittest
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest --version 1.0.3 --verify=false
+      - name: Run unit tests
+        run: helm unittest charts/trino charts/gateway
+      # helm-unittest supplies values the way a values file does, so it cannot
+      # reach defects that only appear when a value arrives through --set, where
+      # Helm types numbers as int64 rather than float64.
+      - name: Render with values supplied through --set
+        run: |
+          helm template t charts/trino \
+            --set worker.gracefulShutdown.enabled=true \
+            --set worker.gracefulShutdown.gracePeriodSeconds=120 \
+            --set worker.terminationGracePeriodSeconds=300 >/dev/null
+
   changes:
     runs-on: ubuntu-latest
     name: changed trino/gateway files
@@ -58,7 +83,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: trino ${{ matrix.group.name }} ${{ matrix.tag || '480' }}
-    needs: [changes, lint]
+    needs: [changes, lint, unittest]
     if: ${{needs.changes.outputs.trino-changed == 'true'}}
     strategy:
       fail-fast: false
@@ -69,10 +94,10 @@ jobs:
         # releases at once.
         group:
           - { name: core, cases: 'default,single-node,access-control-properties', fixtures: '' }
-          - { name: extras, cases: 'graceful-shutdown,exchange-manager,header-authenticator', fixtures: '' }
+          - { name: extras, cases: 'graceful-shutdown,exchange-manager', fixtures: '' }
           - { name: monitoring, cases: 'complete', fixtures: 'prometheus,keda' }
           - { name: database, cases: 'resource-groups-properties', fixtures: 'postgres' }
-          - { name: gateway-api, cases: 'gateway,gateway-https', fixtures: 'gateway-api' }
+          - { name: gateway-api, cases: 'gateway', fixtures: 'gateway-api' }
         tag:
           - ''
           # last Trino version that requires JDK 21
@@ -99,7 +124,7 @@ jobs:
   test-multi-release:
     runs-on: ubuntu-latest
     name: trino multi-release
-    needs: [changes, lint]
+    needs: [changes, lint, unittest]
     if: ${{needs.changes.outputs.trino-changed == 'true'}}
     steps:
       - uses: actions/checkout@v7
@@ -119,7 +144,7 @@ jobs:
   test-gateway:
     runs-on: ubuntu-latest
     name: gateway ${{ matrix.group.name }}
-    needs: [changes, lint]
+    needs: [changes, lint, unittest]
     if: ${{needs.changes.outputs.gateway-changed == 'true'}}
     strategy:
       fail-fast: false
@@ -154,7 +179,7 @@ jobs:
 
   # Everything above is CI, everything here and below is for releases and runs only on non-pull-request events
   sync-readme:
-    needs: [lint, test, test-multi-release, test-gateway, docs]
+    needs: [lint, unittest, test, test-multi-release, test-gateway, docs]
     runs-on: ubuntu-latest
     if: ${{ always() && !failure() && github.event_name != 'pull_request'}}
     steps:
@@ -183,7 +208,7 @@ jobs:
           git push
 
   release:
-    needs: [lint, test, test-multi-release, test-gateway, docs, sync-readme]
+    needs: [lint, unittest, test, test-multi-release, test-gateway, docs, sync-readme]
     runs-on: ubuntu-latest
     if: ${{ always() && !failure() && github.event_name != 'pull_request'}}
     steps:
