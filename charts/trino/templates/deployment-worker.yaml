@@ -1,4 +1,6 @@
 {{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
+{{- /* default list because concat panics on the nil that an explicit null in the values gives it */ -}}
+{{- $csiSecretMounts := concat (.Values.csiSecretMounts | default list) (.Values.worker.csiSecretMounts | default list) -}}
 {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: apps/v1
 kind: Deployment
@@ -93,6 +95,14 @@ spec:
           secret:
             secretName: {{ tpl .secretName $ }}
         {{- end }}
+        {{- range $csiSecretMounts }}
+        - name: {{ .name }}
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ tpl .secretProviderClass $ }}
+        {{- end }}
         {{- with .Values.worker.additionalVolumes }}
         {{- tpl (. | toYaml) $ | nindent 8 }}
         {{- end }}
@@ -158,6 +168,13 @@ spec:
               {{- end }}
             {{- end }}
             {{- range .Values.worker.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            {{- range $csiSecretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
               {{- if .subPath }}
