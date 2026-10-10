@@ -467,6 +467,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `service.nodePort` - string, default: `""`  
 
   The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+* `service.loadBalancerSourceRanges` - list, default: `[]`  
+
+  The client address ranges allowed to reach the service, for the `LoadBalancer` type. The cloud provider turns them into the load balancer's own access rules, such as the security group of an AWS NLB. If empty or not set, the load balancer accepts traffic from anywhere.
+  Example
+  ```yaml
+  loadBalancerSourceRanges:
+    - 1.2.3.4/32
+    - 10.0.0.0/8
+  ```
 * `service.coordinator` - object, default: `{}`  
 
   Override service configurations for the coordinator service.

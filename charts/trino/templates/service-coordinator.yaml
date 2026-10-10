@@ -1,5 +1,5 @@
 {{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
-{{- include "trino.checkServiceOverrides" (dict "role" "coordinator" "overrides" .Values.service.coordinator "supported" (list "annotations" "type" "nodePort")) -}}
+{{- include "trino.checkServiceOverrides" (dict "role" "coordinator" "overrides" .Values.service.coordinator "supported" (list "annotations" "type" "nodePort" "loadBalancerSourceRanges")) -}}
 {{- $coordinatorService := include "trino.roleConfig" (dict "block" .Values.service "role" "coordinator") | fromYaml -}}
 apiVersion: v1
 kind: Service
@@ -13,6 +13,10 @@ metadata:
     {{- toYaml $coordinatorService.annotations | nindent 4 }}
 spec:
   type: {{ $coordinatorService.type }}
+  {{- with $coordinatorService.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http

@@ -74,6 +74,21 @@ tests:
           value: None
         template: templates/service-worker.yaml
 
+  - it: restricts the coordinator load balancer without touching the worker service
+    set:
+      service.coordinator.type: LoadBalancer
+      service.coordinator.loadBalancerSourceRanges:
+        - 1.2.3.4/32
+    asserts:
+      - equal:
+          path: spec.loadBalancerSourceRanges
+          value:
+            - 1.2.3.4/32
+        template: templates/service-coordinator.yaml
+      - isNull:
+          path: spec.loadBalancerSourceRanges
+        template: templates/service-worker.yaml
+
   - it: pins the coordinator node port from its own role block
     set:
       service.coordinator.type: NodePort
