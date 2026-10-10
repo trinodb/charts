@@ -1,0 +1,114 @@
+# Fixtures are off by default so that a test leg only pays for what it asks for.
+# The test driver turns on the groups a case needs.
+
+postgres:
+  enabled: false
+  image:
+    repository: postgres
+    tag: 18-alpine
+    pullPolicy: IfNotPresent
+  # Short, release-independent name: both charts' test values and test hooks
+  # address the database by this name inside the test namespace.
+  serviceName: postgresql
+  port: 5432
+  # Password of the built-in `postgres` superuser, which owns the init scripts
+  # that create the per-chart roles and databases below.
+  superuserPassword: pass0000
+  # One instance serves both charts; each entry becomes a role plus a database it owns.
+  databases:
+    - name: resource_groups
+      user: trino
+      password: pass0000
+    - name: gateway
+      user: gateway
+      password: pass0000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# Claimed by the exchange-manager case through `coordinator.additionalVolumes`.
+# Always on: an unbound claim costs nothing and keeps the plain test group fixture-free.
+exchangeManagerPvc:
+  enabled: true
+  name: exchange-manager-pvc
+  storage: 128Mi
+
+# The driver generates a self-signed pair with openssl and passes it as
+# `--set-file tls.crt=...,tls.key=...`; nothing renders without it.
+tls:
+  crt: ""
+  key: ""
+  # The charts disagree on the name: charts/trino expects `<namespace>-certificates`
+  # while charts/gateway expects `certificates`, so every requested name gets a
+  # Secret holding the same pair.
+  secretNames:
+    - certificates
+    - "{{ .Release.Namespace }}-certificates"
+
+# Read through the `${ENV:PG_USER}` / `${ENV:PG_PASSWORD}` references in the gateway
+# `env_from` case. Credentials come from the matching `postgres.databases` entry so
+# they are declared once.
+dbCredentials:
+  enabled: false
+  name: db-credentials
+  database: gateway
+
+keda:
+  enabled: false
+  webhooks:
+    enabled: false
+  asciiArt: false
+
+kube-prometheus-stack:
+  enabled: false
+  # Pinned so the Prometheus Service keeps the name the test hooks in
+  # charts/trino/templates/tests/test-jmx.yaml and
+  # charts/gateway/templates/tests/test-servicemonitor.yaml hardcode,
+  # `prometheus-operator-kube-p-prometheus`, whatever the fixtures release is called.
+  # The subchart appends `-prometheus` to this value.
+  fullnameOverride: prometheus-operator-kube-p
+  prometheus:
+    prometheusSpec:
+      # Without this the operator restricts discovery to ServiceMonitors of its own
+      # release, and the ones under test belong to the chart release being tested.
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector:
+        matchLabels:
+          prometheus: default
+    serviceMonitor:
+      selfMonitor: false
+  prometheusOperator:
+    admissionWebhooks:
+      enabled: false
+    kubeletService:
+      enabled: false
+    tls:
+      enabled: false
+    serviceMonitor:
+      selfMonitor: false
+  grafana:
+    enabled: false
+  alertmanager:
+    enabled: false
+  kubeApiServer:
+    enabled: false
+  kubelet:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  coreDns:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  nodeExporter:
+    enabled: false

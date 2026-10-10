@@ -1,0 +1,19 @@
+{{- if .Values.exchangeManagerPvc.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.exchangeManagerPvc.name }}
+  annotations:
+    # kind's default StorageClass binds WaitForFirstConsumer and the Trino pod is
+    # that consumer, so a release-managed claim would leave `helm install --wait`
+    # blocking on a PVC that cannot bind yet. As a hook it is created without
+    # being waited on, and binds once the chart under test mounts it.
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.exchangeManagerPvc.storage }}
+{{- end }}

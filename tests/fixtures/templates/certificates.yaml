@@ -1,0 +1,13 @@
+{{- if and .Values.tls.crt .Values.tls.key }}
+{{- range .Values.tls.secretNames }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ tpl . $ }}
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ $.Values.tls.crt | b64enc }}
+  tls.key: {{ $.Values.tls.key | b64enc }}
+{{- end }}
+{{- end }}
