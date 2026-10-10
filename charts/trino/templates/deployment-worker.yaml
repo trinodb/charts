@@ -117,7 +117,7 @@ spec:
       hostAliases:
       {{- toYaml .Values.worker.hostAliases | nindent 8 }}
       {{- end }}
-      {{- if and .Values.worker.gracefulShutdown.enabled (gt (mulf 2.0 .Values.worker.gracefulShutdown.gracePeriodSeconds) .Values.worker.terminationGracePeriodSeconds) }}
+      {{- if and .Values.worker.gracefulShutdown.enabled (gt (mulf 2.0 .Values.worker.gracefulShutdown.gracePeriodSeconds) (float64 .Values.worker.terminationGracePeriodSeconds)) }}
       {{- fail "The user must set the `worker.terminationGracePeriodSeconds` to a value of at least two times the configured `gracePeriodSeconds`." }}
       {{- else }}
       terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
