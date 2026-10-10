@@ -1,0 +1,190 @@
+suite: Per-role jmx overrides win over the shared jmx block without leaking between roles
+templates:
+  - templates/configmap-jmx-exporter.yaml
+  - templates/service-coordinator.yaml
+  - templates/service-worker.yaml
+  - templates/deployment-coordinator.yaml
+  - templates/deployment-worker.yaml
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-worker.yaml
+  # the deployments include these to checksum them into pod annotations, so they
+  # have to be loaded even though nothing asserts on them
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-access-control-worker.yaml
+  - templates/configmap-catalog.yaml
+tests:
+  - it: lets the coordinator pick its own exporter port while the worker keeps the shared one
+    set:
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      jmx.coordinator.exporter.port: 9999
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            port: 9999
+            targetPort: jmx-exporter
+            protocol: TCP
+            name: jmx-exporter
+        template: templates/service-coordinator.yaml
+      - contains:
+          path: spec.ports
+          content:
+            port: 5556
+            targetPort: jmx-exporter
+            protocol: TCP
+            name: jmx-exporter
+        template: templates/service-worker.yaml
+
+  - it: applies a shared registry port to both roles when neither overrides it
+    set:
+      jmx.enabled: true
+      jmx.registryPort: 9888
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: jmx-registry
+            containerPort: 9888
+            protocol: TCP
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: jmx-registry
+            containerPort: 9888
+            protocol: TCP
+        template: templates/deployment-worker.yaml
+
+  - it: enables jmx for the coordinator alone without touching the worker
+    set:
+      jmx.coordinator.enabled: true
+      jmx.coordinator.exporter.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: jmx-registry
+            containerPort: 9080
+            protocol: TCP
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: jmx-server
+            containerPort: 9081
+            protocol: TCP
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: jmx-exporter
+          any: true
+        template: templates/deployment-coordinator.yaml
+      - notContains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: jmx-registry
+          any: true
+        template: templates/deployment-worker.yaml
+      - notContains:
+          path: spec.template.spec.containers
+          content:
+            name: jmx-exporter
+          any: true
+        template: templates/deployment-worker.yaml
+
+  - it: writes an exporter config map for the enabled role only
+    set:
+      jmx.coordinator.enabled: true
+      jmx.coordinator.exporter.enabled: true
+    template: templates/configmap-jmx-exporter.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-jmx-exporter-config-coordinator
+
+  - it: passes the exporter port to the sidecar as a string argument
+    set:
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+    template: templates/deployment-coordinator.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].args[0]
+          value: "5556"
+      - equal:
+          path: spec.template.spec.containers[1].args[1]
+          value: /etc/jmx-exporter/jmx-exporter-config.yaml
+
+  - it: templates the exporter config properties against the shared jmx values
+    set:
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      jmx.registryPort: 9080
+      jmx.exporter.configProperties: "hostPort: 127.0.0.1:{{- .Values.jmx.registryPort }}"
+    template: templates/configmap-jmx-exporter.yaml
+    asserts:
+      - equal:
+          path: data["jmx-exporter-config.yaml"]
+          value: "hostPort: 127.0.0.1:9080"
+        documentIndex: 0
+      - equal:
+          path: data["jmx-exporter-config.yaml"]
+          value: "hostPort: 127.0.0.1:9080"
+        documentIndex: 1
+
+  - it: writes the jmx ports into the config files without stray whitespace
+    set:
+      jmx.enabled: true
+      jmx.serverPort: 9081
+      jmx.registryPort: 9080
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^jmx\\.rmiregistry\\.port=9080$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^jmx\\.rmiserver\\.port=9081$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-Dcom\\.sun\\.management\\.jmxremote\\.rmi\\.port=9081$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^jmx\\.rmiserver\\.port=9081$"
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  # KNOWN BUG, asserted as current behaviour. `merge` is mergo-backed and treats
+  # `false` as a zero value, so a per-role `false` is overwritten by the shared
+  # `true` and per-role disabling of jmx does not work. If someone fixes the
+  # merge (mustMergeOverwrite, explicit nil handling, or an exhaustive per-role
+  # default block), this test will fail: rewrite it to assert the fixed
+  # behaviour rather than deleting it.
+  - it: cannot disable jmx for a single role, because merge discards a per-role false
+    set:
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      jmx.coordinator.enabled: false
+      jmx.coordinator.exporter.enabled: false
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            name: jmx-exporter
+          any: true
+        template: templates/service-coordinator.yaml
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: jmx-registry
+          any: true
+        template: templates/deployment-coordinator.yaml

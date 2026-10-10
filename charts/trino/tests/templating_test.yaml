@@ -1,0 +1,154 @@
+suite: External names and the node environment accept templated values
+templates:
+  - templates/deployment-coordinator.yaml
+  - templates/deployment-worker.yaml
+  - templates/ingress.yaml
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-worker.yaml
+  # the deployments include these to checksum them into pod annotations, so they
+  # have to be loaded even though nothing asserts on them
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-access-control-worker.yaml
+  - templates/configmap-catalog.yaml
+tests:
+  - it: resolves a templated secret name on both roles
+    set:
+      secretMounts:
+        - name: certificates
+          secretName: "{{ .Release.Namespace }}-certificates"
+          path: /certs
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: certificates
+            secret:
+              secretName: NAMESPACE-certificates
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: certificates
+            secret:
+              secretName: NAMESPACE-certificates
+        template: templates/deployment-worker.yaml
+
+  - it: resolves a templated config map name and keeps the mount in step with it
+    set:
+      coordinator.configMounts:
+        - name: extra-config
+          configMap: "{{ .Release.Namespace }}-extra-config"
+          path: /etc/trino/extra
+          subPath: extra.properties
+    template: templates/deployment-coordinator.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: extra-config
+            configMap:
+              name: NAMESPACE-extra-config
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: extra-config
+            mountPath: /etc/trino/extra
+            subPath: extra.properties
+
+  - it: omits the subPath from a mount that does not ask for one
+    set:
+      coordinator.configMounts:
+        - name: extra-config
+          configMap: "{{ .Release.Namespace }}-extra-config"
+          path: /etc/trino/extra
+    template: templates/deployment-coordinator.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: extra-config
+            mountPath: /etc/trino/extra
+
+  - it: resolves a templated secret reference in envFrom
+    set:
+      envFrom:
+        - secretRef:
+            name: "{{ .Release.Namespace }}-env"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].secretRef.name
+          value: NAMESPACE-env
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].secretRef.name
+          value: NAMESPACE-env
+        template: templates/deployment-worker.yaml
+
+  - it: resolves templated names inside the coordinator additional volumes
+    set:
+      coordinator.additionalVolumes:
+        - name: coordinator-scratch
+          configMap:
+            name: "{{ .Release.Namespace }}-coordinator-scratch"
+    template: templates/deployment-coordinator.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: coordinator-scratch
+            configMap:
+              name: NAMESPACE-coordinator-scratch
+
+  - it: resolves templated names inside the worker additional volumes
+    set:
+      worker.additionalVolumes:
+        - name: worker-scratch
+          configMap:
+            name: "{{ .Release.Namespace }}-worker-scratch"
+    template: templates/deployment-worker.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: worker-scratch
+            configMap:
+              name: NAMESPACE-worker-scratch
+
+  - it: resolves a templated tls secret name on the ingress
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.hosts:
+        - host: trino.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      ingress.tls:
+        - hosts:
+            - trino.example.com
+          secretName: "{{ .Release.Namespace }}-tls"
+    template: templates/ingress.yaml
+    asserts:
+      - equal:
+          path: spec.tls[0].secretName
+          value: NAMESPACE-tls
+      - notMatchRegex:
+          path: spec.tls[0].secretName
+          pattern: "\\{\\{"
+
+  - it: resolves a templated node environment for both roles
+    set:
+      server.node.environment: "{{ .Values.global.env }}_{{ .Values.global.region }}"
+      global.env: dev
+      global.region: region_test
+    asserts:
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.environment=dev_region_test$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.environment=dev_region_test$"
+        template: templates/configmap-worker.yaml
+        documentIndex: 0

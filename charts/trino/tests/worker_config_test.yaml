@@ -1,0 +1,160 @@
+suite: The worker config files point at the coordinator service and track the worker count
+templates:
+  - templates/configmap-worker.yaml
+tests:
+  - it: renders nothing when there are no workers and no event-driven autoscaling
+    set:
+      server.workers: 0
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders the config even without workers when event-driven autoscaling may add them
+    set:
+      server.workers: 0
+      server.keda.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-worker
+        documentIndex: 0
+
+  - it: writes only the unconditional properties by default
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://RELEASE-NAME-trino:8080
+      - equal:
+          path: data["node.properties"]
+          value: |
+            node.environment=production
+            node.data-dir=/data/trino
+            plugin.dir=/usr/lib/trino/plugin
+
+  # The discovery URI has to name the coordinator Service, which keeps the
+  # chart fullname even when the coordinator Deployment is renamed.
+  - it: keeps the discovery uri on the coordinator service when the coordinator is renamed
+    documentIndex: 0
+    set:
+      coordinatorNameOverride: my-coordinator
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^discovery\\.uri=http://RELEASE-NAME-trino:8080$"
+
+  - it: follows the service port into both the listener and the discovery uri
+    documentIndex: 0
+    set:
+      service.port: 9090
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^http-server\\.http\\.port=9090$"
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^discovery\\.uri=http://RELEASE-NAME-trino:9090$"
+
+  - it: adds the heap headroom property only when it is configured
+    documentIndex: 0
+    set:
+      worker.config.memory.heapHeadroomPerNode: 2GB
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^memory\\.heap-headroom-per-node=2GB$"
+
+  - it: indents a multi-line extra config block without introducing a blank line
+    documentIndex: 0
+    set:
+      server.workerExtraConfig: |
+        task.concurrency=8
+        task.max-worker-threads=16
+    asserts:
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://RELEASE-NAME-trino:8080
+            task.concurrency=8
+            task.max-worker-threads=16
+
+  # The grace period is spliced into the line by two chomps, so a whitespace
+  # regression here yields `shutdown.grace-period= 120 s`, which Trino rejects.
+  - it: writes the shutdown grace period as a single unspaced token
+    documentIndex: 0
+    set:
+      worker.gracefulShutdown.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^shutdown\\.grace-period=120s$"
+
+  - it: adds the graceful shutdown access control file under the configured config path
+    documentIndex: 0
+    set:
+      worker.gracefulShutdown.enabled: true
+      server.config.path: /opt/trino
+    asserts:
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.config-file=/opt/trino/access-control/graceful-shutdown-rules.json
+
+  - it: omits the access control file when graceful shutdown is off
+    documentIndex: 0
+    asserts:
+      - isNull:
+          path: data["access-control.properties"]
+
+  - it: sets the worker heap by percentage without emitting absolute heap flags
+    documentIndex: 0
+    set:
+      worker.jvm.maxHeapSize: null
+      worker.jvm.minHeapSize: null
+      worker.jvm.maxHeapPercent: 80
+      worker.jvm.initialHeapPercent: 50
+    asserts:
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:MaxRAMPercentage=80$"
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:InitialRAMPercentage=50$"
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "-Xmx"
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "-Xms"
+
+  - it: appends additional worker jvm config entries on their own lines
+    documentIndex: 0
+    set:
+      worker.additionalJVMConfig:
+        - -Dcom.example.flag=true
+    asserts:
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-Dcom\\.example\\.flag=true$"
+
+  - it: keeps shell-style placeholders in additional node properties verbatim
+    documentIndex: 0
+    set:
+      additionalNodeProperties:
+        - node.id=${NODE_ID}
+    asserts:
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.id=\\$\\{NODE_ID\\}$"

@@ -1,0 +1,150 @@
+suite: The ingress renders as a valid document for every supported Kubernetes API version
+templates:
+  - templates/ingress.yaml
+# Every test that touches a version dependent path states its own capabilities,
+# because a capabilities block is inherited by the tests that follow it
+capabilities:
+  majorVersion: 1
+  minorVersion: 19
+tests:
+  - it: is not created unless it is enabled
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders a parseable Ingress named after the service
+    # Stray output ahead of apiVersion has shipped before and still leaves a
+    # document whose kind and name parse, so the apiVersion is the canary here
+    set:
+      ingress.enabled: true
+      serviceName: my-gw
+    asserts:
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - isKind:
+          of: Ingress
+      - equal:
+          path: metadata.name
+          value: my-gw
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.name
+          value: my-gw
+
+  - it: uses the stable networking api and an ingress class name on recent clusters
+    capabilities:
+      majorVersion: 1
+      minorVersion: 19
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+    asserts:
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+      - notExists:
+          path: metadata.annotations
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: ImplementationSpecific
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 8080
+
+  - it: routes to the configured http port
+    capabilities:
+      majorVersion: 1
+      minorVersion: 19
+    set:
+      ingress.enabled: true
+      config:
+        serverConfig:
+          http-server.http.port: 9999
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 9999
+
+  - it: uses the configured tls secret verbatim
+    # Unlike the trino chart, which runs ingress.tls[].secretName through tpl,
+    # the gateway chart emits it as written, so a templated name cannot be used
+    capabilities:
+      majorVersion: 1
+      minorVersion: 19
+    set:
+      ingress.enabled: true
+      ingress.tls:
+        - secretName: gateway-tls
+          hosts:
+            - gateway.example.com
+    asserts:
+      - equal:
+          path: spec.tls[0]
+          value:
+            secretName: gateway-tls
+            hosts:
+              - gateway.example.com
+
+  - it: refuses to render when neither listener is enabled
+    set:
+      ingress.enabled: true
+      config:
+        serverConfig:
+          http-server.http.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "Error: Either https or http must be enabled in serverConfig!"
+
+  - it: names the ingress class through an annotation on clusters before 1.18
+    capabilities:
+      majorVersion: 1
+      minorVersion: 17
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+    asserts:
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - equal:
+          path: metadata.annotations["kubernetes.io/ingress.class"]
+          value: nginx
+      - notExists:
+          path: spec.ingressClassName
+      - notExists:
+          path: spec.rules[0].http.paths[0].pathType
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.serviceName
+          value: trino-gateway
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.servicePort
+          value: 8080
+
+  - it: keeps an ingress class annotation the user set themselves
+    capabilities:
+      majorVersion: 1
+      minorVersion: 17
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.annotations:
+        kubernetes.io/ingress.class: traefik
+    asserts:
+      - equal:
+          path: metadata.annotations["kubernetes.io/ingress.class"]
+          value: traefik
+
+  - it: falls back to the extensions api on clusters before 1.14
+    capabilities:
+      majorVersion: 1
+      minorVersion: 13
+    set:
+      ingress.enabled: true
+    asserts:
+      - isAPIVersion:
+          of: extensions/v1beta1
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.servicePort
+          value: 8080

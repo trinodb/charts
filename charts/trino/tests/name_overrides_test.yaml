@@ -1,0 +1,201 @@
+suite: Name overrides rename the resources that carry a role name and leave the rest alone
+templates:
+  - templates/deployment-coordinator.yaml
+  - templates/deployment-worker.yaml
+  - templates/service-coordinator.yaml
+  - templates/service-worker.yaml
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-worker.yaml
+  - templates/configmap-catalog.yaml
+  - templates/servicemonitor-coordinator.yaml
+  - templates/servicemonitor-worker.yaml
+  - templates/ingress.yaml
+  - templates/httproute.yaml
+  # the deployments include these to checksum them into pod annotations, so they
+  # have to be loaded even though nothing asserts on them
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-access-control-worker.yaml
+tests:
+  - it: renames the deployments and their config maps
+    set:
+      coordinatorNameOverride: my-coordinator
+      workerNameOverride: my-worker
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-coordinator
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: metadata.name
+          value: my-worker
+        template: templates/deployment-worker.yaml
+      - equal:
+          path: metadata.name
+          value: my-coordinator
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: my-worker
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  - it: leaves the services on the chart fullname so the discovery uri keeps working
+    set:
+      coordinatorNameOverride: my-coordinator
+      workerNameOverride: my-worker
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino
+        template: templates/service-coordinator.yaml
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-worker
+        template: templates/service-worker.yaml
+
+  - it: keeps the config volumes pointing at the renamed config maps
+    set:
+      coordinatorNameOverride: my-coordinator
+      workerNameOverride: my-worker
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: my-coordinator
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: my-worker
+        template: templates/deployment-worker.yaml
+
+  - it: leaves the selector labels untouched by the role name overrides
+    set:
+      coordinatorNameOverride: my-coordinator
+      workerNameOverride: my-worker
+    asserts:
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: trino
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: coordinator
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: trino
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: worker
+        template: templates/deployment-worker.yaml
+
+  # The ServiceMonitors are named after the Services they scrape, not after the
+  # Deployments, so they deliberately ignore the role name overrides.
+  - it: keeps the service monitors named after the services they scrape
+    set:
+      serviceMonitor.enabled: true
+      coordinatorNameOverride: my-coordinator
+      workerNameOverride: my-worker
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-worker
+        template: templates/servicemonitor-worker.yaml
+
+  - it: keeps the catalog config map named after the chart fullname
+    set:
+      coordinatorNameOverride: my-coordinator
+      catalogs.tpch: |
+        connector.name=tpch
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-catalog
+        template: templates/configmap-catalog.yaml
+      - equal:
+          path: spec.template.spec.volumes[1].configMap.name
+          value: RELEASE-NAME-trino-catalog
+        template: templates/deployment-coordinator.yaml
+
+  - it: names the coordinator ingress and http route after the coordinator
+    set:
+      coordinatorNameOverride: my-coordinator
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.hosts:
+        - host: trino.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      gateway.enabled: true
+      gateway.rules:
+        - path: {}
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-coordinator
+        template: templates/ingress.yaml
+      - equal:
+          path: metadata.name
+          value: my-coordinator
+        template: templates/httproute.yaml
+
+  - it: lets nameOverride drive both the fullname and the selector labels
+    set:
+      nameOverride: overridden
+    asserts:
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-overridden
+        template: templates/service-coordinator.yaml
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-overridden-coordinator
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: overridden
+        template: templates/deployment-coordinator.yaml
+
+  - it: lets fullnameOverride replace the generated fullname while nameOverride still labels the pods
+    set:
+      nameOverride: overridden
+      fullnameOverride: trino-prod
+    asserts:
+      - equal:
+          path: metadata.name
+          value: trino-prod
+        template: templates/service-coordinator.yaml
+      - equal:
+          path: metadata.name
+          value: trino-prod-coordinator
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: overridden
+        template: templates/deployment-coordinator.yaml
+
+  - it: prefixes the chart name with the release name
+    release:
+      name: prod
+    template: templates/service-coordinator.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: prod-trino
+
+  # `hasPrefix` is called as `hasPrefix .Release.Name $name`, i.e. it asks
+  # whether the chart name starts with the release name. Any release name that
+  # is a prefix of "trino" therefore disappears from every generated name, so
+  # two such releases in one namespace collide.
+  - it: drops a release name that is a prefix of the chart name
+    release:
+      name: tri
+    template: templates/service-coordinator.yaml
+    asserts:
+      - equal:
+          path: metadata.name
+          value: trino
