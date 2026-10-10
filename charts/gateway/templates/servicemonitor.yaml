@@ -7,10 +7,11 @@ metadata:
   name: {{ include "trino-gateway.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "trino-gateway.labels" . | nindent 4 }}
-    {{- if .Values.serviceMonitor.labels }}
-    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+    {{- $labels := include "trino-gateway.labels" . | fromYaml }}
+    {{- range $key, $value := .Values.serviceMonitor.labels }}
+    {{- $_ := set $labels $key $value }}
     {{- end }}
+    {{- toYaml $labels | nindent 4 }}
 spec:
   selector:
     matchLabels:
