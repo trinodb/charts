@@ -1,4 +1,5 @@
 {{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
+{{- $coordinatorAccessControl := include "trino.roleConfig" (dict "block" .Values.accessControl "role" "coordinator") | fromYaml -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -95,18 +96,18 @@ data:
     {{- .Values.server.coordinatorExtraConfig | nindent 4 }}
     {{- end }}
 
-{{- if .Values.accessControl }}
-  {{- if eq (include "trino.configType" .Values.accessControl) "configmap" }}
+{{- if $coordinatorAccessControl }}
+  {{- if eq (include "trino.configType" $coordinatorAccessControl) "configmap" }}
   access-control.properties: |
     access-control.name=file
-    {{- if .Values.accessControl.refreshPeriod }}
-    security.refresh-period={{ .Values.accessControl.refreshPeriod }}
+    {{- if $coordinatorAccessControl.refreshPeriod }}
+    security.refresh-period={{ $coordinatorAccessControl.refreshPeriod }}
     {{- end }}
-    security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
-  {{- else if eq (include "trino.configType" .Values.accessControl) "properties" }}
+    security.config-file={{ .Values.server.config.path }}/access-control/{{ $coordinatorAccessControl.configFile | default "rules.json" }}
+  {{- else if eq (include "trino.configType" $coordinatorAccessControl) "properties" }}
   access-control.properties: |
-    {{- if .Values.accessControl.properties }}
-    {{- .Values.accessControl.properties | nindent 4 }}
+    {{- if $coordinatorAccessControl.properties }}
+    {{- $coordinatorAccessControl.properties | nindent 4 }}
     {{- else}}
     {{- fail "accessControl.properties is required when accessControl.type is 'properties'." }}
     {{- end }}
