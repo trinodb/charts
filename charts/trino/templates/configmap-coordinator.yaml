@@ -13,7 +13,9 @@ data:
     node.data-dir={{ .Values.server.node.dataDir }}
     plugin.dir={{ .Values.server.node.pluginDir }}
   {{- range $configValue := .Values.additionalNodeProperties }}
-    {{ $configValue }}
+  {{- with tpl $configValue $ }}
+    {{ . }}
+  {{- end }}
   {{- end }}
 
   jvm.config: |
@@ -73,7 +75,9 @@ data:
     http-server.authentication.type={{ .Values.server.config.authenticationType }}
     {{- end }}
     {{- range $configValue := .Values.additionalConfigProperties }}
-    {{ $configValue }}
+    {{- with tpl $configValue $ }}
+    {{ . }}
+    {{- end }}
     {{- end }}
     {{- if .Values.server.config.https.enabled }}
     http-server.https.enabled=true
@@ -153,14 +157,18 @@ data:
     exchange-manager.name={{ .Values.server.exchangeManager.name }}
     exchange.base-directories={{ join "," .Values.server.exchangeManager.baseDir }}
   {{- range $configValue := .Values.additionalExchangeManagerProperties }}
-    {{ $configValue }}
+  {{- with tpl $configValue $ }}
+    {{ . }}
+  {{- end }}
   {{- end }}
 {{- end }}
 
   log.properties: |
     io.trino={{ .Values.server.log.trino.level }}
   {{- range $configValue := .Values.additionalLogProperties }}
-    {{ $configValue }}
+  {{- with tpl $configValue $ }}
+    {{ . }}
+  {{- end }}
   {{- end }}
 
   {{- if contains "PASSWORD" .Values.server.config.authenticationType }}{{- if not (index .Values.coordinator.additionalConfigFiles "password-authenticator.properties") }}
@@ -187,10 +195,20 @@ data:
     {{- end }}
   {{- end }}{{- end }}
 
-{{ if .Values.eventListenerProperties }}
+{{/* An event listener has to declare event-listener.name, so unlike the other
+     property lists this one is rendered before the file is opened: writing the
+     file with nothing in it stops the server from starting, while leaving it
+     out is what a false condition is asking for. */ -}}
+{{ $eventListenerProperties := list -}}
+{{ range $configValue := .Values.eventListenerProperties -}}
+{{ with tpl $configValue $ -}}
+{{ $eventListenerProperties = append $eventListenerProperties . -}}
+{{ end -}}
+{{ end -}}
+{{ if $eventListenerProperties }}
   event-listener.properties: |
-  {{- range $configValue := .Values.eventListenerProperties }}
-    {{ $configValue }}
+  {{- range $eventListenerProperties }}
+    {{ . }}
   {{- end }}
 {{ end }}
 
