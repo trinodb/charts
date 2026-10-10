@@ -44,72 +44,104 @@ jobs:
           filters: |
             trino:
               - 'charts/trino/**'
-              - 'tests/trino/**'
+              - 'tests/**'
               - '.helmignore'
               - '.github/**'
               - '.gitignore'
             gateway:
               - 'charts/gateway/**'
-              - 'tests/gateway/**'
+              - 'tests/**'
               - '.helmignore'
               - '.github/**'
               - '.gitignore'
 
   test:
     runs-on: ubuntu-latest
-    name: test trino ${{ matrix.label }}
-    needs: [changes]
+    name: trino ${{ matrix.group.name }} ${{ matrix.tag || '480' }}
+    needs: [changes, lint]
     if: ${{needs.changes.outputs.trino-changed == 'true'}}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { label: default, args: '' }
+        # Grouped by the prerequisites a case needs, so a leg only installs what
+        # it uses. Cases within a leg run one at a time: chart defaults are two
+        # workers with an 8G heap each, so a kind node cannot hold several
+        # releases at once.
+        group:
+          - { name: core, cases: 'default,single-node,access-control-properties', fixtures: '' }
+          - { name: extras, cases: 'graceful-shutdown,exchange-manager,header-authenticator', fixtures: '' }
+          - { name: monitoring, cases: 'complete', fixtures: 'prometheus,keda' }
+          - { name: database, cases: 'resource-groups-properties', fixtures: 'postgres' }
+          - { name: gateway-api, cases: 'gateway,gateway-https', fixtures: 'gateway-api' }
+        tag:
+          - ''
           # last Trino version that requires JDK 21
-          - { label: 446, args: '-a "--set image.tag=446"' }
+          - '446'
           # last Trino version that requires JDK 17
-          - { label: 435, args: '-a "--set image.tag=435"' }
-          # skip cleanup to test deploying multiple releases in a single namespace
-          - { label: overrides, args: '-s -t default,overrides' }
+          - '435'
     steps:
       - uses: actions/checkout@v7
       - name: Set up Helm
         uses: azure/setup-helm@v5
         with:
           version: v4.3.0
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.8.0
       - name: Create kind cluster
         uses: helm/kind-action@v1.15.0
         with:
           version: v0.33.0
       - name: Run tests
-        run: ./tests/trino/test.sh ${{ matrix.args }}
+        run: |
+          ./tests/run.sh trino \
+            --cases '${{ matrix.group.cases }}' \
+            ${{ matrix.group.fixtures && format('--fixtures ''{0}''', matrix.group.fixtures) || '' }} \
+            ${{ matrix.tag && format('--tag {0}', matrix.tag) || '' }}
 
-  test-gateway:
+  test-multi-release:
     runs-on: ubuntu-latest
-    name: test gateway ${{ matrix.label }}
-    needs: [changes]
-    if: ${{needs.changes.outputs.gateway-changed == 'true'}}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { label: default, args: '' }
+    name: trino multi-release
+    needs: [changes, lint]
+    if: ${{needs.changes.outputs.trino-changed == 'true'}}
     steps:
       - uses: actions/checkout@v7
       - name: Set up Helm
         uses: azure/setup-helm@v5
         with:
           version: v4.3.0
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.8.0
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.15.0
+        with:
+          version: v0.33.0
+      # --retain keeps both releases installed at once, which is what this checks:
+      # that two releases of the chart can coexist in one namespace.
+      - name: Run tests
+        run: ./tests/run.sh trino --cases default,overrides --retain
+
+  test-gateway:
+    runs-on: ubuntu-latest
+    name: gateway ${{ matrix.group.name }}
+    needs: [changes, lint]
+    if: ${{needs.changes.outputs.gateway-changed == 'true'}}
+    strategy:
+      fail-fast: false
+      matrix:
+        group:
+          - { name: monitoring, cases: 'complete', fixtures: 'prometheus,postgres' }
+          - { name: database, cases: 'env-from,https,nodeport', fixtures: 'postgres' }
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v4.3.0
       - name: Create kind cluster
         uses: helm/kind-action@v1.15.0
         with:
           version: v0.33.0
       - name: Run gateway tests
-        run: ./tests/gateway/test.sh ${{ matrix.args }}
+        run: |
+          ./tests/run.sh gateway \
+            --cases '${{ matrix.group.cases }}' \
+            --fixtures '${{ matrix.group.fixtures }}'
 
   docs:
     runs-on: ubuntu-latest
@@ -122,7 +154,7 @@ jobs:
 
   # Everything above is CI, everything here and below is for releases and runs only on non-pull-request events
   sync-readme:
-    needs: [lint, test, test-gateway, docs]
+    needs: [lint, test, test-multi-release, test-gateway, docs]
     runs-on: ubuntu-latest
     if: ${{ always() && !failure() && github.event_name != 'pull_request'}}
     steps:
@@ -151,7 +183,7 @@ jobs:
           git push
 
   release:
-    needs: [lint, test, test-gateway, docs, sync-readme]
+    needs: [lint, test, test-multi-release, test-gateway, docs, sync-readme]
     runs-on: ubuntu-latest
     if: ${{ always() && !failure() && github.event_name != 'pull_request'}}
     steps:

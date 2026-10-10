@@ -4,3 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  # Only the fixtures chart. Pointing this at charts/trino or charts/gateway would
+  # make Dependabot propose Trino and Trino Gateway upgrades as dependency PRs,
+  # because it updates image references in values.yaml as well as chart versions.
+  - package-ecosystem: "helm"
+    directory: "/tests/fixtures"
+    schedule:
+      interval: "weekly"
