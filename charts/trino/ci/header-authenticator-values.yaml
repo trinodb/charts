@@ -1,3 +1,8 @@
+# Not part of any test group in .github/workflows/ci-cd.yaml: these values do not
+# start. Trino 480 rejects the authentication type with "Unknown authentication
+# type: header" and the coordinator crash loops. Wiring this case up means
+# working out the authentication type the chart should emit for a header
+# authenticator, which is a change to the chart rather than to the tests.
 server:
   workers: 0
   config:

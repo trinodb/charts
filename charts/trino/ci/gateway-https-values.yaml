@@ -1,4 +1,8 @@
-# Test values for Gateway API configuration with HTTPS
+# Not part of any test group in .github/workflows/ci-cd.yaml: these values do not
+# start. They enable https without giving the server a keystore, so the
+# coordinator crash loops on a FileNotFoundException out of
+# io.airlift.http.server.HttpServer. Wiring this case up means mounting a
+# certificate the way ci/complete-values.yaml does.
 server:
   workers: 1
   config:
