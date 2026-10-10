@@ -1303,6 +1303,7 @@ ingress:
   hosts: []
   # ingress.hosts -- [Ingress
   # rules](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
+  # Supports templating the `host` values with `tpl`.
   # @raw
   # Example:
   # ```yaml
@@ -1315,6 +1316,7 @@ ingress:
   # ingress.tls -- Ingress
   # [TLS](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)
   # configuration.
+  # Supports templating the `hosts` and `secretName` values with `tpl`.
   # @raw
   # Example:
   # ```yaml
