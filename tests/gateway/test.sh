@@ -9,12 +9,7 @@ declare -A testCases=(
     [https]="--values test-values.yaml --values test-https.yaml"
 )
 
-declare -A testCaseCharts=(
-    [complete_values]="../../charts/gateway"
-    [env_from]="../../charts/gateway"
-    [nodeport]="../../charts/gateway"
-    [https]="../../charts/gateway"
-)
+CHART=../../charts/gateway
 
 TEST_NAMES=(complete_values env_from nodeport https)
 
@@ -143,7 +138,7 @@ for test_name in "${TEST_NAMES[@]}"; do
     echo 1>&2 "🧪 Running test $test_name"
     echo 1>&2 ""
     HELM_EXTRA_SET_ARGS="$HELM_EXTRA_SET_ARGS --set=serviceName=trino-gateway-${test_name//_/-}"
-    if ! time ct install "${CT_ARGS[@]}" --charts="${testCaseCharts[$test_name]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
+    if ! time ct install "${CT_ARGS[@]}" --charts="$CHART" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
         echo 1>&2 "❌ Test $test_name failed"
         echo 1>&2 "Test logs:"
         kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test --all-containers=true --prefix=true
