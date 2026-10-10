@@ -1,4 +1,4 @@
-{{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
+{{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
 {{- if $coordinatorJmx.exporter.enabled }}
 apiVersion: v1
 kind: ConfigMap
@@ -12,7 +12,7 @@ data:
   jmx-exporter-config.yaml: |-
     {{- tpl $coordinatorJmx.exporter.configProperties . | nindent 4 }}
 {{- end }}
-{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+{{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
 {{- if $workerJmx.exporter.enabled }}
 ---
 apiVersion: v1

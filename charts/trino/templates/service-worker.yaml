@@ -1,4 +1,4 @@
-{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+{{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
 apiVersion: v1
 kind: Service
 metadata:

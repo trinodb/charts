@@ -135,3 +135,33 @@ Create the secret name for the group-provider file
 {{- printf "%s-%s" (include "trino.fullname" .) "groups-file" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
+
+{{/*
+Merge a per-role override over the shared settings of the same values block.
+
+Sprig's merge is backed by mergo, which treats false and 0 as unset, so a role
+that explicitly disables something would have the shared value put back over
+it. This walks the override instead and reapplies every key it actually sets,
+at any depth. Returns YAML, so call it through fromYaml.
+*/}}
+{{- define "trino.mergeOverride" -}}
+{{- $shared := index . 0 -}}
+{{- $override := index . 1 | default dict -}}
+{{- $merged := deepCopy $shared -}}
+{{- range $key, $value := $override -}}
+{{- if and (kindIs "map" $value) (hasKey $merged $key) (kindIs "map" (index $merged $key)) -}}
+{{- $_ := set $merged $key (include "trino.mergeOverride" (list (index $merged $key) $value) | fromYaml) -}}
+{{- else -}}
+{{- $_ := set $merged $key $value -}}
+{{- end -}}
+{{- end -}}
+{{- $merged | toYaml -}}
+{{- end }}
+
+{{/*
+The settings of a values block as they apply to one role, with that role's
+overrides on top. Takes `block` and `role`.
+*/}}
+{{- define "trino.roleConfig" -}}
+{{- include "trino.mergeOverride" (list (omit .block "coordinator" "worker") (index .block .role)) -}}
+{{- end }}

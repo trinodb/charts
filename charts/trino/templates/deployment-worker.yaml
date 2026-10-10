@@ -1,4 +1,4 @@
-{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
+{{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
 {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: apps/v1
 kind: Deployment

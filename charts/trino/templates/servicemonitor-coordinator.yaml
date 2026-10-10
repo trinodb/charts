@@ -1,4 +1,4 @@
-{{- $coordinatorServiceMonitor := merge .Values.serviceMonitor.coordinator (omit .Values.serviceMonitor "coordinator" "worker") -}}
+{{- $coordinatorServiceMonitor := include "trino.roleConfig" (dict "block" .Values.serviceMonitor "role" "coordinator") | fromYaml -}}
 {{- if $coordinatorServiceMonitor.enabled -}}
 apiVersion: {{ $coordinatorServiceMonitor.apiVersion }}
 kind: ServiceMonitor
