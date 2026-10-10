@@ -2,14 +2,14 @@
 
 set -euo pipefail
 
-declare -A testCases=(
-    [complete_values]="--values test-values.yaml"
-    [env_from]="--values test-values-with-env.yaml"
-    [nodeport]="--values test-values.yaml --values test-https.yaml --values test-nodeport.yaml"
-    [https]="--values test-values.yaml --values test-https.yaml"
-)
-
 CHART=../../charts/gateway
+
+declare -A testCases=(
+    [complete_values]="--values $CHART/ci/complete-values.yaml"
+    [env_from]="--values $CHART/ci/env-from-values.yaml"
+    [nodeport]="--values $CHART/ci/nodeport-values.yaml"
+    [https]="--values $CHART/ci/https-values.yaml"
+)
 
 TEST_NAMES=(complete_values env_from nodeport https)
 

@@ -2,19 +2,19 @@
 
 set -euo pipefail
 
+CHART=../../charts/trino
+
 declare -A testCases=(
     [default]=""
     [single_node]="--set server.workers=0,coordinator.config.nodeScheduler.includeCoordinator=true"
-    [complete_values]="--values test-values.yaml"
+    [complete_values]="--values $CHART/ci/complete-values.yaml"
     [overrides]="--set coordinatorNameOverride=coordinator-overridden,workerNameOverride=worker-overridden,nameOverride=overridden"
-    [access_control_properties_values]="--values test-access-control-properties-values.yaml"
-    [exchange_manager_values]="--values test-exchange-manager-values.yaml"
-    [graceful_shutdown]="--values test-graceful-shutdown-values.yaml"
-    [resource_groups_properties]="--values test-resource-groups-properties-values.yaml"
-    [gateway]="--values test-gateway-values.yaml"
+    [access_control_properties_values]="--values $CHART/ci/access-control-properties-values.yaml"
+    [exchange_manager_values]="--values $CHART/ci/exchange-manager-values.yaml"
+    [graceful_shutdown]="--values $CHART/ci/graceful-shutdown-values.yaml"
+    [resource_groups_properties]="--values $CHART/ci/resource-groups-properties-values.yaml"
+    [gateway]="--values $CHART/ci/gateway-values.yaml"
 )
-
-CHART=../../charts/trino
 
 function join_by {
     local d=${1-} f=${2-}
