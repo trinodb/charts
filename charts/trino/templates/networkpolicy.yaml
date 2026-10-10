@@ -1,5 +1,6 @@
 {{- if .Values.networkPolicy.enabled }}
-{{- if eq "NodePort" .Values.service.type}}
+{{- $coordinatorService := include "trino.roleConfig" (dict "block" .Values.service "role" "coordinator") | fromYaml }}
+{{- if eq "NodePort" $coordinatorService.type }}
 {{- fail "NetworkPolicy enforcement is not supported with NodePort services, as traffic reaches the Pod through the node itself, bypassing pod-level network controls." }}
 {{- end }}
 apiVersion: networking.k8s.io/v1

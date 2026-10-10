@@ -173,3 +173,16 @@ Takes the block, for example `.Values.resourceGroups`.
 {{- define "trino.configType" -}}
 {{- get (. | default dict) "type" -}}
 {{- end }}
+
+{{/*
+Fail on a key set in a role's service overrides that the role's Service cannot
+apply, so that the value is not silently ignored. Takes `role`, `overrides` and
+`supported`.
+*/}}
+{{- define "trino.checkServiceOverrides" -}}
+{{- range $key := keys (.overrides | default dict) -}}
+{{- if not (has $key $.supported) -}}
+{{- fail (printf "service.%s.%s is not supported, the service settings that can differ per role are: %s" $.role $key (join ", " $.supported)) -}}
+{{- end -}}
+{{- end -}}
+{{- end }}

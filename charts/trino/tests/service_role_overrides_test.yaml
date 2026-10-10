@@ -1,0 +1,85 @@
+suite: Each service takes the shared settings unless its role overrides them
+templates:
+  - templates/service-coordinator.yaml
+  - templates/service-worker.yaml
+tests:
+  - it: applies the shared annotations to both services when neither role overrides them
+    set:
+      service.annotations:
+        shared/annotation: value
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            shared/annotation: value
+        template: templates/service-coordinator.yaml
+      - equal:
+          path: metadata.annotations
+          value:
+            shared/annotation: value
+        template: templates/service-worker.yaml
+
+  # The reason the per-role blocks exist: annotation driven service discovery
+  # registered the workers as coordinators once both services carried the
+  # coordinator's annotations.
+  - it: keeps the annotations of one role out of the other's service
+    set:
+      service.coordinator.annotations:
+        external-dns.alpha.kubernetes.io/hostname: trino.example.com
+      service.worker.annotations:
+        consul.hashicorp.com/service-sync: "false"
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            external-dns.alpha.kubernetes.io/hostname: trino.example.com
+        template: templates/service-coordinator.yaml
+      - equal:
+          path: metadata.annotations
+          value:
+            consul.hashicorp.com/service-sync: "false"
+        template: templates/service-worker.yaml
+
+  - it: merges a role's annotations with the shared ones and wins on a shared key
+    set:
+      service.annotations:
+        shared/annotation: value
+        contested/annotation: shared
+      service.coordinator.annotations:
+        contested/annotation: coordinator
+    asserts:
+      - equal:
+          path: metadata.annotations
+          value:
+            shared/annotation: value
+            contested/annotation: coordinator
+        template: templates/service-coordinator.yaml
+      - equal:
+          path: metadata.annotations
+          value:
+            shared/annotation: value
+            contested/annotation: shared
+        template: templates/service-worker.yaml
+
+  - it: exposes the coordinator alone while the shared type keeps the workers unrouted
+    set:
+      service.coordinator.type: LoadBalancer
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+        template: templates/service-coordinator.yaml
+      - equal:
+          path: spec.clusterIP
+          value: None
+        template: templates/service-worker.yaml
+
+  - it: pins the coordinator node port from its own role block
+    set:
+      service.coordinator.type: NodePort
+      service.coordinator.nodePort: 30080
+    template: templates/service-coordinator.yaml
+    asserts:
+      - equal:
+          path: spec.ports[0].nodePort
+          value: 30080

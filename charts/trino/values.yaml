@@ -565,6 +565,27 @@ service:
   # [allocate a port
   # automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
   nodePort: ""
+  coordinator: {}
+  # service.coordinator -- Override service configurations for the coordinator service.
+  # @raw
+  # Example
+  # ```yaml
+  # coordinator:
+  #   type: LoadBalancer
+  #   annotations:
+  #     external-dns.alpha.kubernetes.io/hostname: trino.example.com
+  # ```
+  worker: {}
+  # service.worker -- Override service configurations for the worker service. The worker service is headless, so
+  # only the settings that apply to a headless service can be overridden. Setting any other one fails the
+  # rendering instead of being silently ignored.
+  # @raw
+  # Example
+  # ```yaml
+  # worker:
+  #   annotations:
+  #     consul.hashicorp.com/service-sync: "false"
+  # ```
 
 auth: {}
 # auth -- Available authentication methods.
