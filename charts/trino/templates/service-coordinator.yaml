@@ -1,6 +1,7 @@
 {{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
-{{- include "trino.checkServiceOverrides" (dict "role" "coordinator" "overrides" .Values.service.coordinator "supported" (list "annotations" "type" "nodePort" "loadBalancerSourceRanges")) -}}
+{{- include "trino.checkServiceOverrides" (dict "role" "coordinator" "overrides" .Values.service.coordinator "supported" (list "annotations" "appProtocols" "type" "nodePort" "loadBalancerSourceRanges")) -}}
 {{- $coordinatorService := include "trino.roleConfig" (dict "block" .Values.service "role" "coordinator") | fromYaml -}}
+{{- $appProtocols := $coordinatorService.appProtocols | default dict -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -22,6 +23,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+      {{- with index $appProtocols "http" }}
+      appProtocol: {{ . }}
+      {{- end }}
       {{- if $coordinatorService.nodePort }}
       nodePort: {{ $coordinatorService.nodePort }}
       {{- end }}
@@ -30,12 +34,18 @@ spec:
       targetPort: https
       protocol: TCP
       name: https
+      {{- with index $appProtocols "https" }}
+      appProtocol: {{ . }}
+      {{- end }}
     {{- end }}
     {{- if $coordinatorJmx.exporter.enabled }}
     - port: {{ $coordinatorJmx.exporter.port }}
       targetPort: jmx-exporter
       protocol: TCP
       name: jmx-exporter
+      {{- with index $appProtocols "jmx-exporter" }}
+      appProtocol: {{ . }}
+      {{- end }}
       {{- if $coordinatorJmx.exporter.nodePort }}
       nodePort: {{ $coordinatorJmx.exporter.nodePort }}
       {{- end }}
@@ -45,6 +55,9 @@ spec:
       name: {{ $value.name }}
       targetPort: {{ $value.port }}
       protocol: {{ $value.protocol }}
+      {{- with index $appProtocols $value.name }}
+      appProtocol: {{ . }}
+      {{- end }}
       {{- if $value.nodePort }}
       nodePort: {{ $value.nodePort }}
       {{- end }}

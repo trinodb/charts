@@ -565,6 +565,21 @@ service:
   # [allocate a port
   # automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
   nodePort: ""
+  appProtocols: {}
+  # service.appProtocols -- The [application
+  # protocol](https://kubernetes.io/docs/concepts/services-networking/service/#application-protocol) of a service
+  # port, keyed by the name of the port. A service mesh reads it to choose the protocol it speaks to the pods, which
+  # is what keeps an HTTP/2 client from being downgraded to HTTP/1.1. The names of the ports are `http`, `https`,
+  # `jmx-exporter`, and the `name` of every entry in `additionalExposedPorts`. There is no default, because the
+  # right value differs per port: `kubernetes.io/h2c` means cleartext HTTP/2, so it is wrong for a TLS port and for
+  # a port that does not speak HTTP at all.
+  # @raw
+  # Example
+  # ```yaml
+  # appProtocols:
+  #   http: kubernetes.io/h2c
+  #   https: https
+  # ```
   loadBalancerSourceRanges: []
   # service.loadBalancerSourceRanges -- The client address ranges allowed to reach the service, for the
   # `LoadBalancer` type. The cloud provider turns them into the load balancer's own access rules, such as the

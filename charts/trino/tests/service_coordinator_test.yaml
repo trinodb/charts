@@ -136,6 +136,65 @@ tests:
             nodePort: 30483
           any: true
 
+  # The application protocol is keyed by port name because the right value
+  # differs per port: kubernetes.io/h2c is cleartext HTTP/2, which describes
+  # the http port and nothing else here.
+  - it: declares the application protocol of every kind of port it exposes
+    template: templates/service-coordinator.yaml
+    set:
+      server.config.https.enabled: true
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      service.appProtocols:
+        http: kubernetes.io/h2c
+        https: https
+        jmx-exporter: http
+        extra-port: kubernetes.io/ws
+      coordinator.additionalExposedPorts:
+        extra:
+          name: extra-port
+          servicePort: 9483
+          port: 9484
+          protocol: TCP
+          nodePort: 30483
+    asserts:
+      - equal:
+          path: spec.ports[0]
+          value:
+            port: 8080
+            targetPort: http
+            protocol: TCP
+            name: http
+            appProtocol: kubernetes.io/h2c
+      - equal:
+          path: spec.ports[1].appProtocol
+          value: https
+      - equal:
+          path: spec.ports[2].appProtocol
+          value: http
+      - equal:
+          path: spec.ports[3]
+          value:
+            port: 9483
+            name: extra-port
+            targetPort: 9484
+            protocol: TCP
+            appProtocol: kubernetes.io/ws
+            nodePort: 30483
+
+  - it: leaves the application protocol off the ports that are not named
+    template: templates/service-coordinator.yaml
+    set:
+      server.config.https.enabled: true
+      service.appProtocols:
+        http: kubernetes.io/h2c
+    asserts:
+      - equal:
+          path: spec.ports[0].appProtocol
+          value: kubernetes.io/h2c
+      - isNull:
+          path: spec.ports[1].appProtocol
+
   - it: leaves the load balancer open unless client ranges are given
     template: templates/service-coordinator.yaml
     set:
