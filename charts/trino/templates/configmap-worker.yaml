@@ -89,14 +89,14 @@ data:
     {{- end }}
 
 {{- if $workerAccessControl }}
-  {{- if eq $workerAccessControl.type "configmap" }}
+  {{- if eq (include "trino.configType" $workerAccessControl) "configmap" }}
   access-control.properties: |
     access-control.name=file
     {{- if $workerAccessControl.refreshPeriod }}
     security.refresh-period={{ $workerAccessControl.refreshPeriod }}
     {{- end }}
     security.config-file={{ .Values.server.config.path }}/access-control/{{ $workerAccessControl.configFile | default "rules.json" }}
-  {{- else if eq $workerAccessControl.type "properties" }}
+  {{- else if eq (include "trino.configType" $workerAccessControl) "properties" }}
   {{- if .Values.worker.gracefulShutdown.enabled }}
   {{- fail "The shutdown request is only permitted by the file based access control, which the chart cannot merge into `accessControl.properties`. Either set `accessControl.worker.type` to 'configmap' and provide the worker rules in `accessControl.worker.rules`, or disable `worker.gracefulShutdown` and apply the related configurations manually." }}
   {{- end }}

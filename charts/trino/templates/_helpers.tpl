@@ -161,7 +161,8 @@ nested maps below it still belong to the values. Takes `block` and `role`.
 Returns YAML, so call it through fromYaml.
 */}}
 {{- define "trino.roleConfig" -}}
-{{- mergeOverwrite (deepCopy (omit .block "coordinator" "worker")) (index .block .role | default dict) | toYaml -}}
+{{- $block := .block | default dict -}}
+{{- mergeOverwrite (deepCopy (omit $block "coordinator" "worker")) (index $block .role | default dict) | toYaml -}}
 {{- end }}
 
 {{/*

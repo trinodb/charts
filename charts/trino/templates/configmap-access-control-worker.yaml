@@ -1,5 +1,5 @@
 {{- $workerAccessControl := include "trino.workerAccessControl" . | fromYaml }}
-{{- if eq $workerAccessControl.type "configmap" }}
+{{- if eq (include "trino.configType" $workerAccessControl) "configmap" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

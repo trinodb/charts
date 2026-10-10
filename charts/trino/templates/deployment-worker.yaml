@@ -33,7 +33,7 @@ spec:
         {{- if or .Values.catalogs .Values.additionalCatalogs }}
         {{- $_ := set $annotations "checksum/catalog-config" (include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum) }}
         {{- end }}
-        {{- if and (eq $workerAccessControl.type "configmap") (not $workerAccessControl.refreshPeriod) }}
+        {{- if and (eq (include "trino.configType" $workerAccessControl) "configmap") (not $workerAccessControl.refreshPeriod) }}
         {{- $_ := set $annotations "checksum/access-control-config" (include (print $.Template.BasePath "/configmap-access-control-worker.yaml") . | sha256sum) }}
         {{- end }}
         {{- range $key, $value := .Values.worker.annotations }}
@@ -71,7 +71,7 @@ spec:
           configMap:
             name: {{ template "trino.fullname" . }}-jmx-exporter-config-worker
         {{- end }}
-        {{- if eq $workerAccessControl.type "configmap" }}
+        {{- if eq (include "trino.configType" $workerAccessControl) "configmap" }}
         - name: access-control-volume
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-worker
@@ -143,7 +143,7 @@ spec:
             {{- end }}
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
-            {{- if eq $workerAccessControl.type "configmap" }}
+            {{- if eq (include "trino.configType" $workerAccessControl) "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}
