@@ -1,0 +1,3 @@
+# Chart defaults, so this case is what a user gets from `helm install` with no
+# values of their own. Deliberately empty.
+{}

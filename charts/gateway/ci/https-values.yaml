@@ -1,3 +1,5 @@
+serviceName: trino-gateway-https
+
 replicaCount: 1
 image:
   # -- Repository location of the Trino Gateway image, typically `organization/imagename`

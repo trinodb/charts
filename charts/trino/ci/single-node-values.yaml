@@ -1,0 +1,7 @@
+server:
+  workers: 0
+
+coordinator:
+  config:
+    nodeScheduler:
+      includeCoordinator: true

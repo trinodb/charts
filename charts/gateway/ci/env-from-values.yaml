@@ -1,3 +1,5 @@
+serviceName: trino-gateway-env-from
+
 replicaCount: 1
 
 image:
