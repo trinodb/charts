@@ -31,18 +31,20 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
-Common labels
+Common labels, with commonLabels set over them so it can override any of them.
+Returns YAML, so call it through fromYaml to add more labels to it.
 */}}
 {{- define "trino-gateway.labels" -}}
-helm.sh/chart: {{ include "trino-gateway.chart" . }}
-{{ include "trino-gateway.selectorLabels" . }}
+{{- $labels := include "trino-gateway.selectorLabels" . | fromYaml }}
+{{- $_ := set $labels "helm.sh/chart" (include "trino-gateway.chart" .) }}
+{{- $_ := set $labels "app.kubernetes.io/managed-by" .Release.Service }}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- $_ := set $labels "app.kubernetes.io/version" .Chart.AppVersion }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- if .Values.commonLabels }}
-{{ tpl (toYaml .Values.commonLabels) . }}
+{{- range $key, $value := .Values.commonLabels }}
+{{- $_ := set $labels $key $value }}
 {{- end }}
+{{- tpl (toYaml $labels) . }}
 {{- end }}
 
 {{/*

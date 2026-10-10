@@ -1,0 +1,66 @@
+suite: Labels can be overridden without being emitted twice
+templates:
+  - templates/deployment.yaml
+  - templates/servicemonitor.yaml
+  # deployment.yaml includes secrets.yaml to checksum it into a pod annotation,
+  # so it has to be loaded even though nothing asserts on it
+  - templates/secrets.yaml
+tests:
+  - it: carries the common labels
+    template: templates/deployment.yaml
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/name: trino-gateway
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/managed-by: Helm
+      - isSubset:
+          path: spec.template.metadata.labels
+          content:
+            app.kubernetes.io/name: trino-gateway
+            app.kubernetes.io/instance: RELEASE-NAME
+
+  # a duplicated key is valid enough for Helm, but strict YAML parsers such as
+  # kustomize reject it, which breaks post-render pipelines
+  - it: emits a label that commonLabels overrides exactly once
+    template: templates/deployment.yaml
+    set:
+      commonLabels:
+        app.kubernetes.io/managed-by: overridden
+        extra-label: extra-value
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: overridden
+      - equal:
+          path: metadata.labels["extra-label"]
+          value: extra-value
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/managed-by"]
+          value: overridden
+
+  - it: emits a label that the service monitor overrides exactly once
+    template: templates/servicemonitor.yaml
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.labels:
+        app.kubernetes.io/managed-by: prometheus-operator
+        prometheus: kube-prometheus
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: prometheus-operator
+      - equal:
+          path: metadata.labels["prometheus"]
+          value: kube-prometheus
+
+  - it: resolves templated labels
+    template: templates/deployment.yaml
+    set:
+      commonLabels:
+        release: "{{ .Release.Name }}"
+    asserts:
+      - equal:
+          path: metadata.labels["release"]
+          value: RELEASE-NAME
