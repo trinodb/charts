@@ -1055,7 +1055,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `ingress.annotations` - object, default: `{}`
 * `ingress.hosts` - list, default: `[]`  
 
-  [Ingress rules](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules).
+  [Ingress rules](https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules). Supports templating the `host` values with `tpl`.
   Example:
   ```yaml
    - host: trino.example.com
@@ -1065,7 +1065,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `ingress.tls` - list, default: `[]`  
 
-  Ingress [TLS](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls) configuration.
+  Ingress [TLS](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls) configuration. Supports templating the `hosts` and `secretName` values with `tpl`.
   Example:
   ```yaml
    - secretName: chart-example-tls

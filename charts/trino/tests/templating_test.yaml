@@ -136,6 +136,55 @@ tests:
           path: spec.tls[0].secretName
           pattern: "\\{\\{"
 
+  - it: resolves a templated host on the ingress rules and in the tls block
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.hosts:
+        - host: "{{ .Values.global.clusterName }}.trino.example.com"
+          paths:
+            - path: /
+              pathType: Prefix
+      ingress.tls:
+        - hosts:
+            - "{{ .Values.global.clusterName }}.trino.example.com"
+            - "trino.{{ .Release.Namespace }}.example.com"
+          secretName: trino-tls
+      global.clusterName: eu-west
+    template: templates/ingress.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: eu-west.trino.example.com
+      - equal:
+          path: spec.tls[0].hosts
+          value:
+            - eu-west.trino.example.com
+            - trino.NAMESPACE.example.com
+
+  - it: leaves ingress hosts without a template expression unchanged
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.hosts:
+        - host: trino.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+      ingress.tls:
+        - hosts:
+            - trino.example.com
+          secretName: trino-tls
+    template: templates/ingress.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: trino.example.com
+      - equal:
+          path: spec.tls[0].hosts
+          value:
+            - trino.example.com
+
   - it: resolves a templated node environment for both roles
     set:
       server.node.environment: "{{ .Values.global.env }}_{{ .Values.global.region }}"
