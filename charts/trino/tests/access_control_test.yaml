@@ -1,0 +1,72 @@
+suite: Access control is configured per role with the shared block as the default
+templates:
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-access-control-coordinator.yaml
+tests:
+  - it: mounts the shared rules on the coordinator
+    set:
+      accessControl:
+        type: configmap
+        refreshPeriod: 60s
+        rules:
+          rules.json: |-
+            {"system_information": [{"user": "foo", "allow": ["read"]}]}
+    asserts:
+      - equal:
+          path: data["rules.json"]
+          value: |-
+            {"system_information": [{"user": "foo", "allow": ["read"]}]}
+        template: templates/configmap-access-control-coordinator.yaml
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.refresh-period=60s
+            security.config-file=/etc/trino/access-control/rules.json
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+
+  # the rules of both blocks are one map, so a role adds files to the shared set
+  # rather than replacing it, and points at its own with configFile
+  - it: lets the coordinator pick its own rules file while keeping the shared refresh period
+    set:
+      accessControl:
+        type: configmap
+        refreshPeriod: 60s
+        rules:
+          rules.json: "{}"
+        coordinator:
+          configFile: coordinator.json
+          rules:
+            coordinator.json: "{}"
+    asserts:
+      - equal:
+          path: data
+          value:
+            coordinator.json: "{}"
+            rules.json: "{}"
+        template: templates/configmap-access-control-coordinator.yaml
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.refresh-period=60s
+            security.config-file=/etc/trino/access-control/coordinator.json
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+
+  - it: leaves the coordinator alone when only the worker configures access control
+    set:
+      accessControl:
+        worker:
+          type: configmap
+          rules:
+            rules.json: "{}"
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-access-control-coordinator.yaml
+      - isNull:
+          path: data["access-control.properties"]
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0

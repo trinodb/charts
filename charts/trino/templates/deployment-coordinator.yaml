@@ -1,4 +1,5 @@
 {{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
+{{- $coordinatorAccessControl := include "trino.roleConfig" (dict "block" .Values.accessControl "role" "coordinator") | fromYaml -}}
 {{- /* default list because concat panics on the nil that an explicit null in the values gives it */ -}}
 {{- $csiSecretMounts := concat (.Values.csiSecretMounts | default list) (.Values.coordinator.csiSecretMounts | default list) -}}
 apiVersion: apps/v1
@@ -26,7 +27,7 @@ spec:
     metadata:
       annotations:
         {{- $annotations := dict "checksum/coordinator-config" (include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum) }}
-        {{- if and (eq (include "trino.configType" .Values.accessControl) "configmap") (not .Values.accessControl.refreshPeriod) }}
+        {{- if and (eq (include "trino.configType" $coordinatorAccessControl) "configmap") (not $coordinatorAccessControl.refreshPeriod) }}
         {{- $_ := set $annotations "checksum/access-control-config" (include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum) }}
         {{- end }}
         {{- if or .Values.catalogs .Values.additionalCatalogs }}
@@ -62,7 +63,7 @@ spec:
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
-        {{- if eq (include "trino.configType" .Values.accessControl) "configmap" }}
+        {{- if eq (include "trino.configType" $coordinatorAccessControl) "configmap" }}
         - name: access-control-volume
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
@@ -156,7 +157,7 @@ spec:
             {{- end }}
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
-            {{- if eq (include "trino.configType" .Values.accessControl) "configmap" }}
+            {{- if eq (include "trino.configType" $coordinatorAccessControl) "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}
