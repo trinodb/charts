@@ -1,0 +1,3 @@
+nameOverride: overridden
+coordinatorNameOverride: coordinator-overridden
+workerNameOverride: worker-overridden

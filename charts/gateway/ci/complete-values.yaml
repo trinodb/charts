@@ -1,3 +1,5 @@
+serviceName: trino-gateway-complete
+
 replicaCount: 1
 
 image:
