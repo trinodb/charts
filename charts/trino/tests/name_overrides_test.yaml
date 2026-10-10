@@ -187,15 +187,11 @@ tests:
           path: metadata.name
           value: prod-trino
 
-  # `hasPrefix` is called as `hasPrefix .Release.Name $name`, i.e. it asks
-  # whether the chart name starts with the release name. Any release name that
-  # is a prefix of "trino" therefore disappears from every generated name, so
-  # two such releases in one namespace collide.
-  - it: drops a release name that is a prefix of the chart name
+  - it: keeps a release name that is a prefix of the chart name
     release:
       name: tri
     template: templates/service-coordinator.yaml
     asserts:
       - equal:
           path: metadata.name
-          value: trino
+          value: tri-trino

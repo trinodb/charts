@@ -161,15 +161,17 @@ tests:
           path: spec.rules
           count: 2
 
-  # KNOWN BUG, asserted as current behaviour. A rule that supplies neither
-  # `matches` nor `path` dereferences a nil `path`, so the user gets a Go
-  # template stack trace instead of an explanation. If a `fail` with a readable
-  # message is added, this test will fail: rewrite it rather than deleting it.
-  - it: crashes with a template error when a rule has neither matches nor path
+  - it: falls back to the default path match when a rule gives neither matches nor path
     set:
       gateway.enabled: true
       gateway.rules:
         - weight: 1
     asserts:
-      - failedTemplate:
-          errorPattern: "nil pointer evaluating interface \\{\\}\\.type"
+      - equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: PathPrefix
+            value: /
+      - equal:
+          path: spec.rules[0].backendRefs[0].weight
+          value: 1

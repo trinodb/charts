@@ -261,15 +261,11 @@ tests:
           path: data["jvm.config"]
           pattern: "G1NumCollectionsKeepPinned"
 
-  # KNOWN BUG, asserted as current behaviour. The version gate pipes the tag
-  # through `int`, which casts a non-numeric tag to 0, so a suffixed tag of a
-  # new enough image silently loses the workaround. If the gate learns to parse
-  # such tags, this test will fail: rewrite it rather than deleting it.
-  - it: silently drops the pinned-region workaround for a suffixed image tag
+  - it: applies the pinned-region workaround to a tag that carries a suffix
     documentIndex: 0
     set:
       image.tag: 480-arm64
     asserts:
-      - notMatchRegex:
+      - matchRegex:
           path: data["jvm.config"]
           pattern: "G1NumCollectionsKeepPinned"

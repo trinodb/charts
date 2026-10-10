@@ -25,9 +25,10 @@ spec:
         {{- if .matches }}
         {{- toYaml .matches | nindent 8 }}
         {{- else }}
+        {{- $path := .path | default dict }}
         - path:
-            type: {{ .path.type | default "PathPrefix" }}
-            value: {{ .path.value | default "/" }}
+            type: {{ $path.type | default "PathPrefix" }}
+            value: {{ $path.value | default "/" }}
         {{- end }}
       {{- if .filters }}
       filters:

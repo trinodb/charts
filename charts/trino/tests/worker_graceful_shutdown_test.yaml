@@ -1,0 +1,42 @@
+suite: The worker termination grace period is validated against the shutdown grace period
+templates:
+  - templates/deployment-worker.yaml
+  # deployment-worker.yaml includes these to checksum them into pod annotations
+  - templates/configmap-catalog.yaml
+  - templates/configmap-worker.yaml
+  - templates/configmap-access-control-worker.yaml
+tests:
+  - it: accepts a termination grace period of at least twice the shutdown grace period
+    template: templates/deployment-worker.yaml
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.gracefulShutdown.gracePeriodSeconds: 120
+      worker.terminationGracePeriodSeconds: 300
+    asserts:
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 300
+
+  - it: refuses a termination grace period below twice the shutdown grace period
+    template: templates/deployment-worker.yaml
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.gracefulShutdown.gracePeriodSeconds: 120
+      worker.terminationGracePeriodSeconds: 60
+    asserts:
+      - failedTemplate:
+          errorMessage: "The user must set the `worker.terminationGracePeriodSeconds` to a value of at least two times the configured `gracePeriodSeconds`."
+
+  - it: compares the two periods without caring how the values were supplied
+    # The comparison used to mix a float64 from mulf with whatever type the value
+    # arrived as, so the same numbers worked from a values file and failed from
+    # --set, which supplies int64.
+    template: templates/deployment-worker.yaml
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.gracefulShutdown.gracePeriodSeconds: 120
+      worker.terminationGracePeriodSeconds: 240
+    asserts:
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 240
