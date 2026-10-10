@@ -14,7 +14,7 @@ config:
     http-server.https.keystore.path: /etc/scratch/tls.pem
   dataStore:
     # The connection details for the backend database for Trino Gateway and Trino query history
-    jdbcUrl: jdbc:postgresql://gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local:5432/gateway
+    jdbcUrl: jdbc:postgresql://postgresql:5432/gateway
     user: gateway
     password: pass0000
     driver: org.postgresql.Driver

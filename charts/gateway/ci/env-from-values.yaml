@@ -12,7 +12,7 @@ config:
     node.environment: test
   dataStore:
     # The connection details for the backend database for Trino Gateway and Trino query history
-    jdbcUrl: jdbc:postgresql://gateway-backend-db-postgresql.postgres-gateway.svc.cluster.local:5432/gateway
+    jdbcUrl: jdbc:postgresql://postgresql:5432/gateway
     user: "${ENV:PG_USER}"
     password: "${ENV:PG_PASSWORD}"
     driver: org.postgresql.Driver

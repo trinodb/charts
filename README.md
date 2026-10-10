@@ -60,30 +60,56 @@ following resources:
 
 ## Development
 
-To test the chart, install it into a Kubernetes cluster. Use `kind` to create a
-Kubernetes cluster running in a container, and `chart-testing` to install the
-chart and run [tests](charts/trino/templates/tests).
+Each test case is a values file under a chart's `ci` directory. `ct lint`
+validates every chart against every one of them, and `tests/run.sh` installs the
+chart once per case into a throwaway namespace and runs the chart's
+[Helm tests](charts/trino/templates/tests) against it.
 
 ```console
 brew install helm kind chart-testing
 kind create cluster
-ct install
+./tests/run.sh trino
 ```
 
-To run tests with specific values:
+Some cases need something else in the cluster first. Those prerequisites are a
+Helm chart of their own, `tests/fixtures`, and `--fixtures` selects the ones to
+install, so a run only pays for what it uses:
+
+| Fixture | Needed by |
+| --- | --- |
+| `prometheus` | `trino/complete`, `gateway/complete` |
+| `keda` | `trino/complete` |
+| `postgres` | `trino/resource-groups-properties`, every `gateway` case |
+| `gateway-api` | `trino/gateway`, `trino/gateway-https` |
+
 ```console
-ct install --helm-extra-set-args "--set image.tag=480"
+./tests/run.sh trino --cases complete --fixtures prometheus,keda
+./tests/run.sh gateway --fixtures all
 ```
 
-Use the `test.sh` script to run a suite of tests, with different chart values.
-If some of the tests fail, use the `-s` flag to skip cleanup and inspect the
-resources installed in the Kubernetes cluster. Use `-n` to use a specific
-namespace, not a randomly generated one. Use `-t` to run only selected tests.
-See the command help (`-h`) for a list of available tests.
+Use `--cases` to run only some of them, `--tag` to test a different Trino
+version, and `--keep` to leave the namespace in place so failing resources can be
+inspected. See `./tests/run.sh --help` for the rest.
 
-Example:
 ```console
-./test.sh -n trino -s -t default
+./tests/run.sh trino --cases graceful-shutdown --keep
+```
+
+The `prometheus` and `keda` fixtures create cluster scoped resources that belong
+to their Helm release: CRDs, ClusterRoles, ClusterRoleBindings and an APIService.
+Only one run using them can be in flight per cluster, and `tests/run.sh` has to
+uninstall the release rather than only delete the namespace, which is what its
+teardown does. If such a run is killed before it can clean up, those resources
+are left owned by a release that no longer exists and the next run cannot adopt
+them. Recover by deleting whatever the dead release still owns:
+
+```console
+for kind in clusterrole clusterrolebinding apiservice crd; do
+  kubectl get "$kind" -o json |
+    jq -r --arg ns "$STALE_NAMESPACE" \
+      '.items[] | select(.metadata.annotations["meta.helm.sh/release-namespace"] == $ns)
+       | "\(.kind)/\(.metadata.name)"'
+done | xargs -r kubectl delete
 ```
 
 The documentation is automatically generated from the chart files. Install a
