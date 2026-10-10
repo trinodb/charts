@@ -14,17 +14,7 @@ declare -A testCases=(
     [gateway]="--values test-gateway-values.yaml"
 )
 
-declare -A testCaseCharts=(
-    [default]="../../charts/trino"
-    [single_node]="../../charts/trino"
-    [complete_values]="../../charts/trino"
-    [overrides]="../../charts/trino"
-    [access_control_properties_values]="../../charts/trino"
-    [exchange_manager_values]="../../charts/trino"
-    [graceful_shutdown]="../../charts/trino"
-    [resource_groups_properties]="../../charts/trino"
-    [gateway]="../../charts/trino"
-)
+CHART=../../charts/trino
 
 function join_by {
     local d=${1-} f=${2-}
@@ -170,7 +160,7 @@ for test_name in "${TEST_NAMES[@]}"; do
     echo 1>&2 ""
     echo 1>&2 "🧪 Running test $test_name"
     echo 1>&2 ""
-    if ! time ct install "${CT_ARGS[@]}" --charts="${testCaseCharts[$test_name]}" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
+    if ! time ct install "${CT_ARGS[@]}" --charts="$CHART" --helm-extra-set-args "$HELM_EXTRA_SET_ARGS ${testCases[$test_name]}"; then
         echo 1>&2 "❌ Test $test_name failed"
         echo 1>&2 "Test logs:"
         kubectl --namespace "$NAMESPACE" logs --tail=-1 --selector app.kubernetes.io/component=test --all-containers=true
