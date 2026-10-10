@@ -94,7 +94,7 @@ jobs:
         # releases at once.
         group:
           - { name: core, cases: 'default,single-node,access-control-properties', fixtures: '' }
-          - { name: extras, cases: 'graceful-shutdown,exchange-manager', fixtures: '' }
+          - { name: extras, cases: 'graceful-shutdown,worker-access-control,exchange-manager', fixtures: '' }
           - { name: monitoring, cases: 'complete', fixtures: 'prometheus,keda' }
           - { name: database, cases: 'resource-groups-properties', fixtures: 'postgres' }
           - { name: gateway-api, cases: 'gateway', fixtures: 'gateway-api' }

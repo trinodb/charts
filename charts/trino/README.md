@@ -181,6 +181,31 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `accessControl` - object, default: `{}`  
 
   [System access control](https://trino.io/docs/current/security/built-in-system-access-control.html) configuration.
+  These settings apply to the coordinator and to the workers. Settings meant
+  for one role only go in a `coordinator` or a `worker` block, where they
+  override the shared ones. Workers evaluate access control for the management
+  endpoints, such as reading metrics or the graceful shutdown request, so
+  granting a user read access to system information on workers takes nothing
+  more than:
+  ```yaml
+   worker:
+     type: configmap
+     rules:
+       rules.json: |-
+         {
+           "system_information": [
+             {
+               "user": "prometheus",
+               "allow": ["read"]
+             }
+           ]
+         }
+  ```
+  When `worker.gracefulShutdown` is enabled, the chart merges the permission to
+  write system information for `worker.gracefulShutdown.user` into the worker
+  rules, so the shutdown request keeps working next to the rules configured
+  here. Those rules have to be of the `configmap` type, because the permission
+  cannot be merged into opaque properties.
   Set the type property to either:
   * `configmap`, and provide the rule file contents in `rules`,
   * `properties`, and provide configuration properties in `properties`.
@@ -825,14 +850,17 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      exec:
        command: ["/bin/sh", "-c", "sleep 120"]
   ```
-* `worker.gracefulShutdown` - object, default: `{"enabled":false,"gracePeriodSeconds":120}`  
+* `worker.gracefulShutdown` - object, default: `{"enabled":false,"gracePeriodSeconds":120,"user":"admin"}`  
 
   Configure [graceful shutdown](https://trino.io/docs/current/admin/graceful-shutdown.html) in order to ensure that workers terminate without affecting running queries, given a sufficient grace period. When enabled, the value of `worker.terminationGracePeriodSeconds` must be at least two times greater than the configured `gracePeriodSeconds`. Enabling `worker.gracefulShutdown` conflicts with `worker.lifecycle`. When a custom `worker.lifecycle` configuration needs to be used, graceful shutdown must be configured manually.
+  The shutdown request is sent as `user`, and the chart permits that user to write system information in the worker
+  access control rules, merging the permission into the rules set in `accessControl`.
   Example:
   ```yaml
    gracefulShutdown:
      enabled: true
      gracePeriodSeconds: 120
+     user: admin
   ```
 * `worker.terminationGracePeriodSeconds` - int, default: `30`
 * `worker.nodeSelector` - object, default: `{}`

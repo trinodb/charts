@@ -186,3 +186,51 @@ apply, so that the value is not silently ignored. Takes `role`, `overrides` and
 {{- end -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+The access control settings as they apply to workers. Graceful shutdown needs
+the file based access control on every worker to permit the shutdown request,
+so when it is enabled and nothing else is configured, the settings are the
+config map type holding only the generated rules file. Takes the root context.
+Returns YAML, so call it through fromYaml.
+*/}}
+{{- define "trino.workerAccessControl" -}}
+{{- $accessControl := include "trino.roleConfig" (dict "block" .Values.accessControl "role" "worker") | fromYaml -}}
+{{- if and (not $accessControl) .Values.worker.gracefulShutdown.enabled -}}
+{{- $_ := set $accessControl "type" "configmap" -}}
+{{- $_ := set $accessControl "configFile" "graceful-shutdown-rules.json" -}}
+{{- end -}}
+{{- toYaml $accessControl -}}
+{{- end }}
+
+{{/*
+The worker rules file with the permission to write system information, which
+the shutdown request needs, merged into the rules the user configured. Trino
+reads one access control document, so this is a merge of the
+`system_information` rules and not a second file.
+
+A rule naming the shutdown user and nothing else gets the permission added to
+it, keeping the other permissions it grants. Otherwise the generated rule goes
+first, because the rules are evaluated in order and the first one matching the
+user decides. Takes the root context, returns the document as JSON.
+*/}}
+{{- define "trino.workerAccessControlRules" -}}
+{{- $accessControl := include "trino.workerAccessControl" . | fromYaml -}}
+{{- $rulesFile := $accessControl.configFile | default "rules.json" -}}
+{{- $document := index ($accessControl.rules | default dict) $rulesFile | default "{}" | fromJson -}}
+{{- $user := .Values.worker.gracefulShutdown.user -}}
+{{- $rules := list -}}
+{{- $granted := false -}}
+{{- range $rule := $document.system_information | default list -}}
+{{- $merged := $rule -}}
+{{- if and (eq ($rule.user | default "") $user) (not $rule.role) (not $rule.group) -}}
+{{- $granted = true -}}
+{{- $merged = set (deepCopy $rule) "allow" (uniq (append ($rule.allow | default list) "write")) -}}
+{{- end -}}
+{{- $rules = append $rules $merged -}}
+{{- end -}}
+{{- if not $granted -}}
+{{- $rules = prepend $rules (dict "user" $user "allow" (list "write")) -}}
+{{- end -}}
+{{- set $document "system_information" $rules | toPrettyJson -}}
+{{- end }}
