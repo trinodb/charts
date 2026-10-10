@@ -511,6 +511,16 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
      path: /secrets/sample.json
      subPath: sample.json
   ```
+* `csiSecretMounts` - list, default: `[]`  
+
+  Allows mounting secrets on all nodes using the [Secrets Store CSI driver](https://secrets-store-csi-driver.sigs.k8s.io/). Each entry creates a volume of type `secrets-store.csi.k8s.io` referencing a `SecretProviderClass` and a matching volume mount on the Trino container. This enables consuming secrets from external stores (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault, etc.) without first materializing a Kubernetes `Secret`. Requires the driver and its provider to be installed in the cluster, and the `SecretProviderClass` to exist in the release namespace.
+  Example:
+  ```yaml
+   - name: sample-csi-secret
+     secretProviderClass: sample-secret-provider-class
+     path: /secrets/sample.json
+     subPath: sample.json
+  ```
 * `coordinator.deployment.annotations` - object, default: `{}`
 * `coordinator.deployment.progressDeadlineSeconds` - int, default: `600`  
 
@@ -676,6 +686,16 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```yaml
    - name: sample-secret
      secretName: sample-secret
+     path: /secrets/sample.json
+     subPath: sample.json
+  ```
+* `coordinator.csiSecretMounts` - list, default: `[]`  
+
+  Allows mounting secrets on the coordinator node using the [Secrets Store CSI driver](https://secrets-store-csi-driver.sigs.k8s.io/). Each entry creates a volume of type `secrets-store.csi.k8s.io` referencing a `SecretProviderClass` and a matching volume mount on the Trino container. This enables consuming secrets from external stores (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault, etc.) without first materializing a Kubernetes `Secret`. Requires the driver and its provider to be installed in the cluster, and the `SecretProviderClass` to exist in the release namespace.
+  Example:
+  ```yaml
+   - name: sample-csi-secret
+     secretProviderClass: sample-secret-provider-class
      path: /secrets/sample.json
      subPath: sample.json
   ```
@@ -868,6 +888,16 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```yaml
    - name: sample-secret
      secretName: sample-secret
+     path: /secrets/sample.json
+     subPath: sample.json
+  ```
+* `worker.csiSecretMounts` - list, default: `[]`  
+
+  Allows mounting secrets on all worker nodes using the [Secrets Store CSI driver](https://secrets-store-csi-driver.sigs.k8s.io/). Each entry creates a volume of type `secrets-store.csi.k8s.io` referencing a `SecretProviderClass` and a matching volume mount on the Trino container. This enables consuming secrets from external stores (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault, etc.) without first materializing a Kubernetes `Secret`. Requires the driver and its provider to be installed in the cluster, and the `SecretProviderClass` to exist in the release namespace.
+  Example:
+  ```yaml
+   - name: sample-csi-secret
+     secretProviderClass: sample-secret-provider-class
      path: /secrets/sample.json
      subPath: sample.json
   ```

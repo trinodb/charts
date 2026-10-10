@@ -1,4 +1,6 @@
 {{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
+{{- /* default list because concat panics on the nil that an explicit null in the values gives it */ -}}
+{{- $csiSecretMounts := concat (.Values.csiSecretMounts | default list) (.Values.coordinator.csiSecretMounts | default list) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -111,6 +113,14 @@ spec:
           secret:
             secretName: {{ tpl .secretName $ }}
         {{- end }}
+        {{- range $csiSecretMounts }}
+        - name: {{ .name }}
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ tpl .secretProviderClass $ }}
+        {{- end }}
         {{- with .Values.coordinator.additionalVolumes }}
         {{- tpl (. | toYaml) $ | nindent 8 }}
         {{- end }}
@@ -176,6 +186,13 @@ spec:
               {{- end }}
             {{- end }}
             {{- range .Values.coordinator.secretMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .path }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+            {{- end }}
+            {{- range $csiSecretMounts }}
             - name: {{ .name }}
               mountPath: {{ .path }}
               {{- if .subPath }}
