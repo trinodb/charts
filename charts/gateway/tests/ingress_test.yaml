@@ -66,23 +66,39 @@ tests:
           path: spec.rules[0].http.paths[0].backend.service.port.number
           value: 9999
 
-  - it: uses the configured tls secret verbatim
-    # Unlike the trino chart, which runs ingress.tls[].secretName through tpl,
-    # the gateway chart emits it as written, so a templated name cannot be used
+  - it: routes to the https port when only the https listener is enabled
+    capabilities:
+      majorVersion: 1
+      minorVersion: 19
+    set:
+      ingress.enabled: true
+      config:
+        serverConfig:
+          http-server.http.enabled: false
+          http-server.https.enabled: true
+          http-server.https.port: 8443
+    asserts:
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 8443
+
+  - it: templates the configured tls secret name
     capabilities:
       majorVersion: 1
       minorVersion: 19
     set:
       ingress.enabled: true
       ingress.tls:
-        - secretName: gateway-tls
+        - secretName: "{{ .Release.Namespace }}-certificates"
           hosts:
             - gateway.example.com
     asserts:
       - equal:
           path: spec.tls[0]
           value:
-            secretName: gateway-tls
+            secretName: NAMESPACE-certificates
             hosts:
               - gateway.example.com
 

@@ -1,4 +1,6 @@
 {{- if .Values.serviceMonitor.enabled -}}
+{{/* the service names its first port from service.ports[0], so follow it rather than assume */}}
+{{- $servicePort := .Values.service.ports | default list | first | default dict -}}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -17,6 +19,6 @@ spec:
     matchNames:
       - {{ .Release.Namespace }}
   endpoints:
-    - port: gateway
+    - port: {{ $servicePort.name | default "gateway" }}
       interval: {{ .Values.serviceMonitor.interval }}
 {{- end }}

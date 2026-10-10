@@ -5,7 +5,7 @@
 {{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
   {{- $svcPort = include "trino-gateway.httpPort" . | int }}
 {{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
-  {{  $svcPort = include "trino-gateway.httpsPort" . | int }}
+  {{- $svcPort = include "trino-gateway.httpsPort" . | int }}
 {{- else }}
   {{- fail "Error: Either https or http must be enabled in serverConfig!" }}
 {{- end }}
@@ -41,7 +41,7 @@ spec:
         {{- range .hosts }}
         - {{ . | quote }}
         {{- end }}
-      secretName: {{ .secretName }}
+      secretName: {{ tpl .secretName $ }}
     {{- end }}
   {{- end }}
   rules:

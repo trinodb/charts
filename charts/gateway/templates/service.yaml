@@ -12,7 +12,7 @@ metadata:
 {{- $gatewayPort = include "trino-gateway.httpsPort" . | int }}
 {{- end }}
 {{- if empty $gatewayPort }}
-{{- fail "Error: No port defined in serverConfig!" $gatewayPort }}
+{{- fail "Error: No port defined in serverConfig!" }}
 {{- end}}
 {{- $portDefault := dict "port" $gatewayPort "targetPort" $gatewayPort }}
 {{- $portValues := .Values.service.ports | default list | first | default $portDefault}}
