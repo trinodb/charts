@@ -163,3 +163,13 @@ Returns YAML, so call it through fromYaml.
 {{- define "trino.roleConfig" -}}
 {{- mergeOverwrite (deepCopy (omit .block "coordinator" "worker")) (index .block .role | default dict) | toYaml -}}
 {{- end }}
+
+{{/*
+The `type` of an optional config block like `accessControl`, or an empty string
+when neither the block nor its type is set. Comparing an unset value with a
+string fails on Helm 3.7 and older, so every type comparison goes through this.
+Takes the block, for example `.Values.resourceGroups`.
+*/}}
+{{- define "trino.configType" -}}
+{{- get (. | default dict) "type" -}}
+{{- end }}

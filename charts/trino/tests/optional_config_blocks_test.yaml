@@ -1,0 +1,190 @@
+suite: The optional config blocks render whether or not their type is set
+templates:
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/deployment-coordinator.yaml
+  - templates/tests/test-connection.yaml
+  # the coordinator deployment includes this to checksum it into the pod
+  # annotations, so it has to be loaded even though nothing asserts on it
+  - templates/configmap-catalog.yaml
+tests:
+  # Comparing the type missing from these blocks with a string aborted the whole
+  # release on Helm 3.7 and older, so the default values could not be installed
+  # at all.
+  - it: renders the coordinator templates with the empty blocks the chart ships with
+    asserts:
+      - hasDocuments:
+          count: 2
+        template: templates/configmap-coordinator.yaml
+      - notExists:
+          path: data["access-control.properties"]
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - notExists:
+          path: data["resource-groups.properties"]
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - notExists:
+          path: data["session-property-config.properties"]
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-access-control-coordinator.yaml
+      - notExists:
+          path: spec.template.metadata.annotations["checksum/access-control-config"]
+        template: templates/deployment-coordinator.yaml
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: access-control-volume
+            configMap:
+              name: RELEASE-NAME-trino-access-control-volume-coordinator
+        template: templates/deployment-coordinator.yaml
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: resource-groups-volume
+            configMap:
+              name: RELEASE-NAME-trino-resource-groups-volume-coordinator
+        template: templates/deployment-coordinator.yaml
+      - isKind:
+          of: Pod
+        template: templates/tests/test-connection.yaml
+      - notExists:
+          path: spec.initContainers
+        template: templates/tests/test-connection.yaml
+
+  - it: renders the coordinator templates when the blocks are explicitly emptied
+    set:
+      accessControl: null
+      resourceGroups: null
+      sessionProperties: null
+    asserts:
+      - hasDocuments:
+          count: 2
+        template: templates/configmap-coordinator.yaml
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-access-control-coordinator.yaml
+      - isKind:
+          of: Deployment
+        template: templates/deployment-coordinator.yaml
+      - isKind:
+          of: Pod
+        template: templates/tests/test-connection.yaml
+
+  - it: mounts the config maps of the blocks set to the configmap type
+    set:
+      accessControl:
+        type: configmap
+        rules:
+          rules.json: "{}"
+      resourceGroups:
+        type: configmap
+        resourceGroupsConfig: "{}"
+      sessionProperties:
+        type: configmap
+        sessionPropertiesConfig: "{}"
+    asserts:
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.config-file=/etc/trino/access-control/rules.json
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["resource-groups.properties"]
+          value: |
+            resource-groups.configuration-manager=file
+            resource-groups.config-file=/etc/trino/resource-groups/resource-groups.json
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["session-property-config.properties"]
+          value: |
+            session-property-config.configuration-manager=file
+            session-property-manager.config-file=/etc/trino/session-property-config.json
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["rules.json"]
+          value: "{}"
+        template: templates/configmap-access-control-coordinator.yaml
+      - isNotEmpty:
+          path: spec.template.metadata.annotations["checksum/access-control-config"]
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: access-control-volume
+            configMap:
+              name: RELEASE-NAME-trino-access-control-volume-coordinator
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: access-control-volume
+            mountPath: /etc/trino/access-control
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: resource-groups-volume
+            configMap:
+              name: RELEASE-NAME-trino-resource-groups-volume-coordinator
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: resource-groups-volume
+            mountPath: /etc/trino/resource-groups
+        template: templates/deployment-coordinator.yaml
+
+  - it: writes the properties of the blocks set to the properties type without mounting anything
+    set:
+      accessControl:
+        type: properties
+        properties: |
+          access-control.name=opa
+      resourceGroups:
+        type: properties
+        properties: |
+          resource-groups.configuration-manager=db
+      sessionProperties:
+        type: properties
+        properties: |
+          session-property-config.configuration-manager=db
+    asserts:
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=opa
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["resource-groups.properties"]
+          value: |
+            resource-groups.configuration-manager=db
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["session-property-config.properties"]
+          value: |
+            session-property-config.configuration-manager=db
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-access-control-coordinator.yaml
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: resource-groups-volume
+            configMap:
+              name: RELEASE-NAME-trino-resource-groups-volume-coordinator
+        template: templates/deployment-coordinator.yaml
+      - exists:
+          path: spec.initContainers[0]
+        template: templates/tests/test-connection.yaml
