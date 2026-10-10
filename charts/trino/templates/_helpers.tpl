@@ -53,18 +53,35 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
-Common labels
+Common labels, with commonLabels set over them so it can override any of them.
+Returns YAML, so call it through fromYaml to add more labels to it.
 */}}
 {{- define "trino.labels" -}}
-helm.sh/chart: {{ include "trino.chart" . }}
-{{ include "trino.selectorLabels" . }}
+{{- $labels := include "trino.selectorLabels" . | fromYaml }}
+{{- $_ := set $labels "helm.sh/chart" (include "trino.chart" .) }}
+{{- $_ := set $labels "app.kubernetes.io/managed-by" .Release.Service }}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- $_ := set $labels "app.kubernetes.io/version" .Chart.AppVersion }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- if .Values.commonLabels }}
-{{ tpl (toYaml .Values.commonLabels) . }}
+{{- range $key, $value := .Values.commonLabels }}
+{{- $_ := set $labels $key $value }}
 {{- end }}
+{{- tpl (toYaml $labels) . }}
+{{- end }}
+
+{{/*
+The labels of a role's deployment and its pods: the common labels, the role and
+network policy labels, and the user supplied labels set over them. Takes
+`context`, `role` and `labels`.
+*/}}
+{{- define "trino.roleLabels" -}}
+{{- $labels := include "trino.labels" .context | fromYaml }}
+{{- $_ := set $labels "app.kubernetes.io/component" .role }}
+{{- $_ := set $labels "trino.io/network-policy-protection" (ternary "enabled" "disabled" .context.Values.networkPolicy.enabled) }}
+{{- range $key, $value := .labels }}
+{{- $_ := set $labels $key $value }}
+{{- end }}
+{{- tpl (toYaml $labels) .context }}
 {{- end }}
 
 {{/*
