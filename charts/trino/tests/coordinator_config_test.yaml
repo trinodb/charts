@@ -1,0 +1,275 @@
+suite: The coordinator config files are assembled line by line without stray whitespace
+templates:
+  - templates/configmap-coordinator.yaml
+tests:
+  - it: writes only the unconditional properties by default
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=true
+            node-scheduler.include-coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://localhost:8080
+      - equal:
+          path: data["node.properties"]
+          value: |
+            node.environment=production
+            node.data-dir=/data/trino
+            plugin.dir=/usr/lib/trino/plugin
+      - equal:
+          path: data["log.properties"]
+          value: |
+            io.trino=INFO
+
+  - it: renders a false node scheduler setting as the literal false
+    documentIndex: 0
+    set:
+      coordinator.config.nodeScheduler.includeCoordinator: false
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^node-scheduler\\.include-coordinator=false$"
+
+  - it: adds the heap headroom property only when it is configured
+    documentIndex: 0
+    set:
+      coordinator.config.memory.heapHeadroomPerNode: 1GB
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^memory\\.heap-headroom-per-node=1GB$"
+
+  - it: adds the authentication type only when it is configured
+    documentIndex: 0
+    set:
+      server.config.authenticationType: PASSWORD
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^http-server\\.authentication\\.type=PASSWORD$"
+
+  - it: passes additional config properties through verbatim, without quoting
+    documentIndex: 0
+    set:
+      additionalConfigProperties:
+        - internal-communication.shared-secret=random-value-999
+        - http-server.authentication.oauth2.issuer=https://issuer.example.com/
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^internal-communication\\.shared-secret=random-value-999$"
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^http-server\\.authentication\\.oauth2\\.issuer=https://issuer\\.example\\.com/$"
+
+  - it: adds the three https properties together with the keystore path
+    documentIndex: 0
+    set:
+      server.config.https.enabled: true
+      server.config.https.port: 9443
+      server.config.https.keystore.path: /etc/trino/certs/keystore.p12
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^http-server\\.https\\.enabled=true$"
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^http-server\\.https\\.port=9443$"
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^http-server\\.https\\.keystore\\.path=/etc/trino/certs/keystore\\.p12$"
+
+  - it: omits the https properties when https is disabled
+    documentIndex: 0
+    asserts:
+      - notMatchRegex:
+          path: data["config.properties"]
+          pattern: "http-server\\.https\\."
+
+  # The grace period is spliced into the line by two chomps, so a whitespace
+  # regression here yields `shutdown.grace-period= 120 s`, which Trino rejects.
+  - it: writes the shutdown grace period as a single unspaced token
+    documentIndex: 0
+    set:
+      worker.gracefulShutdown.enabled: true
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^shutdown\\.grace-period=120s$"
+
+  - it: indents a multi-line extra config block without introducing a blank line
+    documentIndex: 0
+    set:
+      server.coordinatorExtraConfig: |
+        query.client.timeout=5m
+        query.execution-policy=phased
+    asserts:
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=true
+            node-scheduler.include-coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://localhost:8080
+            query.client.timeout=5m
+            query.execution-policy=phased
+
+  - it: keeps shell-style placeholders in additional node properties verbatim
+    documentIndex: 0
+    set:
+      additionalNodeProperties:
+        - node.id=${NODE_ID}
+    asserts:
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.id=\\$\\{NODE_ID\\}$"
+
+  - it: moves the data and plugin directories when they are overridden
+    documentIndex: 0
+    set:
+      server.node.dataDir: /opt/data
+      server.node.pluginDir: /opt/plugin
+    asserts:
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.data-dir=/opt/data$"
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^plugin\\.dir=/opt/plugin$"
+
+  - it: sets the heap by percentage without emitting absolute heap flags
+    documentIndex: 0
+    set:
+      coordinator.jvm.maxHeapSize: null
+      coordinator.jvm.minHeapSize: null
+      coordinator.jvm.maxHeapPercent: 80
+      coordinator.jvm.initialHeapPercent: 50
+    asserts:
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:MaxRAMPercentage=80$"
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:InitialRAMPercentage=50$"
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "-Xmx"
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "-Xms"
+
+  - it: sets absolute heap flags when they are configured
+    documentIndex: 0
+    set:
+      coordinator.jvm.maxHeapSize: 16G
+      coordinator.jvm.minHeapSize: 4G
+    asserts:
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-Xmx16G$"
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-Xms4G$"
+
+  - it: builds the garbage collector flags from the gcMethod settings
+    documentIndex: 0
+    set:
+      coordinator.jvm.gcMethod.type: UseG1GC
+      coordinator.jvm.gcMethod.g1.heapRegionSize: 64M
+    asserts:
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:\\+UseG1GC$"
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:G1HeapRegionSize=64M$"
+
+  - it: appends additional jvm config entries on their own lines
+    documentIndex: 0
+    set:
+      coordinator.additionalJVMConfig:
+        - -Dcom.example.flag=true
+        - -XX:+PrintFlagsFinal
+    asserts:
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-Dcom\\.example\\.flag=true$"
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:\\+PrintFlagsFinal$"
+
+  - it: adds the pinned-region workaround only for stock images newer than 447
+    documentIndex: 0
+    set:
+      image.tag: "448"
+    asserts:
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:G1NumCollectionsKeepPinned=10000000$"
+      - matchRegex:
+          path: data["jvm.config"]
+          pattern: "(?m)^-XX:\\+UnlockDiagnosticVMOptions$"
+
+  - it: omits the pinned-region workaround for images at or below 447
+    documentIndex: 0
+    set:
+      image.tag: "447"
+    asserts:
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "G1NumCollectionsKeepPinned"
+
+  - it: omits the pinned-region workaround when the image comes from a registry
+    documentIndex: 0
+    set:
+      image.registry: my.registry.example.com
+    asserts:
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "G1NumCollectionsKeepPinned"
+
+  - it: omits the pinned-region workaround when the image is pinned by digest
+    documentIndex: 0
+    set:
+      image.digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+    asserts:
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "G1NumCollectionsKeepPinned"
+
+  - it: omits the pinned-region workaround when the repository is the sole reference
+    documentIndex: 0
+    set:
+      image.useRepositoryAsSoleImageReference: true
+    asserts:
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "G1NumCollectionsKeepPinned"
+
+  - it: omits the pinned-region workaround for a mirrored repository
+    documentIndex: 0
+    set:
+      image.repository: my-mirror/trino
+    asserts:
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "G1NumCollectionsKeepPinned"
+
+  # KNOWN BUG, asserted as current behaviour. The version gate pipes the tag
+  # through `int`, which casts a non-numeric tag to 0, so a suffixed tag of a
+  # new enough image silently loses the workaround. If the gate learns to parse
+  # such tags, this test will fail: rewrite it rather than deleting it.
+  - it: silently drops the pinned-region workaround for a suffixed image tag
+    documentIndex: 0
+    set:
+      image.tag: 480-arm64
+    asserts:
+      - notMatchRegex:
+          path: data["jvm.config"]
+          pattern: "G1NumCollectionsKeepPinned"

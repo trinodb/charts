@@ -1,0 +1,175 @@
+suite: The HTTPRoute routes to the coordinator service and fills in the omitted match details
+templates:
+  - templates/httproute.yaml
+tests:
+  - it: renders nothing unless the gateway integration is enabled
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: falls back to a prefix match on the root path when a rule omits the details
+    set:
+      gateway.enabled: true
+      gateway.rules:
+        - path: {}
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: PathPrefix
+            value: /
+
+  - it: honours an explicit path type and value
+    set:
+      gateway.enabled: true
+      gateway.rules:
+        - path:
+            type: Exact
+            value: /ui
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: Exact
+            value: /ui
+
+  - it: passes a full matches block through untouched
+    set:
+      gateway.enabled: true
+      gateway.rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /v1
+              headers:
+                - name: X-Custom-Header
+                  value: custom-value
+    asserts:
+      - equal:
+          path: spec.rules[0].matches
+          value:
+            - path:
+                type: PathPrefix
+                value: /v1
+              headers:
+                - name: X-Custom-Header
+                  value: custom-value
+
+  - it: sends traffic to the coordinator service on the http port
+    set:
+      gateway.enabled: true
+      gateway.rules:
+        - path: {}
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs
+          value:
+            - name: RELEASE-NAME-trino
+              port: 8080
+
+  - it: sends traffic to the https port when https is enabled
+    set:
+      gateway.enabled: true
+      server.config.https.enabled: true
+      server.config.https.port: 9443
+      gateway.rules:
+        - path: {}
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 9443
+
+  - it: omits the optional sections when their values are empty
+    set:
+      gateway.enabled: true
+      gateway.rules:
+        - path: {}
+    asserts:
+      - isNull:
+          path: spec.parentRefs
+      - isNull:
+          path: spec.hostnames
+      - isNull:
+          path: metadata.annotations
+      - isNull:
+          path: spec.rules[0].filters
+      - isNull:
+          path: spec.rules[0].backendRefs[0].weight
+
+  - it: carries the gateway attachment, hostnames and annotations through verbatim
+    set:
+      gateway.enabled: true
+      gateway.annotations:
+        gateway.networking.k8s.io/example: value
+      gateway.parentRefs:
+        - name: trino-gateway
+          namespace: gateway-system
+          sectionName: https
+      gateway.hostnames:
+        - trino.example.com
+      gateway.rules:
+        - path: {}
+          weight: 5
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: X-Forwarded-Proto
+                    value: https
+    asserts:
+      - equal:
+          path: metadata.annotations["gateway.networking.k8s.io/example"]
+          value: value
+      - equal:
+          path: spec.parentRefs
+          value:
+            - name: trino-gateway
+              namespace: gateway-system
+              sectionName: https
+      - equal:
+          path: spec.hostnames
+          value:
+            - trino.example.com
+      - equal:
+          path: spec.rules[0].filters
+          value:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: X-Forwarded-Proto
+                    value: https
+      - equal:
+          path: spec.rules[0].backendRefs[0].weight
+          value: 5
+
+  - it: renders one rule per entry, in order
+    set:
+      gateway.enabled: true
+      gateway.rules:
+        - path:
+            value: /ui
+        - path:
+            value: /v1
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /ui
+      - equal:
+          path: spec.rules[1].matches[0].path.value
+          value: /v1
+      - lengthEqual:
+          path: spec.rules
+          count: 2
+
+  # KNOWN BUG, asserted as current behaviour. A rule that supplies neither
+  # `matches` nor `path` dereferences a nil `path`, so the user gets a Go
+  # template stack trace instead of an explanation. If a `fail` with a readable
+  # message is added, this test will fail: rewrite it rather than deleting it.
+  - it: crashes with a template error when a rule has neither matches nor path
+    set:
+      gateway.enabled: true
+      gateway.rules:
+        - weight: 1
+    asserts:
+      - failedTemplate:
+          errorPattern: "nil pointer evaluating interface \\{\\}\\.type"

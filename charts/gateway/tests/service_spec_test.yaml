@@ -1,0 +1,107 @@
+suite: The service exposes the port the gateway listens on and passes the rest of the spec through
+templates:
+  - templates/service.yaml
+tests:
+  - it: takes its name from serviceName so other resources can reference it
+    set:
+      serviceName: my-gw
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-gw
+
+  - it: listens on https when both listeners are enabled
+    # The https branch is a second, unconditional if, so it overwrites whatever
+    # the http branch assigned. Exposing http as well needs a second service.
+    values:
+      - ../ci/nodeport-values.yaml
+    asserts:
+      - equal:
+          path: spec.ports[0]
+          value:
+            name: request
+            nodePort: 30443
+            port: 8443
+            protocol: TCP
+            targetPort: 8443
+
+  - it: passes every port after the first through untouched
+    values:
+      - ../ci/nodeport-values.yaml
+    asserts:
+      - equal:
+          path: spec.ports[1]
+          value:
+            name: gateway-http
+            nodePort: 30080
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+
+  - it: discards a port and targetPort set on the first entry
+    set:
+      service.ports:
+        - protocol: TCP
+          name: request
+          port: 9999
+          targetPort: 9999
+    asserts:
+      - equal:
+          path: spec.ports[0]
+          value:
+            name: request
+            port: 8080
+            protocol: TCP
+            targetPort: 8080
+
+  - it: falls back to a single unnamed port when no ports are configured
+    set:
+      service.ports: null
+    asserts:
+      - lengthEqual:
+          path: spec.ports
+          count: 1
+      - equal:
+          path: spec.ports[0]
+          value:
+            port: 8080
+            targetPort: 8080
+
+  - it: selects the gateway pods even when the user sets a selector
+    set:
+      service.selector:
+        app: something-else
+    asserts:
+      - equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: trino-gateway
+            app.kubernetes.io/instance: RELEASE-NAME
+
+  - it: carries unrecognised service spec fields through to the rendered spec
+    set:
+      service.type: LoadBalancer
+      service.sessionAffinity: ClientIP
+      service.externalTrafficPolicy: Local
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+      - equal:
+          path: spec.sessionAffinity
+          value: ClientIP
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
+
+  - it: refuses to render when neither listener is enabled
+    set:
+      config:
+        serverConfig:
+          http-server.http.enabled: false
+    asserts:
+      # The intended "Error: No port defined in serverConfig!" never reaches the
+      # user because the fail call passes a second argument. Pinned as-is so a
+      # fix to the fail call has to update this expectation deliberately.
+      - failedTemplate:
+          errorMessage: "wrong number of args for fail: want 1 got 2"

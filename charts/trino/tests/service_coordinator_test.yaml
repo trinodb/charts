@@ -1,0 +1,147 @@
+suite: The coordinator service exposes the extra ports a user declares, in a stable order
+templates:
+  - templates/service-coordinator.yaml
+  - templates/deployment-coordinator.yaml
+  # deployment-coordinator.yaml includes these to checksum them into pod
+  # annotations, so they have to be loaded even though nothing asserts on them
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-catalog.yaml
+  - templates/configmap-coordinator.yaml
+tests:
+  - it: exposes only the http port by default
+    template: templates/service-coordinator.yaml
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports
+          value:
+            - port: 8080
+              targetPort: http
+              protocol: TCP
+              name: http
+      - equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: trino
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: coordinator
+
+  - it: leaves the node port to Kubernetes unless one is requested
+    template: templates/service-coordinator.yaml
+    set:
+      service.type: NodePort
+    asserts:
+      - isNull:
+          path: spec.ports[0].nodePort
+
+  - it: pins the http node port when one is requested
+    template: templates/service-coordinator.yaml
+    set:
+      service.type: NodePort
+      service.nodePort: 30080
+    asserts:
+      - equal:
+          path: spec.ports[0].nodePort
+          value: 30080
+
+  # `range` over a map visits the keys in sorted order, so the rendered ports
+  # follow the map keys rather than the order they were written in.
+  - it: orders the additional ports by their map key, not by declaration order
+    template: templates/service-coordinator.yaml
+    set:
+      coordinator.additionalExposedPorts:
+        zeta:
+          name: zeta-port
+          servicePort: 9483
+          port: 9483
+          protocol: TCP
+        alpha:
+          name: alpha-port
+          servicePort: 9484
+          port: 9484
+          protocol: UDP
+    asserts:
+      - equal:
+          path: spec.ports[1].name
+          value: alpha-port
+      - equal:
+          path: spec.ports[2].name
+          value: zeta-port
+
+  - it: lets an additional port differ from the container port it targets
+    template: templates/service-coordinator.yaml
+    set:
+      coordinator.additionalExposedPorts:
+        extra:
+          name: extra-port
+          servicePort: 9483
+          port: 9484
+          protocol: TCP
+    asserts:
+      - equal:
+          path: spec.ports[1]
+          value:
+            port: 9483
+            name: extra-port
+            targetPort: 9484
+            protocol: TCP
+
+  - it: pins the node port of an additional port only when one is given
+    template: templates/service-coordinator.yaml
+    set:
+      service.type: NodePort
+      coordinator.additionalExposedPorts:
+        pinned:
+          name: pinned-port
+          servicePort: 9483
+          port: 9483
+          protocol: TCP
+          nodePort: 30483
+        floating:
+          name: floating-port
+          servicePort: 9484
+          port: 9484
+          protocol: TCP
+    asserts:
+      - isNull:
+          path: spec.ports[1].nodePort
+      - equal:
+          path: spec.ports[2].nodePort
+          value: 30483
+
+  # A node port belongs to the Service only; repeating it on the container port
+  # would make the pod unschedulable.
+  - it: keeps the node port off the container port
+    template: templates/deployment-coordinator.yaml
+    set:
+      coordinator.additionalExposedPorts:
+        extra:
+          name: extra-port
+          servicePort: 9483
+          port: 9484
+          protocol: TCP
+          nodePort: 30483
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: extra-port
+            containerPort: 9484
+            protocol: TCP
+      - notContains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            nodePort: 30483
+          any: true
+
+  - it: carries the service annotations through
+    template: templates/service-coordinator.yaml
+    set:
+      service.annotations:
+        service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    asserts:
+      - equal:
+          path: metadata.annotations["service.beta.kubernetes.io/aws-load-balancer-internal"]
+          value: "true"

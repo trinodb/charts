@@ -1,0 +1,70 @@
+suite: HTTPS ports are derived from server.config.https, not from additionalExposedPorts
+templates:
+  - templates/service-coordinator.yaml
+  - templates/deployment-coordinator.yaml
+  # deployment-coordinator.yaml includes these to checksum them into pod
+  # annotations, so they have to be loaded even though nothing asserts on them
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-catalog.yaml
+  - templates/configmap-coordinator.yaml
+tests:
+  - it: exposes no https port when https is disabled
+    template: templates/service-coordinator.yaml
+    asserts:
+      - notContains:
+          path: spec.ports
+          content:
+            name: https
+          any: true
+
+  - it: exposes the https service port without an entry in additionalExposedPorts
+    template: templates/service-coordinator.yaml
+    set:
+      server.config.https.enabled: true
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            port: 8443
+            targetPort: https
+            protocol: TCP
+            name: https
+
+  - it: exposes the https container port without an entry in additionalExposedPorts
+    template: templates/deployment-coordinator.yaml
+    set:
+      server.config.https.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: https
+            containerPort: 8443
+            protocol: TCP
+
+  - it: carries a custom https port through to the service
+    template: templates/service-coordinator.yaml
+    set:
+      server.config.https.enabled: true
+      server.config.https.port: 9443
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            port: 9443
+            targetPort: https
+            protocol: TCP
+            name: https
+
+  - it: carries a custom https port through to the container
+    template: templates/deployment-coordinator.yaml
+    set:
+      server.config.https.enabled: true
+      server.config.https.port: 9443
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: https
+            containerPort: 9443
+            protocol: TCP

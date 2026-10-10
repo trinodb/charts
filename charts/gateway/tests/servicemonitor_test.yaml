@@ -1,0 +1,78 @@
+suite: The ServiceMonitor scrapes a port the service actually exposes
+templates:
+  - templates/servicemonitor.yaml
+  - templates/service.yaml
+tests:
+  - it: is not created unless it is enabled
+    template: templates/servicemonitor.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: scrapes the port the service names by default
+    set:
+      serviceMonitor.enabled: true
+    asserts:
+      - equal:
+          path: spec.endpoints[0].port
+          value: gateway
+        template: templates/servicemonitor.yaml
+      - equal:
+          path: spec.ports[0].name
+          value: gateway
+        template: templates/service.yaml
+
+  - it: keeps scraping the hardcoded port name when the service port is renamed
+    # The endpoint port name is a literal, so renaming the first service port
+    # leaves the ServiceMonitor pointing at a port that does not exist. Pinned
+    # as current behaviour; there is no guard against it.
+    set:
+      serviceMonitor.enabled: true
+      service.ports:
+        - protocol: TCP
+          name: request
+    asserts:
+      - equal:
+          path: spec.endpoints[0].port
+          value: gateway
+        template: templates/servicemonitor.yaml
+      - equal:
+          path: spec.ports[0].name
+          value: request
+        template: templates/service.yaml
+
+  - it: selects the gateway pods in its own namespace
+    template: templates/servicemonitor.yaml
+    set:
+      serviceMonitor.enabled: true
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.namespaceSelector.matchNames
+          value:
+            - NAMESPACE
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: trino-gateway
+            app.kubernetes.io/instance: RELEASE-NAME
+
+  - it: carries both the chart labels and the prometheus selector labels
+    template: templates/servicemonitor.yaml
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.labels:
+        prometheus: mine
+      serviceMonitor.interval: 1s
+    asserts:
+      - equal:
+          path: metadata.labels["prometheus"]
+          value: mine
+      - equal:
+          path: metadata.labels["app.kubernetes.io/name"]
+          value: trino-gateway
+      - equal:
+          path: spec.endpoints[0].interval
+          value: 1s

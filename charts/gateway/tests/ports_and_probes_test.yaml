@@ -1,0 +1,142 @@
+suite: Container ports and health probes follow the listeners enabled in serverConfig
+templates:
+  - templates/deployment.yaml
+  # deployment.yaml includes secrets.yaml to checksum it into a pod annotation,
+  # so it has to be loaded even though nothing asserts on it
+  - templates/secrets.yaml
+tests:
+  - it: exposes only the http port and probes it over plain http by default
+    template: templates/deployment.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].ports
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].ports[0]
+          value:
+            name: http
+            containerPort: 8080
+            protocol: TCP
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet
+          value:
+            path: /trino-gateway/livez
+            port: 8080
+            scheme: HTTP
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+          value:
+            path: /trino-gateway/readyz
+            port: 8080
+            scheme: HTTP
+
+  - it: exposes only the https port and probes it over tls when http is disabled
+    template: templates/deployment.yaml
+    values:
+      - ../ci/https-values.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].ports
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].ports[0]
+          value:
+            name: https
+            containerPort: 8443
+            protocol: TCP
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet
+          value:
+            path: /trino-gateway/livez
+            port: 8443
+            scheme: HTTPS
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+          value:
+            path: /trino-gateway/readyz
+            port: 8443
+            scheme: HTTPS
+
+  - it: probes over plain http when both listeners are enabled
+    # The probe port and scheme come from an if/else-if chain, so the http
+    # branch wins. This differs from the service, where https wins.
+    template: templates/deployment.yaml
+    values:
+      - ../ci/nodeport-values.yaml
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].ports
+          count: 2
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: http
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].name
+          value: https
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.scheme
+          value: HTTP
+
+  - it: uses an explicitly configured http port for both the container and the probes
+    template: templates/deployment.yaml
+    set:
+      config:
+        serverConfig:
+          http-server.http.port: 9999
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 9999
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 9999
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 9999
+
+  - it: uses an explicitly configured https port for both the container and the probes
+    template: templates/deployment.yaml
+    set:
+      config:
+        serverConfig:
+          http-server.http.enabled: false
+          http-server.https.enabled: true
+          http-server.https.port: 9443
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 9443
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 9443
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 9443
+
+  - it: refuses to render when neither listener is enabled
+    template: templates/deployment.yaml
+    set:
+      config:
+        serverConfig:
+          http-server.http.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "Error: Either https or http must be enabled in serverConfig!"
+
+  - it: sets a fixed replica count when autoscaling is off
+    template: templates/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+
+  - it: leaves the replica count to the autoscaler when autoscaling is on
+    template: templates/deployment.yaml
+    set:
+      autoscaling.enabled: true
+    asserts:
+      - notExists:
+          path: spec.replicas
