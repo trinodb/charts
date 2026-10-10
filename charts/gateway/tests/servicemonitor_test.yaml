@@ -22,10 +22,7 @@ tests:
           value: gateway
         template: templates/service.yaml
 
-  - it: keeps scraping the hardcoded port name when the service port is renamed
-    # The endpoint port name is a literal, so renaming the first service port
-    # leaves the ServiceMonitor pointing at a port that does not exist. Pinned
-    # as current behaviour; there is no guard against it.
+  - it: follows the service port when it is renamed
     set:
       serviceMonitor.enabled: true
       service.ports:
@@ -34,7 +31,7 @@ tests:
     asserts:
       - equal:
           path: spec.endpoints[0].port
-          value: gateway
+          value: request
         template: templates/servicemonitor.yaml
       - equal:
           path: spec.ports[0].name

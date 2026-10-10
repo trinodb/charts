@@ -100,8 +100,5 @@ tests:
         serverConfig:
           http-server.http.enabled: false
     asserts:
-      # The intended "Error: No port defined in serverConfig!" never reaches the
-      # user because the fail call passes a second argument. Pinned as-is so a
-      # fix to the fail call has to update this expectation deliberately.
       - failedTemplate:
-          errorMessage: "wrong number of args for fail: want 1 got 2"
+          errorMessage: "Error: No port defined in serverConfig!"
