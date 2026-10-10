@@ -10,6 +10,6 @@ resourceGroups:
   type: properties
   properties: |
     resource-groups.configuration-manager=db
-    resource-groups.config-db-url=jdbc:postgresql://trino-resource-groups-db-postgresql.postgresql.svc.cluster.local:5432/resource_groups
+    resource-groups.config-db-url=jdbc:postgresql://postgresql:5432/resource_groups
     resource-groups.config-db-user=trino
     resource-groups.config-db-password=pass0000
