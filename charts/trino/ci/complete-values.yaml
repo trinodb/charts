@@ -236,7 +236,7 @@ accessControl:
         ],
         "system_information": [
           {
-            "user": ".*",
+            "user": "admin",
             "allow": ["read"]
           }
         ],

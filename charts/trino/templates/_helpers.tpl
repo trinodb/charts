@@ -204,15 +204,20 @@ Returns YAML, so call it through fromYaml.
 {{- end }}
 
 {{/*
-The worker rules file with the permission to write system information, which
-the shutdown request needs, merged into the rules the user configured. Trino
-reads one access control document, so this is a merge of the
-`system_information` rules and not a second file.
+The worker rules file with the permissions on system information that the
+shutdown request needs merged into the rules the user configured. Trino reads
+one access control document, so this is a merge of the `system_information`
+rules and not a second file.
 
-A rule naming the shutdown user and nothing else gets the permission added to
-it, keeping the other permissions it grants. Otherwise the generated rule goes
-first, because the rules are evaluated in order and the first one matching the
-user decides. Takes the root context, returns the document as JSON.
+Both read and write are granted. The request itself only writes, but the first
+rule matching a user decides, so a rule granting write alone would answer every
+management read for that user with a denial, the metrics endpoint included.
+
+A rule naming the shutdown user and nothing else gets the permissions added to
+it, so the document keeps the shape the user gave it. Otherwise the generated
+rule goes first, which takes nothing away from that user, since read and write
+are all there is to grant. Takes the root context, returns the document as
+JSON.
 */}}
 {{- define "trino.workerAccessControlRules" -}}
 {{- $accessControl := include "trino.workerAccessControl" . | fromYaml -}}
@@ -225,12 +230,12 @@ user decides. Takes the root context, returns the document as JSON.
 {{- $merged := $rule -}}
 {{- if and (eq ($rule.user | default "") $user) (not $rule.role) (not $rule.group) -}}
 {{- $granted = true -}}
-{{- $merged = set (deepCopy $rule) "allow" (uniq (append ($rule.allow | default list) "write")) -}}
+{{- $merged = set (deepCopy $rule) "allow" (concat ($rule.allow | default list) (list "read" "write") | uniq | sortAlpha) -}}
 {{- end -}}
 {{- $rules = append $rules $merged -}}
 {{- end -}}
 {{- if not $granted -}}
-{{- $rules = prepend $rules (dict "user" $user "allow" (list "write")) -}}
+{{- $rules = prepend $rules (dict "user" $user "allow" (list "read" "write")) -}}
 {{- end -}}
 {{- set $document "system_information" $rules | toPrettyJson -}}
 {{- end }}
