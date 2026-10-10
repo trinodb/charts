@@ -124,7 +124,7 @@ for case_name in "${cases[@]}"; do
 done
 
 if [ -z "$namespace" ]; then
-    namespace=$chart-$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 6 || true)
+    namespace=$chart-$(openssl rand -hex 3)
 fi
 
 work_dir=$(mktemp -d)
@@ -177,6 +177,16 @@ fi
 if has_fixture postgres; then
     fixture_args+=(--set postgres.enabled=true --set dbCredentials.enabled=true)
 fi
+
+# Helm resolves each dependency's repository URL through the local repo list, so a
+# fresh checkout has to register them first. Reading them back out of the chart
+# keeps the URLs declared in exactly one place, and the alias is prefixed so it
+# cannot clobber a repo the user already has under the same name.
+helm dependency list "$FIXTURES_CHART" |
+    awk 'NR > 1 && $3 ~ /^https?:/ { print $1, $3 }' |
+    while read -r dependency repository; do
+        helm repo add "fixtures-$dependency" "$repository" --force-update >/dev/null
+    done
 
 # Helm requires declared dependencies to be present even when their condition is
 # false, so this runs whatever the chart under test needs.
