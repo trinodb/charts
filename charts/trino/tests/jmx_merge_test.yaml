@@ -1,4 +1,4 @@
-suite: Per-role jmx overrides win over the shared jmx block without leaking between roles
+suite: Per-role overrides win over the shared values block without leaking between roles
 templates:
   - templates/configmap-jmx-exporter.yaml
   - templates/service-coordinator.yaml
@@ -12,7 +12,25 @@ templates:
   - templates/configmap-access-control-coordinator.yaml
   - templates/configmap-access-control-worker.yaml
   - templates/configmap-catalog.yaml
+  - templates/servicemonitor-coordinator.yaml
+  - templates/servicemonitor-worker.yaml
 tests:
+  # the merge is mergo backed, and mergo reads a falsy value as unset, so every
+  # shape a role can use to turn a shared setting off needs its own case
+  - it: lets a role clear a shared setting with an empty value
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.scrapeTimeout: 20s
+      serviceMonitor.coordinator.scrapeTimeout: ""
+    asserts:
+      - isNull:
+          path: spec.endpoints[0].scrapeTimeout
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints[0].scrapeTimeout
+          value: 20s
+        template: templates/servicemonitor-worker.yaml
+
   - it: lets the coordinator pick its own exporter port while the worker keeps the shared one
     set:
       jmx.enabled: true
