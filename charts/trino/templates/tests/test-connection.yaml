@@ -47,7 +47,7 @@ spec:
     {{- if eq .Values.server.config.authenticationType "PASSWORD" }}
       env:
         - name: TRINO_PASSWORD
-          # must match test-values.yaml
+          # must match ci/complete-values.yaml
           value: admin123
     {{- end }}
     {{- if .Values.server.config.https.enabled }}
