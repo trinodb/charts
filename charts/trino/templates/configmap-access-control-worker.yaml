@@ -1,4 +1,5 @@
-{{- if .Values.worker.gracefulShutdown.enabled }}
+{{- $workerAccessControl := include "trino.workerAccessControl" . | fromYaml }}
+{{- if eq $workerAccessControl.type "configmap" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,15 +9,14 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
 data:
-  graceful-shutdown-rules.json: >-
-    {
-      "system_information": [
-        {
-          "allow": [
-            "write"
-          ],
-          "user": "admin"
-        }
-      ]
-    }
+  {{- $rulesFile := $workerAccessControl.configFile | default "rules.json" }}
+  {{- range $key, $val := $workerAccessControl.rules }}
+  {{- if or (ne $key $rulesFile) (not $.Values.worker.gracefulShutdown.enabled) }}
+  {{ $key }}: {{ $val | quote }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.worker.gracefulShutdown.enabled }}
+  {{ $rulesFile }}: >-
+    {{- include "trino.workerAccessControlRules" . | nindent 4 }}
+  {{- end }}
 {{- end }}

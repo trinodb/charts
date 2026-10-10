@@ -2,6 +2,11 @@ suite: Access control is configured per role with the shared block as the defaul
 templates:
   - templates/configmap-coordinator.yaml
   - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-worker.yaml
+  - templates/configmap-access-control-worker.yaml
+  - templates/deployment-worker.yaml
+  # deployment-worker.yaml includes this to checksum it into pod annotations
+  - templates/configmap-catalog.yaml
 tests:
   - it: mounts the shared rules on the coordinator
     set:
@@ -70,3 +75,272 @@ tests:
           path: data["access-control.properties"]
         template: templates/configmap-coordinator.yaml
         documentIndex: 0
+
+  - it: leaves the workers without access control by default
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-access-control-worker.yaml
+      - isNull:
+          path: data["access-control.properties"]
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - notContains:
+          path: spec.template.spec.volumes
+          content:
+            name: access-control-volume
+          any: true
+        template: templates/deployment-worker.yaml
+
+  - it: applies the shared rules to the workers as well as the coordinator
+    set:
+      accessControl:
+        type: configmap
+        rules:
+          rules.json: |-
+            {"system_information": [{"user": "foo", "allow": ["read"]}]}
+    asserts:
+      - equal:
+          path: data["rules.json"]
+          value: |-
+            {"system_information": [{"user": "foo", "allow": ["read"]}]}
+        template: templates/configmap-access-control-worker.yaml
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.config-file=/etc/trino/access-control/rules.json
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: access-control-volume
+            configMap:
+              name: RELEASE-NAME-trino-access-control-volume-worker
+        template: templates/deployment-worker.yaml
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: access-control-volume
+            mountPath: /etc/trino/access-control
+        template: templates/deployment-worker.yaml
+
+  - it: mounts rules meant for the workers alone and leaves the coordinator without any
+    set:
+      accessControl:
+        worker:
+          type: configmap
+          refreshPeriod: 30s
+          rules:
+            rules.json: |-
+              {"system_information": [{"user": "prometheus", "allow": ["read"]}]}
+    asserts:
+      - equal:
+          path: data["rules.json"]
+          value: |-
+            {"system_information": [{"user": "prometheus", "allow": ["read"]}]}
+        template: templates/configmap-access-control-worker.yaml
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.refresh-period=30s
+            security.config-file=/etc/trino/access-control/rules.json
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-access-control-coordinator.yaml
+      - isNull:
+          path: data["access-control.properties"]
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      # Trino reloads the file itself when a refresh period is set, so the pods
+      # must not restart on every change to it
+      - isNull:
+          path: spec.template.metadata.annotations["checksum/access-control-config"]
+        template: templates/deployment-worker.yaml
+
+  # this is what the chart rendered before worker rules could be configured, and
+  # it is what the common case of enabling graceful shutdown alone still renders
+  - it: grants only the shutdown user when graceful shutdown is the sole reason for worker rules
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.terminationGracePeriodSeconds: 300
+    asserts:
+      - equal:
+          path: data
+          value:
+            graceful-shutdown-rules.json: |-
+              {
+                "system_information": [
+                  {
+                    "allow": [
+                      "write"
+                    ],
+                    "user": "admin"
+                  }
+                ]
+              }
+        template: templates/configmap-access-control-worker.yaml
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.config-file=/etc/trino/access-control/graceful-shutdown-rules.json
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  - it: keeps the configured rules next to the permission the shutdown request needs
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.terminationGracePeriodSeconds: 300
+      accessControl:
+        worker:
+          type: configmap
+          rules:
+            rules.json: |-
+              {
+                "catalogs": [{"catalog": "hive", "allow": "all"}],
+                "system_information": [{"user": "prometheus", "allow": ["read"]}]
+              }
+            extra.json: "{}"
+    asserts:
+      - equal:
+          path: data
+          value:
+            extra.json: "{}"
+            rules.json: |-
+              {
+                "catalogs": [
+                  {
+                    "allow": "all",
+                    "catalog": "hive"
+                  }
+                ],
+                "system_information": [
+                  {
+                    "allow": [
+                      "write"
+                    ],
+                    "user": "admin"
+                  },
+                  {
+                    "allow": [
+                      "read"
+                    ],
+                    "user": "prometheus"
+                  }
+                ]
+              }
+        template: templates/configmap-access-control-worker.yaml
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=file
+            security.config-file=/etc/trino/access-control/rules.json
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  # the rules are evaluated in order and the first match decides, so a generated
+  # rule in front of a rule for the same user would take away what that rule
+  # grants
+  - it: adds the missing permission to a rule that already names the shutdown user
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.terminationGracePeriodSeconds: 300
+      accessControl:
+        worker:
+          type: configmap
+          rules:
+            rules.json: |-
+              {
+                "system_information": [
+                  {"user": "admin", "allow": ["read"]},
+                  {"user": "prometheus", "allow": ["read"]}
+                ]
+              }
+    asserts:
+      - equal:
+          path: data["rules.json"]
+          value: |-
+            {
+              "system_information": [
+                {
+                  "allow": [
+                    "read",
+                    "write"
+                  ],
+                  "user": "admin"
+                },
+                {
+                  "allow": [
+                    "read"
+                  ],
+                  "user": "prometheus"
+                }
+              ]
+            }
+        template: templates/configmap-access-control-worker.yaml
+
+  - it: permits the user the shutdown request is sent as
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.gracefulShutdown.user: shutdown-bot
+      worker.terminationGracePeriodSeconds: 300
+    asserts:
+      - matchRegex:
+          path: data["graceful-shutdown-rules.json"]
+          pattern: '"user": "shutdown-bot"'
+        template: templates/configmap-access-control-worker.yaml
+      - matchRegex:
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command[2]
+          pattern: "X-Trino-User: shutdown-bot"
+        template: templates/deployment-worker.yaml
+
+  - it: passes properties type access control on to the workers
+    set:
+      accessControl:
+        worker:
+          type: properties
+          properties: |
+            access-control.name=read-only
+    asserts:
+      - equal:
+          path: data["access-control.properties"]
+          value: |
+            access-control.name=read-only
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-access-control-worker.yaml
+
+  # the permission can only be merged into rules the chart can read, so letting
+  # this render would leave the shutdown request denied. The failure belongs to
+  # the deployment because it renders the worker config map first, to checksum
+  # it into the pod annotations, which is where the error surfaces.
+  - it: refuses graceful shutdown when the worker access control is configured with properties
+    template: templates/deployment-worker.yaml
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.terminationGracePeriodSeconds: 300
+      accessControl:
+        type: properties
+        properties: |
+          access-control.name=read-only
+    asserts:
+      - failedTemplate:
+          errorMessage: "The shutdown request is only permitted by the file based access control, which the chart cannot merge into `accessControl.properties`. Either set `accessControl.worker.type` to 'configmap' and provide the worker rules in `accessControl.worker.rules`, or disable `worker.gracefulShutdown` and apply the related configurations manually."
+
+  # the deployment reports the failure for the same reason as above
+  - it: refuses an access control type the workers cannot use
+    template: templates/deployment-worker.yaml
+    set:
+      accessControl:
+        worker:
+          type: nonsense
+    asserts:
+      - failedTemplate:
+          errorMessage: "Invalid accessControl.type value. It must be either 'configmap' or 'properties'."

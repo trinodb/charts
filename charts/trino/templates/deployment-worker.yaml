@@ -1,4 +1,5 @@
 {{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
+{{- $workerAccessControl := include "trino.workerAccessControl" . | fromYaml -}}
 {{- /* default list because concat panics on the nil that an explicit null in the values gives it */ -}}
 {{- $csiSecretMounts := concat (.Values.csiSecretMounts | default list) (.Values.worker.csiSecretMounts | default list) -}}
 {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
@@ -32,7 +33,7 @@ spec:
         {{- if or .Values.catalogs .Values.additionalCatalogs }}
         {{- $_ := set $annotations "checksum/catalog-config" (include (print $.Template.BasePath "/configmap-catalog.yaml") . | sha256sum) }}
         {{- end }}
-        {{- if .Values.worker.gracefulShutdown.enabled }}
+        {{- if and (eq $workerAccessControl.type "configmap") (not $workerAccessControl.refreshPeriod) }}
         {{- $_ := set $annotations "checksum/access-control-config" (include (print $.Template.BasePath "/configmap-access-control-worker.yaml") . | sha256sum) }}
         {{- end }}
         {{- range $key, $value := .Values.worker.annotations }}
@@ -70,7 +71,7 @@ spec:
           configMap:
             name: {{ template "trino.fullname" . }}-jmx-exporter-config-worker
         {{- end }}
-        {{- if .Values.worker.gracefulShutdown.enabled }}
+        {{- if eq $workerAccessControl.type "configmap" }}
         - name: access-control-volume
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-worker
@@ -142,7 +143,7 @@ spec:
             {{- end }}
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
-            {{- if .Values.worker.gracefulShutdown.enabled }}
+            {{- if eq $workerAccessControl.type "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}
@@ -248,7 +249,7 @@ spec:
                     curl -v -X PUT \
                       -d '"SHUTTING_DOWN"' \
                       -H 'Content-type: application/json' \
-                      -H 'X-Trino-User: admin' \
+                      -H 'X-Trino-User: {{ .Values.worker.gracefulShutdown.user }}' \
                       http://localhost:{{- .Values.service.port -}}/v1/info/state
                     # wait for shutdown to complete
                     tail --pid=1 -f /dev/null

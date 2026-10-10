@@ -1,4 +1,5 @@
 {{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
+{{- $workerAccessControl := include "trino.workerAccessControl" . | fromYaml -}}
 {{- if or .Values.server.keda.enabled (gt (int .Values.server.workers) 0) }}
 apiVersion: v1
 kind: ConfigMap
@@ -87,10 +88,27 @@ data:
     {{- .Values.server.workerExtraConfig | nindent 4 }}
     {{- end }}
 
-{{- if .Values.worker.gracefulShutdown.enabled }}
+{{- if $workerAccessControl }}
+  {{- if eq $workerAccessControl.type "configmap" }}
   access-control.properties: |
     access-control.name=file
-    security.config-file={{ .Values.server.config.path }}/access-control/graceful-shutdown-rules.json
+    {{- if $workerAccessControl.refreshPeriod }}
+    security.refresh-period={{ $workerAccessControl.refreshPeriod }}
+    {{- end }}
+    security.config-file={{ .Values.server.config.path }}/access-control/{{ $workerAccessControl.configFile | default "rules.json" }}
+  {{- else if eq $workerAccessControl.type "properties" }}
+  {{- if .Values.worker.gracefulShutdown.enabled }}
+  {{- fail "The shutdown request is only permitted by the file based access control, which the chart cannot merge into `accessControl.properties`. Either set `accessControl.worker.type` to 'configmap' and provide the worker rules in `accessControl.worker.rules`, or disable `worker.gracefulShutdown` and apply the related configurations manually." }}
+  {{- end }}
+  access-control.properties: |
+    {{- if $workerAccessControl.properties }}
+    {{- $workerAccessControl.properties | nindent 4 }}
+    {{- else}}
+    {{- fail "accessControl.properties is required when accessControl.type is 'properties'." }}
+    {{- end }}
+  {{- else}}
+  {{- fail "Invalid accessControl.type value. It must be either 'configmap' or 'properties'." }}
+  {{- end }}
 {{- end }}
 
 {{- if .Values.server.exchangeManager }}

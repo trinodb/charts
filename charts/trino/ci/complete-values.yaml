@@ -234,6 +234,12 @@ accessControl:
             "owner": false
           }
         ],
+        "system_information": [
+          {
+            "user": ".*",
+            "allow": ["read"]
+          }
+        ],
         "system_session_properties": [
           {
             "role": "admin",

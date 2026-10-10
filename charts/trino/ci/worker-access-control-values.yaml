@@ -1,0 +1,25 @@
+# Worker access control rules the graceful shutdown permission has to be merged
+# into, so a real Trino parses the merged document and the graceful shutdown
+# test proves the shutdown request is still permitted.
+# This is a YAML-formatted file.
+
+accessControl:
+  worker:
+    type: configmap
+    rules:
+      rules.json: |-
+        {
+          "system_information": [
+            {
+              "user": "metrics",
+              "allow": ["read"]
+            }
+          ]
+        }
+
+worker:
+  gracefulShutdown:
+    enabled: true
+    gracePeriodSeconds: 5
+
+  terminationGracePeriodSeconds: 120
