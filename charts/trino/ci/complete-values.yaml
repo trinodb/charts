@@ -48,6 +48,12 @@ service:
   annotations:
     custom/name: value
   port: 8080
+  coordinator:
+    annotations:
+      custom/coordinator-name: value
+  worker:
+    annotations:
+      custom/worker-name: value
 
 auth:
   # created using htpasswd -B -C 10 password.db admin

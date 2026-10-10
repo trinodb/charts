@@ -1,0 +1,73 @@
+suite: The worker service stays headless and exposes the ports the workers listen on
+templates:
+  - templates/service-worker.yaml
+tests:
+  - it: exposes only the http port of a headless service by default
+    asserts:
+      - equal:
+          path: spec.clusterIP
+          value: None
+      - isNull:
+          path: spec.type
+      - equal:
+          path: spec.ports
+          value:
+            - port: 8080
+              targetPort: http
+              protocol: TCP
+              name: http
+      - equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: trino
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: worker
+
+  - it: exposes the jmx exporter port the workers scrape
+    set:
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+    asserts:
+      - equal:
+          path: spec.ports[1]
+          value:
+            port: 5556
+            targetPort: jmx-exporter
+            protocol: TCP
+            name: jmx-exporter
+
+  - it: exposes the additional ports declared for the workers
+    set:
+      worker.additionalExposedPorts:
+        extra:
+          name: extra-port
+          servicePort: 9483
+          port: 9484
+          protocol: TCP
+    asserts:
+      - equal:
+          path: spec.ports[1]
+          value:
+            port: 9483
+            name: extra-port
+            targetPort: 9484
+            protocol: TCP
+
+  - it: carries the service annotations through
+    set:
+      service.annotations:
+        consul.hashicorp.com/service-sync: "true"
+    asserts:
+      - equal:
+          path: metadata.annotations["consul.hashicorp.com/service-sync"]
+          value: "true"
+
+  # A headless service has no load balancer and no node ports, so a setting
+  # that only a routed service can honour has to be refused rather than
+  # dropped, or the user would never learn it had no effect.
+  - it: refuses a worker override that a headless service cannot apply
+    set:
+      service.worker.type: LoadBalancer
+    asserts:
+      - failedTemplate:
+          errorMessage: "service.worker.type is not supported, the service settings that can differ per role are: annotations"

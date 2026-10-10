@@ -467,6 +467,25 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `service.nodePort` - string, default: `""`  
 
   The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+* `service.coordinator` - object, default: `{}`  
+
+  Override service configurations for the coordinator service.
+  Example
+  ```yaml
+  coordinator:
+    type: LoadBalancer
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: trino.example.com
+  ```
+* `service.worker` - object, default: `{}`  
+
+  Override service configurations for the worker service. The worker service is headless, so only the settings that apply to a headless service can be overridden. Setting any other one fails the rendering instead of being silently ignored.
+  Example
+  ```yaml
+  worker:
+    annotations:
+      consul.hashicorp.com/service-sync: "false"
+  ```
 * `auth` - object, default: `{}`  
 
   Available authentication methods.

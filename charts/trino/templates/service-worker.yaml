@@ -1,4 +1,6 @@
 {{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
+{{- include "trino.checkServiceOverrides" (dict "role" "worker" "overrides" .Values.service.worker "supported" (list "annotations")) -}}
+{{- $workerService := include "trino.roleConfig" (dict "block" .Values.service "role" "worker") | fromYaml -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,7 +10,7 @@ metadata:
     {{- include "trino.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
   annotations:
-    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- toYaml $workerService.annotations | nindent 4 }}
 spec:
   clusterIP: None
   ports:
