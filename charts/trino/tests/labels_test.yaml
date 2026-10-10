@@ -1,0 +1,113 @@
+suite: Labels can be overridden without being emitted twice
+templates:
+  - templates/deployment-coordinator.yaml
+  - templates/deployment-worker.yaml
+  - templates/servicemonitor-coordinator.yaml
+  # the deployments include these to checksum them into pod annotations
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-access-control-worker.yaml
+  - templates/configmap-catalog.yaml
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-worker.yaml
+tests:
+  - it: carries the common labels on every role
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/name: trino
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/component: coordinator
+            trino.io/network-policy-protection: disabled
+        template: templates/deployment-coordinator.yaml
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/name: trino
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/component: worker
+            trino.io/network-policy-protection: disabled
+        template: templates/deployment-worker.yaml
+
+  # a duplicated key is valid enough for Helm, but strict YAML parsers such as
+  # kustomize reject it, which breaks post-render pipelines
+  - it: emits a label that commonLabels overrides exactly once
+    set:
+      commonLabels:
+        app.kubernetes.io/managed-by: overridden
+        extra-label: extra-value
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: overridden
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: metadata.labels["extra-label"]
+          value: extra-value
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/managed-by"]
+          value: overridden
+        template: templates/deployment-coordinator.yaml
+
+  - it: emits a role label that coordinator.labels overrides exactly once
+    template: templates/deployment-coordinator.yaml
+    set:
+      coordinator.labels:
+        app.kubernetes.io/component: custom-coordinator
+        trino.io/network-policy-protection: enabled
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: custom-coordinator
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: custom-coordinator
+      - equal:
+          path: spec.template.metadata.labels["trino.io/network-policy-protection"]
+          value: enabled
+
+  - it: emits a role label that worker.labels overrides exactly once
+    template: templates/deployment-worker.yaml
+    set:
+      worker.labels:
+        app.kubernetes.io/component: custom-worker
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/component"]
+          value: custom-worker
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/component"]
+          value: custom-worker
+
+  - it: emits a label that the service monitor overrides exactly once
+    template: templates/servicemonitor-coordinator.yaml
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.labels:
+        app.kubernetes.io/managed-by: prometheus-operator
+        prometheus: kube-prometheus
+    asserts:
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: prometheus-operator
+      - equal:
+          path: metadata.labels["prometheus"]
+          value: kube-prometheus
+
+  - it: resolves templated labels
+    set:
+      commonLabels:
+        release: "{{ .Release.Name }}"
+      coordinator.labels:
+        namespace: "{{ .Release.Namespace }}"
+    template: templates/deployment-coordinator.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["release"]
+          value: RELEASE-NAME
+      - equal:
+          path: metadata.labels["namespace"]
+          value: NAMESPACE

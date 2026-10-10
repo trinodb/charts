@@ -6,12 +6,7 @@ metadata:
   name: {{ template "trino.worker" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "trino.labels" . | nindent 4 }}
-    app.kubernetes.io/component: worker
-    trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
-    {{- if .Values.worker.labels }}
-    {{- tpl (toYaml .Values.worker.labels) . | nindent 4 }}
-    {{- end }}
+    {{- include "trino.roleLabels" (dict "context" . "role" "worker" "labels" .Values.worker.labels) | nindent 4 }}
   annotations:
     {{- toYaml .Values.worker.deployment.annotations | nindent 4 }}
 spec:
@@ -43,12 +38,7 @@ spec:
         {{- end }}
         {{- tpl (toYaml $annotations) . | nindent 8 }}
       labels:
-        {{- include "trino.labels" . | nindent 8 }}
-        app.kubernetes.io/component: worker
-        trino.io/network-policy-protection: {{ ternary "enabled" "disabled" .Values.networkPolicy.enabled }}
-        {{- if .Values.worker.labels }}
-        {{- tpl (toYaml .Values.worker.labels) . | nindent 8 }}
-        {{- end }}
+        {{- include "trino.roleLabels" (dict "context" . "role" "worker" "labels" .Values.worker.labels) | nindent 8 }}
     spec:
       {{- if .Values.worker.priorityClassName }}
       priorityClassName: {{ .Values.worker.priorityClassName }}
