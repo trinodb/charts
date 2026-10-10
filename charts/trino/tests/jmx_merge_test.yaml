@@ -163,28 +163,34 @@ tests:
         template: templates/configmap-worker.yaml
         documentIndex: 0
 
-  # KNOWN BUG, asserted as current behaviour. `merge` is mergo-backed and treats
-  # `false` as a zero value, so a per-role `false` is overwritten by the shared
-  # `true` and per-role disabling of jmx does not work. If someone fixes the
-  # merge (mustMergeOverwrite, explicit nil handling, or an exhaustive per-role
-  # default block), this test will fail: rewrite it to assert the fixed
-  # behaviour rather than deleting it.
-  - it: cannot disable jmx for a single role, because merge discards a per-role false
+  - it: disables jmx for one role while the other keeps the shared settings
     set:
       jmx.enabled: true
       jmx.exporter.enabled: true
       jmx.coordinator.enabled: false
       jmx.coordinator.exporter.enabled: false
     asserts:
-      - contains:
+      - notContains:
           path: spec.ports
           content:
             name: jmx-exporter
           any: true
         template: templates/service-coordinator.yaml
-      - contains:
+      - notContains:
           path: spec.template.spec.containers[0].ports
           content:
             name: jmx-registry
           any: true
         template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.ports
+          content:
+            name: jmx-exporter
+          any: true
+        template: templates/service-worker.yaml
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: jmx-registry
+          any: true
+        template: templates/deployment-worker.yaml

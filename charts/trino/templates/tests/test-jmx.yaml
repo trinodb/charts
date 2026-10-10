@@ -1,7 +1,7 @@
-{{- $coordinatorJmx := merge .Values.jmx.coordinator (omit .Values.jmx "coordinator" "worker") -}}
-{{- $workerJmx := merge .Values.jmx.worker (omit .Values.jmx "coordinator" "worker") -}}
-{{- $coordinatorServiceMonitor := merge .Values.serviceMonitor.coordinator (omit .Values.serviceMonitor "coordinator" "worker") -}}
-{{- $workerServiceMonitor := merge .Values.serviceMonitor.worker (omit .Values.serviceMonitor "coordinator" "worker") -}}
+{{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
+{{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
+{{- $coordinatorServiceMonitor := include "trino.roleConfig" (dict "block" .Values.serviceMonitor "role" "coordinator") | fromYaml -}}
+{{- $workerServiceMonitor := include "trino.roleConfig" (dict "block" .Values.serviceMonitor "role" "worker") | fromYaml -}}
 {{- if or $coordinatorJmx.exporter.enabled $coordinatorServiceMonitor.enabled $workerJmx.exporter.enabled $workerServiceMonitor.enabled -}}
 apiVersion: v1
 kind: Pod
