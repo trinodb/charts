@@ -1,4 +1,4 @@
-{{- if eq .Values.accessControl.type "configmap" }}
+{{- if eq (include "trino.configType" .Values.accessControl) "configmap" }}
 apiVersion: v1
 kind: ConfigMap
 metadata:

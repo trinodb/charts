@@ -9,7 +9,7 @@ metadata:
   annotations:
     "helm.sh/hook": test
 spec:
-  {{- if eq .Values.resourceGroups.type "properties" }}
+  {{- if eq (include "trino.configType" .Values.resourceGroups) "properties" }}
   initContainers:
     - name: postgresql-client
       image: bitnamilegacy/postgresql:17.1.0

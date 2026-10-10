@@ -26,7 +26,7 @@ spec:
     metadata:
       annotations:
         {{- $annotations := dict "checksum/coordinator-config" (include (print $.Template.BasePath "/configmap-coordinator.yaml") . | sha256sum) }}
-        {{- if and (eq .Values.accessControl.type "configmap") (not .Values.accessControl.refreshPeriod) }}
+        {{- if and (eq (include "trino.configType" .Values.accessControl) "configmap") (not .Values.accessControl.refreshPeriod) }}
         {{- $_ := set $annotations "checksum/access-control-config" (include (print $.Template.BasePath "/configmap-access-control-coordinator.yaml") . | sha256sum) }}
         {{- end }}
         {{- if or .Values.catalogs .Values.additionalCatalogs }}
@@ -62,12 +62,12 @@ spec:
         - name: schemas-volume
           configMap:
             name: {{ template "trino.fullname" . }}-schemas-volume-coordinator
-        {{- if eq .Values.accessControl.type "configmap" }}
+        {{- if eq (include "trino.configType" .Values.accessControl) "configmap" }}
         - name: access-control-volume
           configMap:
             name: {{ template "trino.fullname" . }}-access-control-volume-coordinator
         {{- end }}
-        {{- if eq .Values.resourceGroups.type "configmap" }}
+        {{- if eq (include "trino.configType" .Values.resourceGroups) "configmap" }}
         - name: resource-groups-volume
           configMap:
             name: {{ template "trino.fullname" . }}-resource-groups-volume-coordinator
@@ -156,11 +156,11 @@ spec:
             {{- end }}
             - mountPath: {{ .Values.kafka.mountPath }}
               name: schemas-volume
-            {{- if eq .Values.accessControl.type "configmap" }}
+            {{- if eq (include "trino.configType" .Values.accessControl) "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/access-control
               name: access-control-volume
             {{- end }}
-            {{- if eq .Values.resourceGroups.type "configmap" }}
+            {{- if eq (include "trino.configType" .Values.resourceGroups) "configmap" }}
             - mountPath: {{ .Values.server.config.path }}/resource-groups
               name: resource-groups-volume
             {{- end }}

@@ -96,14 +96,14 @@ data:
     {{- end }}
 
 {{- if .Values.accessControl }}
-  {{- if eq .Values.accessControl.type "configmap" }}
+  {{- if eq (include "trino.configType" .Values.accessControl) "configmap" }}
   access-control.properties: |
     access-control.name=file
     {{- if .Values.accessControl.refreshPeriod }}
     security.refresh-period={{ .Values.accessControl.refreshPeriod }}
     {{- end }}
     security.config-file={{ .Values.server.config.path }}/access-control/{{ .Values.accessControl.configFile | default "rules.json" }}
-  {{- else if eq .Values.accessControl.type "properties" }}
+  {{- else if eq (include "trino.configType" .Values.accessControl) "properties" }}
   access-control.properties: |
     {{- if .Values.accessControl.properties }}
     {{- .Values.accessControl.properties | nindent 4 }}
@@ -116,11 +116,11 @@ data:
 {{- end }}
 
 {{- if .Values.resourceGroups }}
-  {{- if eq .Values.resourceGroups.type "configmap" }}
+  {{- if eq (include "trino.configType" .Values.resourceGroups) "configmap" }}
   resource-groups.properties: |
     resource-groups.configuration-manager=file
     resource-groups.config-file={{ .Values.server.config.path }}/resource-groups/resource-groups.json
-  {{- else if eq .Values.resourceGroups.type "properties" }}
+  {{- else if eq (include "trino.configType" .Values.resourceGroups) "properties" }}
   resource-groups.properties: |
     {{- if .Values.resourceGroups.properties }}
     {{- .Values.resourceGroups.properties | nindent 4 }}
@@ -133,14 +133,14 @@ data:
 {{- end }}
 
 {{- if .Values.sessionProperties }}
-  {{- if eq .Values.sessionProperties.type "configmap" }}
+  {{- if eq (include "trino.configType" .Values.sessionProperties) "configmap" }}
   session-property-config.properties: |
     session-property-config.configuration-manager=file
     session-property-manager.config-file={{ .Values.server.config.path }}/session-property-config.json
 
   session-property-config.json: |
     {{- .Values.sessionProperties.sessionPropertiesConfig | nindent 4 }}
-  {{- else if eq .Values.sessionProperties.type "properties" }}
+  {{- else if eq (include "trino.configType" .Values.sessionProperties) "properties" }}
   session-property-config.properties: |
     {{- if .Values.sessionProperties.properties }}
     {{- .Values.sessionProperties.properties | nindent 4 }}
@@ -216,7 +216,7 @@ data:
   {{ $fileName }}: |
     {{- tpl $fileContent $ | nindent 4 }}
 {{- end }}
-{{- if eq .Values.resourceGroups.type "configmap" }}
+{{- if eq (include "trino.configType" .Values.resourceGroups) "configmap" }}
 ---
 apiVersion: v1
 kind: ConfigMap
