@@ -1,0 +1,274 @@
+suite: The additional property lists accept template expressions on both roles
+templates:
+  - templates/configmap-coordinator.yaml
+  - templates/configmap-worker.yaml
+# Both configmap templates also emit a schemas volume configmap, so every
+# assertion has to name documentIndex 0 to reach the properties themselves.
+tests:
+  - it: resolves a templated node property
+    set:
+      global:
+        nodePoolId: pool-7
+      additionalNodeProperties:
+        - node.pool={{ .Values.global.nodePoolId }}
+    asserts:
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.pool=pool-7$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.pool=pool-7$"
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  - it: resolves a templated config property
+    set:
+      global:
+        monitoring:
+          enabled: true
+      additionalConfigProperties:
+        - '{{ if .Values.global.monitoring.enabled }}tracing.enabled=true{{ end }}'
+        - tracing.exporter.endpoint=http://collector.{{ .Release.Namespace }}:4317
+    asserts:
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^tracing\\.enabled=true$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^tracing\\.exporter\\.endpoint=http://collector\\.NAMESPACE:4317$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^tracing\\.enabled=true$"
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["config.properties"]
+          pattern: "(?m)^tracing\\.exporter\\.endpoint=http://collector\\.NAMESPACE:4317$"
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  - it: resolves a templated log property
+    set:
+      global:
+        debugLogging: true
+      additionalLogProperties:
+        - '{{ if .Values.global.debugLogging }}io.airlift=DEBUG{{ end }}'
+    asserts:
+      - equal:
+          path: data["log.properties"]
+          value: |
+            io.trino=INFO
+            io.airlift=DEBUG
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["log.properties"]
+          value: |
+            io.trino=INFO
+            io.airlift=DEBUG
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  - it: resolves a templated exchange manager property
+    set:
+      global:
+        objectStoreRegion: eu-central-1
+      server.exchangeManager:
+        name: filesystem
+        baseDir:
+          - /tmp/trino-exchange
+      additionalExchangeManagerProperties:
+        - exchange.s3.region={{ .Values.global.objectStoreRegion }}
+    asserts:
+      - matchRegex:
+          path: data["exchange-manager.properties"]
+          pattern: "(?m)^exchange\\.s3\\.region=eu-central-1$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["exchange-manager.properties"]
+          pattern: "(?m)^exchange\\.s3\\.region=eu-central-1$"
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  - it: resolves a templated event listener property
+    set:
+      global:
+        monitoring:
+          enabled: true
+      eventListenerProperties:
+        - event-listener.name=http
+        - '{{ if .Values.global.monitoring.enabled }}http-event-listener.connect-ingest-uri=http://collector.{{ .Release.Namespace }}:8080{{ end }}'
+    asserts:
+      - equal:
+          path: data["event-listener.properties"]
+          value: |
+            event-listener.name=http
+            http-event-listener.connect-ingest-uri=http://collector.NAMESPACE:8080
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["event-listener.properties"]
+          value: |
+            event-listener.name=http
+            http-event-listener.connect-ingest-uri=http://collector.NAMESPACE:8080
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  # An event listener is only configured by this file, so a file holding nothing
+  # at all stops the server from starting on a missing event-listener.name. The
+  # whole file has to go when every entry it would hold renders empty.
+  - it: writes no event listener file at all when every entry renders empty
+    set:
+      global:
+        monitoring:
+          enabled: false
+      eventListenerProperties:
+        - '{{ if .Values.global.monitoring.enabled }}event-listener.name=kafka{{ end }}'
+        - '{{ if .Values.global.monitoring.enabled }}kafka-event-listener.broker-endpoints=kafka:9092{{ end }}'
+    asserts:
+      - isNull:
+          path: data["event-listener.properties"]
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - isNull:
+          path: data["event-listener.properties"]
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  # An entry guarded by a false condition renders to nothing. Trino's properties
+  # parser would ignore the blank line it used to leave behind, but keeping the
+  # rendered configmap readable is worth dropping the entry outright.
+  - it: drops an entry whose condition renders nothing instead of leaving a blank line
+    set:
+      global:
+        monitoring:
+          enabled: false
+      additionalNodeProperties:
+        - '{{ if .Values.global.monitoring.enabled }}node.annotation-file=/etc/trino/annotations{{ end }}'
+      additionalConfigProperties:
+        - '{{ if .Values.global.monitoring.enabled }}tracing.enabled=true{{ end }}'
+      additionalLogProperties:
+        - '{{ if .Values.global.monitoring.enabled }}io.airlift=DEBUG{{ end }}'
+      eventListenerProperties:
+        - event-listener.name=http
+        - '{{ if .Values.global.monitoring.enabled }}http-event-listener.log-completed=true{{ end }}'
+    asserts:
+      - equal:
+          path: data["node.properties"]
+          value: |
+            node.environment=production
+            node.data-dir=/data/trino
+            plugin.dir=/usr/lib/trino/plugin
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=true
+            node-scheduler.include-coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://localhost:8080
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["log.properties"]
+          value: |
+            io.trino=INFO
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["event-listener.properties"]
+          value: |
+            event-listener.name=http
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["node.properties"]
+          value: |
+            node.environment=production
+            node.data-dir=/data/trino
+            plugin.dir=/usr/lib/trino/plugin
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://RELEASE-NAME-trino:8080
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - equal:
+          path: data["log.properties"]
+          value: |
+            io.trino=INFO
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+      - equal:
+          path: data["event-listener.properties"]
+          value: |
+            event-listener.name=http
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  # Dropping empty entries must not reach a property that names a key and
+  # deliberately assigns it nothing, which Trino reads as an empty value.
+  - it: keeps a property whose value is deliberately empty
+    set:
+      global:
+        userMappingPattern: ""
+      additionalConfigProperties:
+        - http-server.authentication.password.user-mapping.pattern={{ .Values.global.userMappingPattern }}
+    asserts:
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=true
+            node-scheduler.include-coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://localhost:8080
+            http-server.authentication.password.user-mapping.pattern=
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - equal:
+          path: data["config.properties"]
+          value: |
+            coordinator=false
+            http-server.http.port=8080
+            query.max-memory=4GB
+            query.max-memory-per-node=1GB
+            discovery.uri=http://RELEASE-NAME-trino:8080
+            http-server.authentication.password.user-mapping.pattern=
+        template: templates/configmap-worker.yaml
+        documentIndex: 0
+
+  # The `$` in a shell-style placeholder only starts a template variable inside
+  # a template action, so entries like this one still reach Trino untouched.
+  - it: leaves shell-style placeholders alone
+    set:
+      additionalNodeProperties:
+        - node.id=${NODE_ID}
+    asserts:
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.id=\\$\\{NODE_ID\\}$"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["node.properties"]
+          pattern: "(?m)^node\\.id=\\$\\{NODE_ID\\}$"
+        template: templates/configmap-worker.yaml
+        documentIndex: 0

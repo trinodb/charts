@@ -332,35 +332,39 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `additionalNodeProperties` - list, default: `[]`  
 
-  [Additional node properties](https://trino.io/docs/current/installation/deployment.html#log-levels).
+  [Additional node properties](https://trino.io/docs/current/installation/deployment.html#log-levels). Supports templating the entries with `tpl`; an entry that renders empty is omitted.
   Example, assuming the NODE_ID environment variable has been set:
   ```yaml
    - node.id=${NODE_ID}
+   - 'node.pool={{ .Values.global.nodePoolId }}'
   ```
 * `additionalConfigProperties` - list, default: `[]`  
 
-  [Additional config properties](https://trino.io/docs/current/admin/properties.html).
+  [Additional config properties](https://trino.io/docs/current/admin/properties.html). Supports templating the entries with `tpl`; an entry that renders empty is omitted.
   Example:
   ```yaml
    - internal-communication.shared-secret=random-value-999
    - http-server.process-forwarded=true
+   - '{{ if .Values.global.monitoring.enabled }}tracing.enabled=true{{ end }}'
   ```
 * `additionalLogProperties` - list, default: `[]`  
 
-  [Additional log properties](https://trino.io/docs/current/installation/deployment.html#log-levels).
+  [Additional log properties](https://trino.io/docs/current/installation/deployment.html#log-levels). Supports templating the entries with `tpl`; an entry that renders empty is omitted.
   Example:
   ```yaml
    - io.airlift=DEBUG
+   - 'io.trino.plugin.hive={{ .Values.global.hiveLogLevel }}'
   ```
 * `additionalExchangeManagerProperties` - list, default: `[]`  
 
-  [Exchange manager properties](https://trino.io/docs/current/admin/fault-tolerant-execution.html#exchange-manager).
+  [Exchange manager properties](https://trino.io/docs/current/admin/fault-tolerant-execution.html#exchange-manager). Supports templating the entries with `tpl`; an entry that renders empty is omitted.
   Example:
   ```yaml
    - exchange.s3.region=object-store-region
    - exchange.s3.endpoint=your-object-store-endpoint
    - exchange.s3.aws-access-key=your-access-key
    - exchange.s3.aws-secret-key=your-secret-key
+   - 'exchange.s3.region={{ .Values.global.objectStoreRegion }}'
   ```
 * `sessionProperties` - object, default: `{}`  
 
@@ -370,12 +374,13 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   * `properties`, and provide configuration properties in `properties`.
 * `eventListenerProperties` - list, default: `[]`  
 
-  [Event listener](https://trino.io/docs/current/develop/event-listener.html#event-listener) properties. To configure multiple event listeners, add them in `coordinator.additionalConfigFiles` and `worker.additionalConfigFiles`, and set the `event-listener.config-files` property in `additionalConfigProperties` to their locations.
+  [Event listener](https://trino.io/docs/current/develop/event-listener.html#event-listener) properties. To configure multiple event listeners, add them in `coordinator.additionalConfigFiles` and `worker.additionalConfigFiles`, and set the `event-listener.config-files` property in `additionalConfigProperties` to their locations. Supports templating the entries with `tpl`; an entry that renders empty is omitted, and no event listener file is written when every entry does.
   Example:
   ```yaml
    - event-listener.name=custom-event-listener
    - custom-property1=custom-value1
    - custom-property2=custom-value2
+   - 'custom-property3={{ .Values.global.customValue }}'
   ```
 * `catalogs` - object, default: `{"tpcds":"connector.name=tpcds\ntpcds.splits-per-node=4\n","tpch":"connector.name=tpch\ntpch.splits-per-node=4\n"}`  
 
