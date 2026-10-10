@@ -162,9 +162,9 @@ tests:
           path: spec.template.metadata.annotations["checksum/access-control-config"]
         template: templates/deployment-worker.yaml
 
-  # this is what the chart rendered before worker rules could be configured, and
-  # it is what the common case of enabling graceful shutdown alone still renders
-  - it: grants only the shutdown user when graceful shutdown is the sole reason for worker rules
+  # the first rule matching a user decides, so the generated rule has to grant
+  # the reads that user needs as well, not only the write the request makes
+  - it: grants the shutdown user both permissions when graceful shutdown is the sole reason for worker rules
     set:
       worker.gracefulShutdown.enabled: true
       worker.terminationGracePeriodSeconds: 300
@@ -177,6 +177,7 @@ tests:
                 "system_information": [
                   {
                     "allow": [
+                      "read",
                       "write"
                     ],
                     "user": "admin"
@@ -192,7 +193,7 @@ tests:
         template: templates/configmap-worker.yaml
         documentIndex: 0
 
-  - it: keeps the configured rules next to the permission the shutdown request needs
+  - it: keeps the configured rules next to the permissions the shutdown request needs
     set:
       worker.gracefulShutdown.enabled: true
       worker.terminationGracePeriodSeconds: 300
@@ -222,6 +223,7 @@ tests:
                 "system_information": [
                   {
                     "allow": [
+                      "read",
                       "write"
                     ],
                     "user": "admin"
@@ -243,10 +245,10 @@ tests:
         template: templates/configmap-worker.yaml
         documentIndex: 0
 
-  # the rules are evaluated in order and the first match decides, so a generated
-  # rule in front of a rule for the same user would take away what that rule
-  # grants
-  - it: adds the missing permission to a rule that already names the shutdown user
+  # the document keeps the shape the user gave it, so the rule they wrote for the
+  # shutdown user gains the missing permission instead of being joined by a
+  # second rule for the same user
+  - it: adds the missing permission to the rule the user wrote for the shutdown user
     set:
       worker.gracefulShutdown.enabled: true
       worker.terminationGracePeriodSeconds: 300
@@ -279,6 +281,33 @@ tests:
                     "read"
                   ],
                   "user": "prometheus"
+                }
+              ]
+            }
+        template: templates/configmap-access-control-worker.yaml
+
+  - it: leaves a rule that already grants both permissions as the user wrote it
+    set:
+      worker.gracefulShutdown.enabled: true
+      worker.terminationGracePeriodSeconds: 300
+      accessControl:
+        worker:
+          type: configmap
+          rules:
+            rules.json: |-
+              {"system_information": [{"user": "admin", "allow": ["read", "write"]}]}
+    asserts:
+      - equal:
+          path: data["rules.json"]
+          value: |-
+            {
+              "system_information": [
+                {
+                  "allow": [
+                    "read",
+                    "write"
+                  ],
+                  "user": "admin"
                 }
               ]
             }
