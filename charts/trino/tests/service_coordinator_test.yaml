@@ -1,4 +1,4 @@
-suite: The coordinator service exposes the extra ports a user declares, in a stable order
+suite: The coordinator service exposes the ports and the routing spec a user declares
 templates:
   - templates/service-coordinator.yaml
   - templates/deployment-coordinator.yaml
@@ -135,6 +135,31 @@ tests:
           content:
             nodePort: 30483
           any: true
+
+  - it: leaves the load balancer open unless client ranges are given
+    template: templates/service-coordinator.yaml
+    set:
+      service.type: LoadBalancer
+    asserts:
+      - isNull:
+          path: spec.loadBalancerSourceRanges
+
+  # The ranges become the access rules of the cloud load balancer itself, such
+  # as the security group of an AWS NLB, which is the only place to restrict
+  # traffic that never passes through the cluster network.
+  - it: restricts the load balancer to the client ranges a user allows
+    template: templates/service-coordinator.yaml
+    set:
+      service.type: LoadBalancer
+      service.loadBalancerSourceRanges:
+        - 1.2.3.4/32
+        - 10.0.0.0/8
+    asserts:
+      - equal:
+          path: spec.loadBalancerSourceRanges
+          value:
+            - 1.2.3.4/32
+            - 10.0.0.0/8
 
   - it: carries the service annotations through
     template: templates/service-coordinator.yaml
