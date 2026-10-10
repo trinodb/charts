@@ -74,6 +74,19 @@ tests:
           value: None
         template: templates/service-worker.yaml
 
+  - it: declares the application protocol for one role without declaring it for the other
+    set:
+      service.coordinator.appProtocols:
+        http: kubernetes.io/h2c
+    asserts:
+      - equal:
+          path: spec.ports[0].appProtocol
+          value: kubernetes.io/h2c
+        template: templates/service-coordinator.yaml
+      - isNull:
+          path: spec.ports[0].appProtocol
+        template: templates/service-worker.yaml
+
   - it: restricts the coordinator load balancer without touching the worker service
     set:
       service.coordinator.type: LoadBalancer

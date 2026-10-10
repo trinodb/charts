@@ -48,6 +48,11 @@ service:
   annotations:
     custom/name: value
   port: 8080
+  appProtocols:
+    http: kubernetes.io/h2c
+    https: https
+    jmx-exporter: http
+    extra-port: http
   coordinator:
     annotations:
       custom/coordinator-name: value

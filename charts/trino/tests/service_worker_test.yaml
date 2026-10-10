@@ -53,6 +53,31 @@ tests:
             targetPort: 9484
             protocol: TCP
 
+  - it: declares the application protocol of every kind of port it exposes
+    set:
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      service.appProtocols:
+        http: kubernetes.io/h2c
+        jmx-exporter: http
+        extra-port: kubernetes.io/ws
+      worker.additionalExposedPorts:
+        extra:
+          name: extra-port
+          servicePort: 9483
+          port: 9484
+          protocol: TCP
+    asserts:
+      - equal:
+          path: spec.ports[0].appProtocol
+          value: kubernetes.io/h2c
+      - equal:
+          path: spec.ports[1].appProtocol
+          value: http
+      - equal:
+          path: spec.ports[2].appProtocol
+          value: kubernetes.io/ws
+
   - it: carries the service annotations through
     set:
       service.annotations:
@@ -70,4 +95,4 @@ tests:
       service.worker.type: LoadBalancer
     asserts:
       - failedTemplate:
-          errorMessage: "service.worker.type is not supported, the service settings that can differ per role are: annotations"
+          errorMessage: "service.worker.type is not supported, the service settings that can differ per role are: annotations, appProtocols"

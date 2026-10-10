@@ -467,6 +467,15 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `service.nodePort` - string, default: `""`  
 
   The port the service listens on the host, for the `NodePort` type. If not set, Kubernetes will [allocate a port automatically](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport-custom-port).
+* `service.appProtocols` - object, default: `{}`  
+
+  The [application protocol](https://kubernetes.io/docs/concepts/services-networking/service/#application-protocol) of a service port, keyed by the name of the port. A service mesh reads it to choose the protocol it speaks to the pods, which is what keeps an HTTP/2 client from being downgraded to HTTP/1.1. The names of the ports are `http`, `https`, `jmx-exporter`, and the `name` of every entry in `additionalExposedPorts`. There is no default, because the right value differs per port: `kubernetes.io/h2c` means cleartext HTTP/2, so it is wrong for a TLS port and for a port that does not speak HTTP at all.
+  Example
+  ```yaml
+  appProtocols:
+    http: kubernetes.io/h2c
+    https: https
+  ```
 * `service.loadBalancerSourceRanges` - list, default: `[]`  
 
   The client address ranges allowed to reach the service, for the `LoadBalancer` type. The cloud provider turns them into the load balancer's own access rules, such as the security group of an AWS NLB. If empty or not set, the load balancer accepts traffic from anywhere.

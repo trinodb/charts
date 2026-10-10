@@ -1,6 +1,7 @@
 {{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
-{{- include "trino.checkServiceOverrides" (dict "role" "worker" "overrides" .Values.service.worker "supported" (list "annotations")) -}}
+{{- include "trino.checkServiceOverrides" (dict "role" "worker" "overrides" .Values.service.worker "supported" (list "annotations" "appProtocols")) -}}
 {{- $workerService := include "trino.roleConfig" (dict "block" .Values.service "role" "worker") | fromYaml -}}
+{{- $appProtocols := $workerService.appProtocols | default dict -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -18,17 +19,26 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+      {{- with index $appProtocols "http" }}
+      appProtocol: {{ . }}
+      {{- end }}
     {{- if $workerJmx.exporter.enabled }}
     - port: {{$workerJmx.exporter.port }}
       targetPort: jmx-exporter
       protocol: TCP
       name: jmx-exporter
+      {{- with index $appProtocols "jmx-exporter" }}
+      appProtocol: {{ . }}
+      {{- end }}
     {{- end }}
     {{- range $key, $value := .Values.worker.additionalExposedPorts }}
     - port: {{ $value.servicePort }}
       name: {{ $value.name }}
       targetPort: {{ $value.port }}
       protocol: {{ $value.protocol }}
+      {{- with index $appProtocols $value.name }}
+      appProtocol: {{ . }}
+      {{- end }}
       {{- if $value.nodePort }}
       nodePort: {{ $value.nodePort }}
       {{- end }}
