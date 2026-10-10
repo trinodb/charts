@@ -1,0 +1,14 @@
+apiVersion: v2
+name: trino-test-fixtures
+description: Cluster prerequisites shared by the Trino and Trino Gateway end-to-end tests
+type: application
+version: 0.1.0
+dependencies:
+  - name: kube-prometheus-stack
+    version: 91.7.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: kube-prometheus-stack.enabled
+  - name: keda
+    version: 2.21.0
+    repository: https://kedacore.github.io/charts
+    condition: keda.enabled
