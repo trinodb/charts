@@ -797,6 +797,14 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `worker.deployment.strategy` - object, default: `{}`  
 
   The deployment strategy to use to replace existing pods with new ones.
+* `worker.podDisruptionBudget` - object, default: `{}`  
+
+  Worker [Pod Disruption Budget](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets) configuration. The contents are rendered into the budget's `spec`, so any field the API supports can be set here. Nothing is created while this is empty.
+  ```yaml
+  podDisruptionBudget:
+    # minAvailable and maxUnavailable are mutually exclusive
+    minAvailable: 1
+  ```
 * `worker.jvm.maxHeapSize` - string, default: `"8G"`
 * `worker.jvm.minHeapSize` - string, default: `nil`
 * `worker.jvm.maxHeapPercent` - string, default: `nil`
