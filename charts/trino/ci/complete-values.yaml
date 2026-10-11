@@ -36,7 +36,7 @@ server:
           metricName: required_workers
           query: >-
             sum by (service)
-            (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+            (avg_over_time(trino_execution_name_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
 
 
 additionalConfigProperties:
@@ -320,7 +320,7 @@ jmx:
   exporter:
     enabled: true
     image: bitnamilegacy/jmx-exporter:1.4.0
-    pullPolicy: Always
+    pullPolicy: IfNotPresent
     port: 5556
     configProperties: |
       startDelaySeconds: 0
@@ -335,6 +335,17 @@ serviceMonitor:
   labels:
     prometheus: default
   interval: "1s"
+  coordinator:
+    openMetrics:
+      # only the coordinator authenticates with PASSWORD, so only its scrape
+      # sends a password; it must match the `auth.passwordAuth` entry above.
+      # A worker has no authenticator and rejects a password, so it keeps the
+      # empty default.
+      password: admin123
+  # the coordinator serves https with the self-signed pair the test driver
+  # generates, which Prometheus has no way to verify
+  tlsConfig:
+    insecureSkipVerify: true
 
 ingress:
   enabled: true

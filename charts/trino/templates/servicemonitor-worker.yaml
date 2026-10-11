@@ -1,4 +1,8 @@
 {{- $workerServiceMonitor := include "trino.roleConfig" (dict "block" .Values.serviceMonitor "role" "worker") | fromYaml -}}
+{{- $workerJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "worker") | fromYaml -}}
+{{- if and $workerServiceMonitor.enabled $workerServiceMonitor.openMetrics.enabled }}
+{{- include "trino.checkWorkerScrapePassword" . }}
+{{- end }}
 {{- if $workerServiceMonitor.enabled }}
 apiVersion: {{ $workerServiceMonitor.apiVersion }}
 kind: ServiceMonitor
@@ -20,5 +24,5 @@ spec:
     matchNames:
       - {{ .Release.Namespace }}
   endpoints:
-    {{- include "trino.serviceMonitorEndpoints" (dict "serviceMonitor" $workerServiceMonitor) | nindent 4 }}
+    {{- include "trino.serviceMonitorEndpoints" (dict "context" . "role" "worker" "serviceMonitor" $workerServiceMonitor "jmx" $workerJmx) | nindent 4 }}
 {{- end }}

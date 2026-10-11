@@ -132,6 +132,21 @@ Code is inspired from bitnami/common
 {{- end -}}
 
 {{/*
+Fail on a scrape password the workers cannot use. Only the coordinator is given
+an authentication type, so a worker answers /metrics through Trino's insecure
+authenticator, and that one rejects a password rather than ignoring it. A
+password set for both roles is therefore wrong for one of them. Takes the root
+context.
+*/}}
+{{- define "trino.checkWorkerScrapePassword" -}}
+{{- $shared := (.Values.serviceMonitor.openMetrics | default dict).password -}}
+{{- $worker := ((.Values.serviceMonitor.worker | default dict).openMetrics | default dict) -}}
+{{- if and $shared (not (hasKey $worker "password")) -}}
+{{- fail "serviceMonitor.openMetrics.password also reaches the workers, which reject a password. Set serviceMonitor.coordinator.openMetrics.password instead, or serviceMonitor.worker.openMetrics.password as well if you gave the workers an authenticator of your own." -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 The image reference of one of the containers the chart's Helm tests run. Takes
 `context` and `image`, a block of `testImages`. The registry comes from
 `image.registry`, so a mirror set up for the Trino image serves these too.
@@ -168,16 +183,65 @@ Create the secret name for the group-provider file
 {{- end }}
 
 {{/*
-The endpoints of a role's ServiceMonitor, which both roles build the same way
-because their services name their ports the same. Takes `serviceMonitor`, the
-role's settings. Returns YAML, so call it through nindent.
+The name of the Secret holding the credentials the ServiceMonitor authenticates
+its scrape with: the one the user named, or the one the chart creates for the
+role. Takes `context`, `role` and `serviceMonitor`, the role's settings.
+*/}}
+{{- define "trino.serviceMonitorAuthSecretName" -}}
+{{- with .serviceMonitor.openMetrics.authSecret -}}
+{{- . -}}
+{{- else -}}
+{{- printf "%s-metrics-auth-%s" (include "trino.fullname" .context) .role | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+The endpoints of a role's ServiceMonitor: Trino's own OpenMetrics endpoint, and
+the JMX exporter sidecar's when that role runs one. Takes `context`, `role`,
+`serviceMonitor` and `jmx`, the role's settings. Returns YAML, so call it
+through nindent.
 */}}
 {{- define "trino.serviceMonitorEndpoints" -}}
-{{- $endpoint := dict "port" "jmx-exporter" "interval" .serviceMonitor.interval -}}
-{{- with .serviceMonitor.scrapeTimeout }}
-{{- $_ := set $endpoint "scrapeTimeout" . }}
-{{- end }}
-{{- list $endpoint | toYaml -}}
+{{- $serviceMonitor := .serviceMonitor -}}
+{{- with $serviceMonitor.endpoints -}}
+{{- toYaml . -}}
+{{- else -}}
+{{- $endpoints := list -}}
+{{- if $serviceMonitor.openMetrics.enabled -}}
+{{/* only the coordinator gets http-server.https.enabled, so a worker serves
+     /metrics over plain http however server.config.https is set */}}
+{{- $https := and .context.Values.server.config.https.enabled (eq .role "coordinator") -}}
+{{- $secret := include "trino.serviceMonitorAuthSecretName" . -}}
+{{- $endpoint := dict
+      "port" (ternary "https" "http" $https)
+      "scheme" (ternary "https" "http" $https)
+      "path" $serviceMonitor.openMetrics.path
+      "interval" $serviceMonitor.interval
+      "basicAuth" (dict
+        "username" (dict "name" $secret "key" "username")
+        "password" (dict "name" $secret "key" "password")) -}}
+{{- with $serviceMonitor.scrapeTimeout -}}
+{{- $_ := set $endpoint "scrapeTimeout" . -}}
+{{- end -}}
+{{- if $https -}}
+{{- with $serviceMonitor.tlsConfig -}}
+{{- $_ := set $endpoint "tlsConfig" . -}}
+{{- end -}}
+{{- end -}}
+{{- $endpoints = append $endpoints $endpoint -}}
+{{- end -}}
+{{- if .jmx.exporter.enabled -}}
+{{- $endpoint := dict "port" "jmx-exporter" "interval" $serviceMonitor.interval -}}
+{{- with $serviceMonitor.scrapeTimeout -}}
+{{- $_ := set $endpoint "scrapeTimeout" . -}}
+{{- end -}}
+{{- $endpoints = append $endpoints $endpoint -}}
+{{- end -}}
+{{- if not $endpoints -}}
+{{- fail "A ServiceMonitor needs something to scrape: keep `serviceMonitor.openMetrics.enabled`, run the `jmx.exporter` sidecar, or describe the scrape yourself in `serviceMonitor.endpoints`." -}}
+{{- end -}}
+{{- toYaml $endpoints -}}
+{{- end -}}
 {{- end }}
 
 {{/*

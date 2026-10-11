@@ -179,8 +179,12 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
         metricName: required_workers
         query: >-
           sum by (service)
-          (avg_over_time(trino_execution_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
+          (avg_over_time(trino_execution_name_ClusterSizeMonitor_RequiredWorkers{service={{ include "trino.fullname" . | quote }}}[5s]))
   ```
+  The metric name above is the one Trino's own OpenMetrics endpoint exports,
+  which `serviceMonitor` scrapes by default. The `jmx.exporter` sidecar names
+  the same MBean attribute `trino_execution_ClusterSizeMonitor_RequiredWorkers`,
+  without the `name_` segment.
 * `server.keda.annotations` - object, default: `{}`  
 
   Annotations to apply to the ScaledObject CRD.
@@ -1036,9 +1040,29 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `jmx.serverPort` - int, default: `9081`
 * `jmx.exporter.enabled` - bool, default: `false`  
 
-  Set to true to export JMX Metrics via HTTP for [Prometheus](https://github.com/prometheus/jmx_exporter) consumption
-* `jmx.exporter.image` - string, default: `"bitnamilegacy/jmx-exporter:1.4.0"`
-* `jmx.exporter.pullPolicy` - string, default: `"Always"`
+  Set to true to run the [JMX exporter](https://github.com/prometheus/jmx_exporter) as a sidecar and export JMX metrics over its own HTTP port. Every Trino node already serves its metrics itself, see `serviceMonitor.openMetrics`, so this is only needed to keep the exporter's metric names or to reach MBeans the OpenMetrics endpoint does not expose.
+* `jmx.exporter.image` - string, default: `"bitnamilegacy/jmx-exporter:1.4.0"`  
+
+  The upstream project publishes no runnable image, and `bitnamilegacy` is Bitnami's archived namespace, so this tag receives no further updates or CVE patches. It stays the default only because a default has to pull without credentials.
+  Prefer `serviceMonitor.openMetrics`, which needs no sidecar at all. If you
+  do need the sidecar, Docker Hardened Images publishes a maintained
+  `jmx-exporter` under Apache-2.0 at no cost, and pulling it needs a Docker
+  account, so it takes an `imagePullSecrets` entry:
+  ```yaml
+  imagePullSecrets:
+    - name: dhi-credentials
+  jmx:
+    exporter:
+      image: dhi.io/jmx-exporter:TAG
+  ```
+  Pick a tag from the [catalog
+  entry](https://hub.docker.com/hardened-images/catalog/dhi/jmx-exporter),
+  and see [the Docker
+  documentation](https://docs.docker.com/dhi/how-to/use/) for the
+  credentials `dhi.io` expects.
+* `jmx.exporter.pullPolicy` - string, default: `"IfNotPresent"`  
+
+  The default tag is pinned to an immutable image in an archived namespace, so pulling it again on every start would only make that registry a startup dependency.
 * `jmx.exporter.port` - int, default: `5556`
 * `jmx.exporter.configProperties` - string, default: `""`  
 
@@ -1116,6 +1140,61 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 * `serviceMonitor.scrapeTimeout` - string, default: `""`  
 
   Maximum time to wait for a response. If empty or not set, uses the Prometheus global default.
+* `serviceMonitor.openMetrics.enabled` - bool, default: `true`  
+
+  Scrape the [OpenMetrics](https://trino.io/docs/current/admin/openmetrics.html) endpoint every Trino node serves on its own HTTP port. This needs no sidecar, and it is the recommended metrics source. The `jmx.exporter` sidecar is scraped as well whenever a role runs one, so both metric sets can be collected side by side.
+  Trino exports every MBean it registers itself. Add JVM level beans, which
+  it does not register, with the `openmetrics.jmx-object-names` property in
+  `additionalConfigProperties`:
+  ```yaml
+  additionalConfigProperties:
+    - openmetrics.jmx-object-names=java.lang:*
+  ```
+* `serviceMonitor.openMetrics.path` - string, default: `"/metrics"`
+* `serviceMonitor.openMetrics.username` - string, default: `"admin"`  
+
+  The Trino user the scrape authenticates as. Reading `/metrics` is a management read, so a file-based `accessControl` rule set has to allow this user `read` on `system_information` or the scrape gets a 403.
+  ```yaml
+  accessControl:
+    type: configmap
+    rules:
+      rules.json: |-
+        {"system_information": [{"user": "admin", "allow": ["read"]}]}
+  ```
+  `serviceMonitor.worker.enabled` set to `false` stops scraping the workers
+  if you would rather not grant it there.
+* `serviceMonitor.openMetrics.password` - string, default: `""`  
+
+  The password sent with the username, on the coordinator alone: only it is given an authentication type, so a worker rejects a password and rendering fails rather than leaving you a scrape that cannot authenticate. An empty value sends no password, which is what an unsecured cluster wants.
+  An authentication type Prometheus cannot speak, such as `OAUTH2`, has one
+  more way out: `management.user` lets management endpoints through without
+  credentials. It applies to every management endpoint, not just
+  `/metrics`.
+  ```yaml
+  additionalConfigProperties:
+    - management.user=prometheus
+    - management.user.https-enabled=true
+  ```
+* `serviceMonitor.openMetrics.authSecret` - string, default: `""`  
+
+  Name of an existing Secret in the release namespace holding `username` and `password` keys. The chart creates that Secret from the two values above when this is empty.
+* `serviceMonitor.tlsConfig` - object, default: `{}`  
+
+  TLS settings for the scrape, needed when `server.config.https.enabled` is set and Prometheus cannot verify the coordinator's certificate. Only the coordinator serves https, so this reaches its endpoint alone.
+* `serviceMonitor.endpoints` - list, default: `[]`  
+
+  Describe the scrape yourself instead of letting the chart derive it. This replaces the generated endpoints entirely, so nothing else in this block applies to a role that sets it.
+  Example:
+  ```yaml
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      relabelings:
+        - action: replace
+          replacement: trino-coordinator
+          targetLabel: job
+  ```
 * `serviceMonitor.coordinator` - object, default: `{}`  
 
   Override ServiceMonitor configurations for the Trino coordinator.
@@ -1125,6 +1204,8 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
     enabled: true
     labels:
       prometheus: my-prometheus
+    openMetrics:
+      username: prometheus
   ```
 * `serviceMonitor.worker` - object, default: `{}`  
 
@@ -1135,6 +1216,8 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
     enabled: true
     labels:
       prometheus: my-prometheus
+    openMetrics:
+      enabled: false
   ```
 * `commonLabels` - object, default: `{}`  
 
