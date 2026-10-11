@@ -20,9 +20,5 @@ spec:
     matchNames:
       - {{ .Release.Namespace }}
   endpoints:
-    - port: jmx-exporter
-      interval: {{ $coordinatorServiceMonitor.interval }}
-      {{- if $coordinatorServiceMonitor.scrapeTimeout }}
-      scrapeTimeout: {{ $coordinatorServiceMonitor.scrapeTimeout }}
-      {{- end }}
+    {{- include "trino.serviceMonitorEndpoints" (dict "serviceMonitor" $coordinatorServiceMonitor) | nindent 4 }}
 {{- end }}
