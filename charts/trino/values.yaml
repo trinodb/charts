@@ -964,6 +964,19 @@ worker:
     strategy: {}
     # worker.deployment.strategy -- The deployment strategy to use to replace existing pods with new ones.
 
+  podDisruptionBudget: {}
+  # worker.podDisruptionBudget -- Worker [Pod Disruption
+  # Budget](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/#pod-disruption-budgets)
+  # configuration. The contents are rendered into the budget's `spec`, so any
+  # field the API supports can be set here. Nothing is created while this is
+  # empty.
+  # @raw
+  # ```yaml
+  # podDisruptionBudget:
+  #   # minAvailable and maxUnavailable are mutually exclusive
+  #   minAvailable: 1
+  # ```
+
   jvm:
     maxHeapSize: "8G"
     minHeapSize:

@@ -1,0 +1,65 @@
+suite: The worker PodDisruptionBudget is created only when it is configured
+templates:
+  - templates/poddisruptionbudget-worker.yaml
+tests:
+  - it: creates nothing by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: takes a minimum number of available workers
+    set:
+      worker.podDisruptionBudget:
+        minAvailable: 2
+    asserts:
+      - equal:
+          path: spec.minAvailable
+          value: 2
+      - isNull:
+          path: spec.maxUnavailable
+      - equal:
+          path: spec.selector.matchLabels
+          value:
+            app.kubernetes.io/name: trino
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/component: worker
+
+  - it: takes a maximum number of unavailable workers
+    set:
+      worker.podDisruptionBudget:
+        maxUnavailable: 25%
+    asserts:
+      - equal:
+          path: spec.maxUnavailable
+          value: 25%
+      - isNull:
+          path: spec.minAvailable
+
+  - it: passes through any other field the budget spec supports
+    set:
+      worker.podDisruptionBudget:
+        minAvailable: 1
+        unhealthyPodEvictionPolicy: AlwaysAllow
+    asserts:
+      - equal:
+          path: spec.unhealthyPodEvictionPolicy
+          value: AlwaysAllow
+
+  - it: creates nothing when there are no workers to protect
+    set:
+      server.workers: 0
+      worker.podDisruptionBudget:
+        minAvailable: 1
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: is created for a keda managed worker pool that starts at zero
+    set:
+      server.workers: 0
+      server.keda.enabled: true
+      worker.podDisruptionBudget:
+        minAvailable: 1
+    asserts:
+      - hasDocuments:
+          count: 1
