@@ -1,0 +1,21 @@
+# Test values for the OPA sidecar.
+
+opa:
+  enabled: true
+  policy:
+    policy.rego: |
+      package trino
+      import rego.v1
+      default allow := false
+      allowed_users := {"alice", "admin"}
+      allow if {
+        input.context.identity.user in allowed_users
+      }
+
+server:
+  workers: 0
+
+coordinator:
+  config:
+    nodeScheduler:
+      includeCoordinator: true

@@ -1,0 +1,221 @@
+suite: The OPA sidecar wires itself up unless access control is configured by hand
+templates:
+  - templates/configmap-opa-policy-coordinator.yaml
+  - templates/configmap-coordinator.yaml
+  - templates/deployment-coordinator.yaml
+  # the deployment checksums these into pod annotations, so they have to be
+  # loaded even though nothing asserts on them
+  - templates/configmap-access-control-coordinator.yaml
+  - templates/configmap-catalog.yaml
+tests:
+  - it: adds nothing when it is disabled
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-opa-policy-coordinator.yaml
+      - notContains:
+          path: spec.template.spec.containers
+          content:
+            name: opa
+          any: true
+        template: templates/deployment-coordinator.yaml
+
+  - it: runs the sidecar and points Trino at it
+    set:
+      opa.enabled: true
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: opa
+          any: true
+        template: templates/deployment-coordinator.yaml
+      - matchRegex:
+          path: data["access-control.properties"]
+          pattern: "access-control\\.name=opa"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["access-control.properties"]
+          pattern: "opa\\.policy\\.uri=http://127\\.0\\.0\\.1:8181/v1/data/trino/allow"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+
+  - it: leaves access control alone when the user configured it
+    set:
+      opa.enabled: true
+      accessControl.type: properties
+      accessControl.properties: access-control.name=file
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - matchRegex:
+          path: data["access-control.properties"]
+          pattern: "access-control\\.name=file"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers
+          content:
+            name: opa
+          any: true
+        template: templates/deployment-coordinator.yaml
+
+  - it: adds only the optional properties that are set
+    set:
+      opa.enabled: true
+      opa.rowFiltersPath: /v1/data/trino/rowFilters
+      opa.logRequests: true
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - matchRegex:
+          path: data["access-control.properties"]
+          pattern: "opa\\.policy\\.row-filters-uri="
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["access-control.properties"]
+          pattern: "opa\\.log-requests=true"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - notMatchRegex:
+          path: data["access-control.properties"]
+          pattern: "column-masking-uri|batched-uri|log-responses"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+
+  - it: mounts a policy ConfigMap of the user's own instead of rendering one
+    set:
+      opa.enabled: true
+      opa.policyConfigMap: my-policies
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/configmap-opa-policy-coordinator.yaml
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: opa-policy-volume
+            configMap:
+              name: my-policies
+        template: templates/deployment-coordinator.yaml
+
+  - it: refuses a policy given both ways at once
+    set:
+      opa.enabled: true
+      opa.policyConfigMap: my-policies
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - failedTemplate:
+          errorMessage: "opa.policy and opa.policyConfigMap are mutually exclusive: set exactly one."
+        template: templates/configmap-opa-policy-coordinator.yaml
+
+  - it: refuses to run without a policy
+    set:
+      opa.enabled: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "opa.enabled is true but no policy was provided. Set either opa.policy (map of filename: content) or opa.policyConfigMap (name of an existing ConfigMap)."
+        template: templates/configmap-opa-policy-coordinator.yaml
+
+  - it: refuses a Trino too old for the plugin
+    set:
+      opa.enabled: true
+      image.tag: "437"
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - failedTemplate:
+          errorMessage: "opa.enabled requires Trino 438 or later (the OPA access-control plugin was introduced in release 438). Set image.tag to 438+ or use a custom image."
+        template: templates/configmap-opa-policy-coordinator.yaml
+
+  - it: reads the version out of a tag that also names a platform
+    set:
+      opa.enabled: true
+      image.tag: 483-arm64
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/configmap-opa-policy-coordinator.yaml
+
+  - it: declines to guess the version of a tag that carries none
+    set:
+      opa.enabled: true
+      image.tag: latest
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - hasDocuments:
+          count: 1
+        template: templates/configmap-opa-policy-coordinator.yaml
+
+  - it: keeps the writable API on loopback and probes the read-only listener
+    set:
+      opa.enabled: true
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      # the API is writable and unauthenticated, so it stays inside the pod
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: --addr=127.0.0.1:8181
+        template: templates/deployment-coordinator.yaml
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: --diagnostic-addr=0.0.0.0:8282
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.template.spec.containers[1].livenessProbe.httpGet.port
+          value: 8282
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.template.spec.containers[1].readinessProbe.httpGet.port
+          value: 8282
+        template: templates/deployment-coordinator.yaml
+
+  - it: builds the decision URIs from the port it runs on
+    set:
+      opa.enabled: true
+      opa.port: 9999
+      opa.batchedPath: /v1/data/trino/batch
+      opa.policy:
+        policy.rego: |
+          package trino
+          default allow := false
+    asserts:
+      - matchRegex:
+          path: data["access-control.properties"]
+          pattern: "opa\\.policy\\.uri=http://127\\.0\\.0\\.1:9999/v1/data/trino/allow"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - matchRegex:
+          path: data["access-control.properties"]
+          pattern: "opa\\.policy\\.batched-uri=http://127\\.0\\.0\\.1:9999/v1/data/trino/batch"
+        template: templates/configmap-coordinator.yaml
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[1].args
+          content: --addr=127.0.0.1:9999
+        template: templates/deployment-coordinator.yaml
