@@ -1064,6 +1064,12 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
 
   The default tag is pinned to an immutable image in an archived namespace, so pulling it again on every start would only make that registry a startup dependency.
 * `jmx.exporter.port` - int, default: `5556`
+* `jmx.exporter.env` - list, default: `[]`  
+
+  environment variables specifically for the JMX exporter container, specified as a list with explicit values
+* `jmx.exporter.envFrom` - list, default: `[]`  
+
+  environment variables specifically for the JMX exporter container, specified as a list of either `ConfigMap` or `Secret` references
 * `jmx.exporter.configProperties` - string, default: `""`  
 
   The string value is templated using `tpl`. The JMX config properties file is mounted to `/etc/jmx-exporter/jmx-exporter-config.yaml`.

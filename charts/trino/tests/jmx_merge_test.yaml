@@ -212,3 +212,38 @@ tests:
             name: jmx-registry
           any: true
         template: templates/deployment-worker.yaml
+
+  - it: gives the exporter sidecar the environment set for its role
+    set:
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      jmx.exporter.env:
+        - name: JAVA_TOOL_OPTIONS
+          value: -Xmx128m
+      jmx.exporter.envFrom:
+        - secretRef:
+            name: "{{ .Release.Namespace }}-exporter-env"
+      jmx.coordinator.exporter.env:
+        - name: JAVA_TOOL_OPTIONS
+          value: -Xmx256m
+    asserts:
+      # the exporter is the second container, after Trino itself
+      - equal:
+          path: spec.template.spec.containers[1].env
+          value:
+            - name: JAVA_TOOL_OPTIONS
+              value: -Xmx256m
+        template: templates/deployment-coordinator.yaml
+      - equal:
+          path: spec.template.spec.containers[1].env
+          value:
+            - name: JAVA_TOOL_OPTIONS
+              value: -Xmx128m
+        template: templates/deployment-worker.yaml
+      # envFrom is shared, and templated like the Trino container's
+      - equal:
+          path: spec.template.spec.containers[1].envFrom
+          value:
+            - secretRef:
+                name: NAMESPACE-exporter-env
+        template: templates/deployment-worker.yaml

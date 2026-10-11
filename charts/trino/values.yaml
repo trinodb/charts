@@ -1342,6 +1342,11 @@ jmx:
     # make that registry a startup dependency.
     pullPolicy: IfNotPresent
     port: 5556
+    env: []
+    # jmx.exporter.env -- environment variables specifically for the JMX exporter container, specified as a list with explicit values
+    envFrom: []
+    # jmx.exporter.envFrom -- environment variables specifically for the JMX exporter container, specified as a list of either `ConfigMap`
+    # or `Secret` references
     configProperties: ""
     # jmx.exporter.configProperties -- The string value is templated using `tpl`. The JMX config properties file
     # is mounted to `/etc/jmx-exporter/jmx-exporter-config.yaml`.
