@@ -1,4 +1,5 @@
 {{- $coordinatorServiceMonitor := include "trino.roleConfig" (dict "block" .Values.serviceMonitor "role" "coordinator") | fromYaml -}}
+{{- $coordinatorJmx := include "trino.roleConfig" (dict "block" .Values.jmx "role" "coordinator") | fromYaml -}}
 {{- if $coordinatorServiceMonitor.enabled -}}
 apiVersion: {{ $coordinatorServiceMonitor.apiVersion }}
 kind: ServiceMonitor
@@ -20,5 +21,5 @@ spec:
     matchNames:
       - {{ .Release.Namespace }}
   endpoints:
-    {{- include "trino.serviceMonitorEndpoints" (dict "serviceMonitor" $coordinatorServiceMonitor) | nindent 4 }}
+    {{- include "trino.serviceMonitorEndpoints" (dict "context" . "role" "coordinator" "serviceMonitor" $coordinatorServiceMonitor "jmx" $coordinatorJmx) | nindent 4 }}
 {{- end }}

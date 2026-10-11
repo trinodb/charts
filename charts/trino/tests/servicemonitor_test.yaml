@@ -1,0 +1,327 @@
+suite: The ServiceMonitor scrapes Trino's own OpenMetrics endpoint unless told otherwise
+templates:
+  - templates/servicemonitor-coordinator.yaml
+  - templates/servicemonitor-worker.yaml
+  - templates/secret-servicemonitor.yaml
+tests:
+  - it: renders nothing at all until the ServiceMonitor is asked for
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: scrapes the Trino http port of both roles with no sidecar in sight
+    set:
+      serviceMonitor.enabled: true
+    asserts:
+      - equal:
+          path: spec.endpoints
+          value:
+            - basicAuth:
+                username:
+                  name: RELEASE-NAME-trino-metrics-auth-coordinator
+                  key: username
+                password:
+                  name: RELEASE-NAME-trino-metrics-auth-coordinator
+                  key: password
+              interval: 30s
+              path: /metrics
+              port: http
+              scheme: http
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints
+          value:
+            - basicAuth:
+                username:
+                  name: RELEASE-NAME-trino-metrics-auth-worker
+                  key: username
+                password:
+                  name: RELEASE-NAME-trino-metrics-auth-worker
+                  key: password
+              interval: 30s
+              path: /metrics
+              port: http
+              scheme: http
+        template: templates/servicemonitor-worker.yaml
+
+  - it: authenticates the scrape as a user with no password, which is all an unsecured cluster accepts
+    template: templates/secret-servicemonitor.yaml
+    set:
+      serviceMonitor.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: stringData
+          value:
+            username: admin
+            password: ""
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-metrics-auth-coordinator
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-metrics-auth-worker
+        documentIndex: 1
+
+  - it: carries the credentials from values into the Secret the endpoints point at
+    template: templates/secret-servicemonitor.yaml
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.openMetrics.username: prometheus
+      # the password belongs to the coordinator alone, see the test below
+      serviceMonitor.coordinator.openMetrics.password: s3cret
+    asserts:
+      - equal:
+          path: stringData
+          value:
+            username: prometheus
+            password: s3cret
+        documentIndex: 0
+      - equal:
+          path: stringData
+          value:
+            username: prometheus
+            password: ""
+        documentIndex: 1
+
+  - it: points at a Secret of the user's own instead of creating one
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.openMetrics.authSecret: trino-basic-auth
+    asserts:
+      - hasDocuments:
+          count: 0
+        template: templates/secret-servicemonitor.yaml
+      - equal:
+          path: spec.endpoints[0].basicAuth.username.name
+          value: trino-basic-auth
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints[0].basicAuth.password.name
+          value: trino-basic-auth
+        template: templates/servicemonitor-worker.yaml
+
+  - it: follows the coordinator onto https, and leaves the workers on http because only the coordinator serves https
+    set:
+      serviceMonitor.enabled: true
+      server.config.https.enabled: true
+    asserts:
+      - equal:
+          path: spec.endpoints[0].scheme
+          value: https
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints[0].port
+          value: https
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints[0].scheme
+          value: http
+        template: templates/servicemonitor-worker.yaml
+      - equal:
+          path: spec.endpoints[0].port
+          value: http
+        template: templates/servicemonitor-worker.yaml
+
+  - it: passes the TLS settings to the https scrape and to nothing else
+    set:
+      serviceMonitor.enabled: true
+      server.config.https.enabled: true
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      serviceMonitor.tlsConfig:
+        insecureSkipVerify: true
+    asserts:
+      - equal:
+          path: spec.endpoints[0].tlsConfig
+          value:
+            insecureSkipVerify: true
+        template: templates/servicemonitor-coordinator.yaml
+      - isNull:
+          path: spec.endpoints[1].tlsConfig
+        template: templates/servicemonitor-coordinator.yaml
+      - isNull:
+          path: spec.endpoints[0].tlsConfig
+        template: templates/servicemonitor-worker.yaml
+
+  - it: scrapes the sidecar in addition to the OpenMetrics endpoint when a role runs one
+    set:
+      serviceMonitor.enabled: true
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+    asserts:
+      - lengthEqual:
+          path: spec.endpoints
+          count: 2
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints[1]
+          value:
+            interval: 30s
+            port: jmx-exporter
+        template: templates/servicemonitor-coordinator.yaml
+      - lengthEqual:
+          path: spec.endpoints
+          count: 2
+        template: templates/servicemonitor-worker.yaml
+
+  - it: scrapes the sidecar alone once the OpenMetrics endpoint is turned off
+    template: templates/servicemonitor-coordinator.yaml
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.openMetrics.enabled: false
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+    asserts:
+      - equal:
+          path: spec.endpoints
+          value:
+            - interval: 30s
+              port: jmx-exporter
+
+  - it: refuses to render a ServiceMonitor with nothing to scrape
+    template: templates/servicemonitor-worker.yaml
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.openMetrics.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: >-
+            A ServiceMonitor needs something to scrape: keep
+            `serviceMonitor.openMetrics.enabled`, run the `jmx.exporter` sidecar,
+            or describe the scrape yourself in `serviceMonitor.endpoints`.
+
+  - it: lets the workers stop scraping an endpoint their access control rules deny
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.worker.openMetrics.enabled: false
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+      worker.gracefulShutdown.enabled: true
+    asserts:
+      - lengthEqual:
+          path: spec.endpoints
+          count: 2
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints
+          value:
+            - interval: 30s
+              port: jmx-exporter
+        template: templates/servicemonitor-worker.yaml
+      - hasDocuments:
+          count: 1
+        template: templates/secret-servicemonitor.yaml
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-trino-metrics-auth-coordinator
+        template: templates/secret-servicemonitor.yaml
+
+  - it: hands the whole endpoint list over to a role that describes its own scrape
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.coordinator.endpoints:
+        - port: http
+          path: /metrics
+          relabelings:
+            - action: replace
+              replacement: trino-coordinator
+              targetLabel: job
+    asserts:
+      - equal:
+          path: spec.endpoints
+          value:
+            - port: http
+              path: /metrics
+              relabelings:
+                - action: replace
+                  replacement: trino-coordinator
+                  targetLabel: job
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints[0].path
+          value: /metrics
+        template: templates/servicemonitor-worker.yaml
+      - equal:
+          path: spec.endpoints[0].basicAuth.username.key
+          value: username
+        template: templates/servicemonitor-worker.yaml
+
+  - it: lets a role pick its own scrape user without disturbing the other
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.worker.openMetrics.username: worker-scraper
+    asserts:
+      - equal:
+          path: stringData.username
+          value: admin
+        template: templates/secret-servicemonitor.yaml
+        documentIndex: 0
+      - equal:
+          path: stringData.username
+          value: worker-scraper
+        template: templates/secret-servicemonitor.yaml
+        documentIndex: 1
+      - equal:
+          path: spec.endpoints[0].basicAuth.username.name
+          value: RELEASE-NAME-trino-metrics-auth-coordinator
+        template: templates/servicemonitor-coordinator.yaml
+      - equal:
+          path: spec.endpoints[0].basicAuth.username.name
+          value: RELEASE-NAME-trino-metrics-auth-worker
+        template: templates/servicemonitor-worker.yaml
+
+  - it: adds the scrape timeout to every endpoint it renders
+    template: templates/servicemonitor-coordinator.yaml
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.scrapeTimeout: 20s
+      jmx.enabled: true
+      jmx.exporter.enabled: true
+    asserts:
+      - equal:
+          path: spec.endpoints[0].scrapeTimeout
+          value: 20s
+      - equal:
+          path: spec.endpoints[1].scrapeTimeout
+          value: 20s
+
+  - it: rejects a scrape password the workers cannot use
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.openMetrics.password: shared-secret
+    asserts:
+      - failedTemplate:
+          errorMessage: "serviceMonitor.openMetrics.password also reaches the workers, which reject a password. Set serviceMonitor.coordinator.openMetrics.password instead, or serviceMonitor.worker.openMetrics.password as well if you gave the workers an authenticator of your own."
+        template: templates/servicemonitor-worker.yaml
+
+  - it: takes a password the coordinator alone is given
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.coordinator.openMetrics.password: coordinator-secret
+    asserts:
+      - equal:
+          path: stringData.password
+          value: coordinator-secret
+        template: templates/secret-servicemonitor.yaml
+        documentIndex: 0
+      - equal:
+          path: stringData.password
+          value: ""
+        template: templates/secret-servicemonitor.yaml
+        documentIndex: 1
+
+  - it: takes a password on the workers when it is named for them too
+    set:
+      serviceMonitor.enabled: true
+      serviceMonitor.openMetrics.password: shared-secret
+      serviceMonitor.worker.openMetrics.password: shared-secret
+    asserts:
+      - equal:
+          path: stringData.password
+          value: shared-secret
+        template: templates/secret-servicemonitor.yaml
+        documentIndex: 1
