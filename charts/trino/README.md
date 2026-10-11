@@ -273,6 +273,95 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
          ]
        }
   ```
+* `opa.enabled` - bool, default: `false`  
+
+  Set to true to deploy an [Open Policy Agent](https://www.openpolicyagent.org/) sidecar container on the Trino coordinator pod.
+  When `opa.enabled` is true and `accessControl` is left at its default
+  (empty `{}`), the chart automatically wires Trino's access-control plugin
+  to this sidecar using `opa.policyPath` and the optional `opa.*Path` /
+  `opa.log*` / `opa.allowPermissionManagementOperations` values. To
+  customize further, set `accessControl.type: properties` and provide the
+  full `accessControl.properties` block; any `accessControl` value disables
+  auto-wiring.
+* `opa.image` - string, default: `"openpolicyagent/opa:1.16.2-static"`  
+
+  OPA container image. The `-static` variant is recommended: it ships without a shell which keeps the attack surface small. Check for newer versions at https://hub.docker.com/r/openpolicyagent/opa/tags
+* `opa.pullPolicy` - string, default: `"IfNotPresent"`
+* `opa.listenAddress` - string, default: `"127.0.0.1"`  
+
+  Address OPA binds its API to inside the coordinator pod. The default keeps it on loopback, where Trino reaches it and nothing outside the pod can: OPA's API is writable and unauthenticated, so a request that arrives there can replace the policy. The probes use `opa.diagnosticPort` rather than this address, so there is no need to widen it for them.
+* `opa.port` - int, default: `8181`  
+
+  Port OPA listens on inside the coordinator pod. The URIs Trino is given are built from it, so there is nothing else to keep in step.
+* `opa.diagnosticPort` - int, default: `8282`  
+
+  Port of OPA's read-only diagnostic listener, which serves `/health` and `/metrics` and nothing else. It binds to all addresses so the kubelet can probe it, which is why the API itself does not have to.
+* `opa.policyPath` - string, default: `"/v1/data/trino/allow"`  
+
+  Path of the document Trino asks for an authorization decision. The sidecar shares the coordinator's network, so the chart addresses it over loopback on `opa.port` and only the path is configured here.
+* `opa.columnMaskingPath` - string, default: `""`  
+
+  Path of the document for column-masking decisions. When set, the auto-wired access control adds `opa.policy.column-masking-uri`. Leave empty to omit.
+* `opa.rowFiltersPath` - string, default: `""`  
+
+  Path of the document for row-filter decisions. When set, the auto-wired access control adds `opa.policy.row-filters-uri`. Leave empty to omit.
+* `opa.batchedPath` - string, default: `""`  
+
+  Path of the document for batched authorization decisions. When set, the auto-wired access control adds `opa.policy.batched-uri`. Leave empty to omit.
+* `opa.logRequests` - bool, default: `false`  
+
+  When true, the auto-wired access-control adds `opa.log-requests=true`, logging every request Trino sends to OPA.
+* `opa.logResponses` - bool, default: `false`  
+
+  When true, the auto-wired access-control adds `opa.log-responses=true`, logging every response Trino receives from OPA.
+* `opa.allowPermissionManagementOperations` - bool, default: `false`  
+
+  When true, the auto-wired access-control adds `opa.allow-permission-management-operations=true`, allowing CREATE/DROP ROLE, GRANT, REVOKE, and similar statements without OPA evaluation.
+* `opa.policy` - object, default: `{}`  
+
+  Rego policy files to render into a ConfigMap and mount into the OPA container at `opa.policyMountPath`. Provide one or more entries, each keyed by file name (e.g. `policy.rego`, `data.json`). Mutually exclusive with `opa.policyConfigMap`. Exactly one of the two must be set when `opa.enabled` is true.
+  Example:
+  ```yaml
+  policy:
+    policy.rego: |
+      package trino
+      import rego.v1
+      default allow := false
+      allow if {
+        input.context.identity.user == "alice"
+      }
+  ```
+* `opa.policyConfigMap` - string, default: `""`  
+
+  Name of an existing ConfigMap holding the OPA policy files. Mutually exclusive with `opa.policy`.
+* `opa.policyMountPath` - string, default: `"/policies"`  
+
+  Directory inside the OPA container where the policy files are mounted.
+* `opa.extraArgs` - list, default: `[]`  
+
+  Additional flags appended to the `opa run` command, before the policy directory positional argument.
+  Example:
+  ```yaml
+  extraArgs:
+    - --log-level=debug
+  ```
+* `opa.securityContext` - object, default: `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsGroup":65532,"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}}`  
+
+  [Security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container) for the OPA container. Defaults to a hardened, non-root, read-only-root configuration. Override fields explicitly if your environment requires it.
+* `opa.resources` - object, default: `{"limits":{"memory":"512Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}`  
+
+  Resource requests and limits for the OPA container.
+  Set to `{}` to opt out of any resource defaults.
+* `opa.livenessProbe.initialDelaySeconds` - int, default: `5`
+* `opa.livenessProbe.periodSeconds` - int, default: `10`
+* `opa.livenessProbe.timeoutSeconds` - int, default: `5`
+* `opa.livenessProbe.failureThreshold` - int, default: `3`
+* `opa.livenessProbe.successThreshold` - int, default: `1`
+* `opa.readinessProbe.initialDelaySeconds` - int, default: `5`
+* `opa.readinessProbe.periodSeconds` - int, default: `10`
+* `opa.readinessProbe.timeoutSeconds` - int, default: `5`
+* `opa.readinessProbe.failureThreshold` - int, default: `3`
+* `opa.readinessProbe.successThreshold` - int, default: `1`
 * `headerAuthenticator` - object, default: `{}`  
 
   [Header authenticator](https://trino.io/docs/current/develop/header-authenticator.html) configuration. Required when `server.config.authenticationType` contains `HEADER`.

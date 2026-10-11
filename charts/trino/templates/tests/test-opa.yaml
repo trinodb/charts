@@ -1,0 +1,51 @@
+{{- if .Values.opa.enabled -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ include "trino.fullname" . }}-test-opa
+  labels:
+    {{- include "trino.labels" . | nindent 4 }}
+    app.kubernetes.io/component: test
+    test: opa
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  containers:
+    - name: opa-policy-test
+      image: {{ include "trino.image" . }}
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          set -u
+          TRINO_URL="trino://{{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.service.port }}"
+          QUERY="SELECT 1"
+
+          echo "==> Negative test: denied-user must be rejected by OPA"
+          set +e
+          OUTPUT=$(trino "$TRINO_URL" --user=denied-user --execute="$QUERY" --no-progress --output-format=CSV 2>&1)
+          STATUS=$?
+          set -e
+          echo "$OUTPUT"
+          if [ "$STATUS" -eq 0 ]; then
+            echo "FAIL: denied-user query unexpectedly succeeded"
+            exit 1
+          fi
+          if ! echo "$OUTPUT" | grep -qE 'Access Denied|Permission denied'; then
+            echo "FAIL: denied-user query failed but not because of OPA denial"
+            exit 1
+          fi
+          echo "PASS: OPA correctly denied unauthorized user"
+
+          echo "==> Positive test: alice must be allowed by OPA"
+          OUTPUT=$(trino "$TRINO_URL" --user=alice --execute="$QUERY" --no-progress --output-format=CSV)
+          echo "$OUTPUT"
+          # Strip whitespace and quotes; CSV output wraps integers as "1"
+          CLEANED=$(echo "$OUTPUT" | tr -d '[:space:]"')
+          if [ "$CLEANED" != "1" ]; then
+            echo "FAIL: alice query did not return the expected result"
+            exit 1
+          fi
+          echo "PASS: OPA correctly allowed authorized user"
+  restartPolicy: Never
+{{- end }}

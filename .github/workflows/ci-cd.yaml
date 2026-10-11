@@ -98,12 +98,20 @@ jobs:
           - { name: monitoring, cases: 'complete', fixtures: 'prometheus,keda' }
           - { name: database, cases: 'resource-groups-properties', fixtures: 'postgres' }
           - { name: gateway-api, cases: 'gateway', fixtures: 'gateway-api' }
+          - { name: opa, cases: 'opa', fixtures: '' }
         tag:
           - ''
           # last Trino version that requires JDK 21
           - '446'
           # last Trino version that requires JDK 17
           - '435'
+        exclude:
+          # the OPA access control plugin arrived in Trino 438, and the plugin
+          # itself has not changed since, so this case runs on the default tag
+          - group: { name: opa, cases: 'opa', fixtures: '' }
+            tag: '446'
+          - group: { name: opa, cases: 'opa', fixtures: '' }
+            tag: '435'
     steps:
       - uses: actions/checkout@v7
       - name: Set up Helm
