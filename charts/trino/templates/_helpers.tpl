@@ -132,6 +132,20 @@ Code is inspired from bitnami/common
 {{- end -}}
 
 {{/*
+The image reference of one of the containers the chart's Helm tests run. Takes
+`context` and `image`, a block of `testImages`. The registry comes from
+`image.registry`, so a mirror set up for the Trino image serves these too.
+*/}}
+{{- define "trino.testImage" -}}
+{{- $reference := printf "%s:%s" .image.repository (.image.tag | toString) -}}
+{{- with .context.Values.image.registry -}}
+{{- printf "%s/%s" . $reference -}}
+{{- else -}}
+{{- $reference -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Create the secret name for the file-based authentication's password file
 */}}
 {{- define "trino.passwordSecretName" -}}

@@ -1,0 +1,84 @@
+suite: The images of the chart's Helm tests are pinned and overridable through values
+templates:
+  - templates/tests/test-connection.yaml
+  - templates/tests/test-graceful-shutdown.yaml
+  - templates/tests/test-jmx.yaml
+tests:
+  - it: runs the graceful shutdown test on a pinned kubectl image with a shell
+    template: templates/tests/test-graceful-shutdown.yaml
+    documentIndex: 3
+    set:
+      worker.gracefulShutdown.enabled: true
+    asserts:
+      - equal:
+          path: spec.initContainers[0].image
+          value: alpine/kubectl:1.37.1
+      - equal:
+          path: spec.containers[0].image
+          value: alpine/kubectl:1.37.1
+      - equal:
+          path: spec.containers[1].image
+          value: alpine/kubectl:1.37.1
+
+  - it: seeds the resource groups database from the Docker official postgres image
+    template: templates/tests/test-connection.yaml
+    set:
+      resourceGroups.type: properties
+      resourceGroups.properties: resource-groups.configuration-manager=db
+    asserts:
+      - equal:
+          path: spec.initContainers[0].image
+          value: postgres:18-alpine
+
+  - it: queries the Prometheus targets from a pinned python image
+    template: templates/tests/test-jmx.yaml
+    documentIndex: 0
+    set:
+      serviceMonitor.enabled: true
+    asserts:
+      - contains:
+          path: spec.containers
+          content:
+            image: python:3-slim
+          any: true
+
+  - it: prefixes every test image with the registry configured for the Trino image
+    set:
+      image.registry: mirror.example.com
+      worker.gracefulShutdown.enabled: true
+      resourceGroups.type: properties
+      resourceGroups.properties: resource-groups.configuration-manager=db
+      serviceMonitor.enabled: true
+    asserts:
+      - equal:
+          path: spec.initContainers[0].image
+          value: mirror.example.com/alpine/kubectl:1.37.1
+        template: templates/tests/test-graceful-shutdown.yaml
+        documentIndex: 3
+      - equal:
+          path: spec.initContainers[0].image
+          value: mirror.example.com/postgres:18-alpine
+        template: templates/tests/test-connection.yaml
+      - contains:
+          path: spec.containers
+          content:
+            image: mirror.example.com/python:3-slim
+          any: true
+        template: templates/tests/test-jmx.yaml
+        documentIndex: 0
+
+  - it: takes the repository, tag and pull policy of a test image from values
+    template: templates/tests/test-graceful-shutdown.yaml
+    documentIndex: 3
+    set:
+      worker.gracefulShutdown.enabled: true
+      testImages.kubectl.repository: internal/kubectl
+      testImages.kubectl.tag: "1.33.4"
+      testImages.kubectl.pullPolicy: Always
+    asserts:
+      - equal:
+          path: spec.initContainers[0].image
+          value: internal/kubectl:1.33.4
+      - equal:
+          path: spec.initContainers[0].imagePullPolicy
+          value: Always

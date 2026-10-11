@@ -72,7 +72,8 @@ spec:
   serviceAccountName: {{ include "trino.fullname" . }}-pod-manager-sa
   initContainers:
     - name: get-worker-pod
-      image: bitnamilegacy/kubectl:latest
+      image: {{ include "trino.testImage" (dict "context" $ "image" .Values.testImages.kubectl) }}
+      imagePullPolicy: {{ .Values.testImages.kubectl.pullPolicy }}
       command: [ "sh", "-c" ]
       args:
         - >-
@@ -86,7 +87,8 @@ spec:
           name: worker-pod
   containers:
     - name: check-logs
-      image: bitnamilegacy/kubectl:latest
+      image: {{ include "trino.testImage" (dict "context" $ "image" .Values.testImages.kubectl) }}
+      imagePullPolicy: {{ .Values.testImages.kubectl.pullPolicy }}
       command: [ "sh", "-c" ]
       args:
         - >-
@@ -95,12 +97,13 @@ spec:
           --follow
           --container=trino-worker
           --namespace={{ .Release.Namespace }}
-          | grep --max-count=1 "Shutdown requested"
+          | grep -m 1 "Shutdown requested"
       volumeMounts:
         - mountPath: /pods
           name: worker-pod
     - name: trigger-graceful-shutdown
-      image: bitnamilegacy/kubectl:latest
+      image: {{ include "trino.testImage" (dict "context" $ "image" .Values.testImages.kubectl) }}
+      imagePullPolicy: {{ .Values.testImages.kubectl.pullPolicy }}
       command: [ "sh", "-c" ]
       args:
         - >-

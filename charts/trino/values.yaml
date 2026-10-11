@@ -39,6 +39,32 @@ image:
 # ```
 imagePullSecrets: []
 
+# -- Images of the containers the chart's [Helm
+# tests](https://helm.sh/docs/topics/chart_tests/) run, so a cluster that pulls
+# through a mirror can run them too. The registry prefix is shared with the
+# Trino image and comes from `image.registry`.
+testImages:
+  # testImages.kubectl -- Used by the graceful shutdown test to watch and delete
+  # a worker pod. It needs a shell, so a distroless image such as
+  # `registry.k8s.io/kubectl` does not work here.
+  kubectl:
+    repository: alpine/kubectl
+    tag: "1.37.1"
+    pullPolicy: IfNotPresent
+  # testImages.postgresql -- Used by the connection test to seed the resource
+  # groups database, so it is only pulled when `resourceGroups.type` is
+  # `properties`.
+  postgresql:
+    repository: postgres
+    tag: "18-alpine"
+    pullPolicy: IfNotPresent
+  # testImages.python -- Used by the JMX test to query the Prometheus targets
+  # the ServiceMonitor produced.
+  python:
+    repository: python
+    tag: "3-slim"
+    pullPolicy: IfNotPresent
+
 server:
   workers: 2
   node:

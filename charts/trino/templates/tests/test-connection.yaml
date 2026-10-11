@@ -12,7 +12,8 @@ spec:
   {{- if eq (include "trino.configType" .Values.resourceGroups) "properties" }}
   initContainers:
     - name: postgresql-client
-      image: bitnamilegacy/postgresql:17.1.0
+      image: {{ include "trino.testImage" (dict "context" $ "image" .Values.testImages.postgresql) }}
+      imagePullPolicy: {{ .Values.testImages.postgresql.pullPolicy }}
       command:
         - /bin/sh
         - -c
