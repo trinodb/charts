@@ -49,6 +49,18 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   imagePullSecrets:
     - name: registry-credentials
   ```
+* `testImages` - object, default: `{"kubectl":{"pullPolicy":"IfNotPresent","repository":"alpine/kubectl","tag":"1.37.1"},"postgresql":{"pullPolicy":"IfNotPresent","repository":"postgres","tag":"18-alpine"},"python":{"pullPolicy":"IfNotPresent","repository":"python","tag":"3-slim"}}`  
+
+  Images of the containers the chart's [Helm tests](https://helm.sh/docs/topics/chart_tests/) run, so a cluster that pulls through a mirror can run them too. The registry prefix is shared with the Trino image and comes from `image.registry`.
+* `testImages.kubectl` - object, default: `{"pullPolicy":"IfNotPresent","repository":"alpine/kubectl","tag":"1.37.1"}`  
+
+  Used by the graceful shutdown test to watch and delete a worker pod. It needs a shell, so a distroless image such as `registry.k8s.io/kubectl` does not work here.
+* `testImages.postgresql` - object, default: `{"pullPolicy":"IfNotPresent","repository":"postgres","tag":"18-alpine"}`  
+
+  Used by the connection test to seed the resource groups database, so it is only pulled when `resourceGroups.type` is `properties`.
+* `testImages.python` - object, default: `{"pullPolicy":"IfNotPresent","repository":"python","tag":"3-slim"}`  
+
+  Used by the JMX test to query the Prometheus targets the ServiceMonitor produced.
 * `server.workers` - int, default: `2`
 * `server.node.environment` - string, default: `"production"`  
 

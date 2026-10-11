@@ -32,7 +32,8 @@ spec:
     {{- end }}
     {{- if $coordinatorServiceMonitor.enabled }}
     - name: service-monitor-coordinator
-      image: python:3-slim
+      image: {{ include "trino.testImage" (dict "context" $ "image" .Values.testImages.python) }}
+      imagePullPolicy: {{ .Values.testImages.python.pullPolicy }}
       command: [ "python", "/tests/test.py" ]
       args: ["{{ include "trino.fullname" . }}"]
       volumeMounts:
@@ -41,7 +42,8 @@ spec:
     {{- end }}
     {{- if $workerServiceMonitor.enabled }}
     - name: service-monitor-worker
-      image: python:3-slim
+      image: {{ include "trino.testImage" (dict "context" $ "image" .Values.testImages.python) }}
+      imagePullPolicy: {{ .Values.testImages.python.pullPolicy }}
       command: ["python", "/tests/test.py"]
       args: ["{{ include "trino.fullname" . }}-worker"]
       volumeMounts:
