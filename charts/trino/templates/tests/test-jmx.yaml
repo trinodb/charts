@@ -89,6 +89,7 @@ data:
 
     logger = logging.getLogger(__name__)
     target_service = sys.argv[1]
+    deadline = time.monotonic() + 180
     url = f"http://prometheus-operator-kube-p-prometheus:9090/api/v1/targets?scrapePool=serviceMonitor/{{ .Release.Namespace }}/{target_service}/0&state=active"
     while True:
       try:
@@ -100,13 +101,31 @@ data:
           continue
 
       try:
-        service_name = data["data"]["activeTargets"][0]["discoveredLabels"]["__meta_kubernetes_service_name"]
+        target = data["data"]["activeTargets"][0]
+        service_name = target["discoveredLabels"]["__meta_kubernetes_service_name"]
       except (KeyError, IndexError) as e:
         logger.warning("Invalid Prometheus response: ", e)
         time.sleep(2)  # Retry after 2 seconds
         continue
 
-      if service_name == target_service:
-        logger.info(f"Found expected service '{service_name}' in Prometheus targets!")
+      if service_name != target_service:
+        time.sleep(2)  # Retry after 2 seconds
+        continue
+
+      # A target Prometheus discovered but cannot read is still listed as
+      # active, so discovery alone says nothing about whether the scrape
+      # works. An authentication or authorization failure shows up here, and
+      # so does a pod that has not finished starting, which is why this waits
+      # for the target to come up rather than failing the first time it is
+      # down.
+      health = target.get("health")
+      if health == "up":
+        logger.info(f"Scraped expected service '{service_name}' successfully!")
         break
+
+      if time.monotonic() > deadline:
+        sys.exit(f"Target '{service_name}' is {health}: {target.get('lastError')}")
+
+      logger.info(f"Target '{service_name}' is {health}, waiting: {target.get('lastError')}")
+      time.sleep(2)  # Retry after 2 seconds
 {{- end }}
