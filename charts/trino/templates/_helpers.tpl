@@ -168,6 +168,19 @@ Create the secret name for the group-provider file
 {{- end }}
 
 {{/*
+The endpoints of a role's ServiceMonitor, which both roles build the same way
+because their services name their ports the same. Takes `serviceMonitor`, the
+role's settings. Returns YAML, so call it through nindent.
+*/}}
+{{- define "trino.serviceMonitorEndpoints" -}}
+{{- $endpoint := dict "port" "jmx-exporter" "interval" .serviceMonitor.interval -}}
+{{- with .serviceMonitor.scrapeTimeout }}
+{{- $_ := set $endpoint "scrapeTimeout" . }}
+{{- end }}
+{{- list $endpoint | toYaml -}}
+{{- end }}
+
+{{/*
 The settings of a values block as they apply to one role, with that role's
 overrides on top, at any depth. The deep copy is what keeps one role's
 overrides out of the other's, since omit copies only the top level and the
