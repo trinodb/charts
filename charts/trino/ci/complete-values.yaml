@@ -322,6 +322,9 @@ jmx:
     image: bitnamilegacy/jmx-exporter:1.4.0
     pullPolicy: Always
     port: 5556
+    env:
+      - name: JAVA_TOOL_OPTIONS
+        value: -Xmx128m
     configProperties: |
       startDelaySeconds: 0
       hostPort: 127.0.0.1:{{- .Values.jmx.registryPort }}
@@ -329,6 +332,12 @@ jmx:
         - pattern: 'trino.memory*'
         - pattern: 'trino.execution<name=QueryManager>*'
         - pattern: 'trino.execution<name=ClusterSizeMonitor>*'
+  # the exporter env is overridden for one role only, to exercise the merge
+  coordinator:
+    exporter:
+      env:
+        - name: JAVA_TOOL_OPTIONS
+          value: -Xmx256m
 
 serviceMonitor:
   enabled: true
