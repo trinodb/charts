@@ -234,3 +234,12 @@ jobs:
           CR_GENERATE_RELEASE_NOTES: true
           # If we didn't bump the chart version then we can skip the release
           CR_SKIP_EXISTING: true
+      - name: Push charts to GHCR
+        run: |
+          helm registry login ghcr.io -u ${{ github.actor }} --password-stdin <<< "${{ secrets.GITHUB_TOKEN }}"
+          for chart in charts/trino charts/gateway; do
+            helm package "$chart" -d /tmp/charts
+          done
+          for pkg in /tmp/charts/*.tgz; do
+            helm push "$pkg" oci://ghcr.io/trinodb/charts
+          done
