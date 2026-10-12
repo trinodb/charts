@@ -38,6 +38,14 @@ After configuring your Kubernetes cluster, you can install Trino with the chart
 helm install my-trino trino/trino --version 1.44.0
 ```
 
+The charts are also published as OCI artifacts to the GitHub Container
+Registry, so they can be pulled through a registry proxy that does not support
+Helm chart repositories. Install from there without adding a repo using:
+
+```console
+helm install my-trino oci://ghcr.io/trinodb/charts/trino --version 1.44.0
+```
+
 Also, you can check the manifests using:
 
 ```console
