@@ -5,7 +5,7 @@ set -euo pipefail
 # Gateway API publishes no Helm chart and its CRDs are a 1.2MB release asset, so
 # this is the one test dependency no dependency bot can bump. Everything else is
 # pinned in tests/fixtures/Chart.yaml or tests/fixtures/values.yaml.
-GATEWAY_API_VERSION=v1.6.2
+GATEWAY_API_VERSION=v1.6.3
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null && pwd)
 FIXTURES_CHART=$SCRIPT_DIR/fixtures

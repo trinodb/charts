@@ -5,7 +5,7 @@ type: application
 version: 0.1.0
 dependencies:
   - name: kube-prometheus-stack
-    version: 91.7.0
+    version: 92.10.1
     repository: https://prometheus-community.github.io/helm-charts
     condition: kube-prometheus-stack.enabled
   - name: keda
