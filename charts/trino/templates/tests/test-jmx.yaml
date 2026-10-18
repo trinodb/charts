@@ -21,14 +21,14 @@ spec:
       image: {{ include "trino.image" . }}
       command: ["/bin/bash", "-c"]
       args:
-        - curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ $coordinatorJmx.exporter.port }}/metrics | grep -q trino
+        - '[[ "$(curl -s {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ $coordinatorJmx.exporter.port }}/metrics)" == *trino* ]]'
     {{- end }}
     {{- if $workerJmx.exporter.enabled }}
     - name: trino-jmx-worker
       image: {{ include "trino.image" . }}
       command: ["/bin/bash", "-c"]
       args:
-        - curl -s {{ include "trino.fullname" . }}-worker.{{ .Release.Namespace }}:{{ $workerJmx.exporter.port }}/metrics | grep -q trino
+        - '[[ "$(curl -s {{ include "trino.fullname" . }}-worker.{{ .Release.Namespace }}:{{ $workerJmx.exporter.port }}/metrics)" == *trino* ]]'
     {{- end }}
     {{- if and $coordinatorServiceMonitor.enabled $coordinatorServiceMonitor.openMetrics.enabled (not $coordinatorServiceMonitor.openMetrics.authSecret) }}
     - name: trino-open-metrics-coordinator
@@ -36,10 +36,10 @@ spec:
       command: ["/bin/bash", "-c"]
       args:
         - >-
-          curl --silent --show-error --fail --insecure
+          [[ "$(curl --silent --show-error --fail --insecure
           --user {{ printf "%s:%s" $coordinatorServiceMonitor.openMetrics.username $coordinatorServiceMonitor.openMetrics.password | quote }}
-          {{ if .Values.server.config.https.enabled }}https://{{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.server.config.https.port }}{{ else }}http://{{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.service.port }}{{ end }}{{ $coordinatorServiceMonitor.openMetrics.path }}
-          | grep -q trino
+          {{ if .Values.server.config.https.enabled }}https://{{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.server.config.https.port }}{{ else }}http://{{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.service.port }}{{ end }}{{ $coordinatorServiceMonitor.openMetrics.path }})"
+          == *trino* ]]
     {{- end }}
     {{- if $coordinatorServiceMonitor.enabled }}
     - name: service-monitor-coordinator

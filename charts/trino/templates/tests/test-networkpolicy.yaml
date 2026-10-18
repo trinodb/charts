@@ -17,12 +17,12 @@ spec:
       command: [ "/bin/bash", "-c" ]
       args:
         - >-
-          curl
+          [[ "$(curl
           {{ include "trino.fullname" . }}.{{ .Release.Namespace }}:{{ .Values.service.port }}
           --head
           --fail
           --connect-timeout 10
           --max-time 10
-          2>&1 | grep -q "timed out"
+          2>&1)" == *"timed out"* ]]
   restartPolicy: Never
 {{- end }}

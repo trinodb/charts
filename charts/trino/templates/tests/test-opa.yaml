@@ -31,7 +31,7 @@ spec:
             echo "FAIL: denied-user query unexpectedly succeeded"
             exit 1
           fi
-          if ! echo "$OUTPUT" | grep -qE 'Access Denied|Permission denied'; then
+          if [[ "$OUTPUT" != *"Access Denied"* && "$OUTPUT" != *"Permission denied"* ]]; then
             echo "FAIL: denied-user query failed but not because of OPA denial"
             exit 1
           fi
