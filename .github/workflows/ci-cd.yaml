@@ -83,7 +83,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    name: trino ${{ matrix.group.name }} ${{ matrix.tag || '480' }}
+    name: trino ${{ matrix.group.name }} ${{ matrix.tag || 'latest' }}
     needs: [changes, lint, unittest]
     if: ${{needs.changes.outputs.trino-changed == 'true'}}
     strategy:
