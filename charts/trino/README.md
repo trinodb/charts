@@ -1,6 +1,6 @@
 # trino
 
-![Version: 1.44.0](https://img.shields.io/badge/Version-1.44.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 483](https://img.shields.io/badge/AppVersion-483-informational?style=flat-square)
+![Version: 1.45.0](https://img.shields.io/badge/Version-1.45.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 484](https://img.shields.io/badge/AppVersion-484-informational?style=flat-square)
 
 Fast distributed SQL query engine for big data analytics that helps you explore your data universe
 
@@ -299,7 +299,7 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   customize further, set `accessControl.type: properties` and provide the
   full `accessControl.properties` block; any `accessControl` value disables
   auto-wiring.
-* `opa.image` - string, default: `"openpolicyagent/opa:1.16.2-static"`  
+* `opa.image` - string, default: `"openpolicyagent/opa:1.21.2-static"`  
 
   OPA container image. The `-static` variant is recommended: it ships without a shell which keeps the attack surface small. Check for newer versions at https://hub.docker.com/r/openpolicyagent/opa/tags
 * `opa.pullPolicy` - string, default: `"IfNotPresent"`
