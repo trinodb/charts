@@ -328,7 +328,7 @@ opa:
   # -- OPA container image. The `-static` variant is recommended: it ships
   # without a shell which keeps the attack surface small. Check for newer
   # versions at https://hub.docker.com/r/openpolicyagent/opa/tags
-  image: openpolicyagent/opa:1.16.2-static
+  image: openpolicyagent/opa:1.21.2-static
   pullPolicy: IfNotPresent
   # -- Address OPA binds its API to inside the coordinator pod. The default
   # keeps it on loopback, where Trino reaches it and nothing outside the pod
