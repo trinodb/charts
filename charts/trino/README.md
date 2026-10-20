@@ -128,7 +128,13 @@ Fast distributed SQL query engine for big data analytics that helps you explore 
   ```
 * `server.keda` - object, default: `{"advanced":{},"annotations":{},"cooldownPeriod":300,"enabled":false,"fallback":{},"initialCooldownPeriod":0,"maxReplicaCount":5,"minReplicaCount":0,"pollingInterval":30,"triggers":[]}`  
 
-  Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers (`server.autoscaling.enabled` must be `false`).
+  Configure [Kubernetes Event-driven Autoscaling](https://keda.sh/) for workers (`server.autoscaling.enabled` must be `false`). When using KEDA with scale-to-zero (`minReplicaCount: 0`), configure the Trino coordinator to hold queries until workers are available by setting [`query-manager.required-workers`](https://trino.io/docs/current/admin/properties-query-management.html) in `additionalConfigProperties`. This causes queries to enter a `WAITING_FOR_RESOURCES` state until the required number of workers register or `query-manager.required-workers-max-wait` expires. Set the max wait high enough to cover worker pod startup time.
+  Example:
+  ```yaml
+  additionalConfigProperties:
+    - query-manager.required-workers=1
+    - query-manager.required-workers-max-wait=15m
+  ```
 * `server.keda.cooldownPeriod` - int, default: `300`  
 
   Period (in seconds) to wait after the last trigger reported active before scaling the resource back to 0
