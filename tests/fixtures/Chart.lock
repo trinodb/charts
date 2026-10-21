@@ -1,9 +1,9 @@
 dependencies:
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
-  version: 92.10.1
+  version: 92.11.0
 - name: keda
   repository: https://kedacore.github.io/charts
   version: 2.21.0
-digest: sha256:4d723aa429d80eb3455047740ab391eb5921ebca1dd34947fbef02dc5070af7a
-generated: "2026-10-18T09:15:02.328174+02:00"
+digest: sha256:9aacbca07685a6ef7526defe6dba7ce210771009867b04922967e4c970474531
+generated: "2026-10-21T12:54:20.783045555Z"
