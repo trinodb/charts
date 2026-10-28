@@ -1,0 +1,43 @@
+{{- if .Values.httpRoute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .Values.serviceName }}
+  labels:
+    {{- include "trino-gateway.labels" . | nindent 4 }}
+  {{- with .Values.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.httpRoute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.httpRoute.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range .Values.httpRoute.rules }}
+    - matches:
+        {{- if .matches }}
+        {{- toYaml .matches | nindent 8 }}
+        {{- else }}
+        {{- $path := .path | default dict }}
+        - path:
+            type: {{ $path.type | default "PathPrefix" }}
+            value: {{ $path.value | default "/" }}
+        {{- end }}
+      {{- with .filters }}
+      filters:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $.Values.serviceName }}
+          port: {{ include "trino-gateway.routedPort" $ }}
+          {{- with .weight }}
+          weight: {{ . }}
+          {{- end }}
+    {{- end }}
+{{- end }}

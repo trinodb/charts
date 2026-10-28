@@ -139,6 +139,73 @@ ingress:
   #      - chart-example.local
   # ```
 
+httpRoute:
+  # httpRoute.enabled -- Set to true to create an HTTPRoute for the [Kubernetes
+  # Gateway API](https://gateway-api.sigs.k8s.io/). It can be used instead of,
+  # or together with, the Ingress.
+  # @raw
+  # > [!NOTE]
+  # > - Requires the Gateway API CRDs to be installed in the cluster
+  # > - Requires a Gateway resource to be configured separately
+  # > - Like the Ingress, the route sends traffic to the http port when both
+  # >   http and https are enabled, which then has to be added to `service.ports`
+  enabled: false
+  annotations: {}
+  # httpRoute.annotations -- Annotations to add to the HTTPRoute resource.
+  # @raw
+  # Example:
+  # ```yaml
+  #  gateway.networking.k8s.io/example: "value"
+  # ```
+  parentRefs: []
+  # httpRoute.parentRefs -- References to the Gateway resources that this HTTPRoute should attach to.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - name: shared-gateway
+  #    namespace: gateway-system
+  #    sectionName: https
+  # ```
+  hostnames: []
+  # httpRoute.hostnames -- Hostnames to match for routing traffic.
+  # @raw
+  # Example:
+  # ```yaml
+  #  - trino-gateway.example.com
+  # ```
+  rules:
+    - path:
+        type: PathPrefix
+        value: /
+  # httpRoute.rules -- HTTPRoute rules for routing traffic to Trino Gateway.
+  # Each rule can use either the simplified `path` format for basic routing,
+  # or the full `matches` format for advanced use cases. A rule without either
+  # matches every path.
+  # @raw
+  # Simple path-based routing example:
+  # ```yaml
+  #  - path:
+  #      type: PathPrefix
+  #      value: /
+  #    filters:
+  #      - type: RequestHeaderModifier
+  #        requestHeaderModifier:
+  #          set:
+  #            - name: X-Forwarded-Proto
+  #              value: https
+  # ```
+  # Advanced matching example with headers:
+  # ```yaml
+  #  - matches:
+  #      - path:
+  #          type: PathPrefix
+  #          value: /v1
+  #        headers:
+  #          - name: X-Custom-Header
+  #            value: custom-value
+  #    weight: 1
+  # ```
+
 resources:
   limits:
     cpu: 2
