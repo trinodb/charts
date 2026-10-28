@@ -61,6 +61,9 @@ A Helm chart for Trino Gateway
 * `config.dataStore.password` - string, default: `"mysecretpassword"`
 * `config.dataStore.driver` - string, default: `"org.postgresql.Driver"`
 * `config.clusterStatsConfiguration.monitorType` - string, default: `"INFO_API"`
+* `configSecret` - string, default: `""`  
+
+  Name of an existing Secret that holds the whole Trino Gateway configuration in a `config.yaml` key. When set, the chart mounts that Secret instead of creating one from `config`. The chart still reads the `http-server.http.*` and `http-server.https.*` entries of `config.serverConfig` to set the container ports, probes and Service, so keep them in line with the Secret. Pods are not restarted when the Secret changes, since the chart cannot see its contents.
 * `command` - list, default: `["java","-XX:MinRAMPercentage=80.0","-XX:MaxRAMPercentage=80.0","-jar","/usr/lib/trino-gateway/gateway-ha-jar-with-dependencies.jar","/etc/trino-gateway/config.yaml"]`  
 
   Startup command for Trino Gateway process. Add additional Java options and other modifications as desired.
