@@ -104,7 +104,7 @@ spec:
       volumes:
         - name: {{ include "trino-gateway.fullname" . }}-configuration
           secret:
-              secretName: {{ include "trino-gateway.fullname" . }}-configuration
+              secretName: {{ .Values.configSecret | default (printf "%s-configuration" (include "trino-gateway.fullname" .)) }}
               optional: false
       {{- with .Values.volumes }}
         {{- tpl (toYaml .) $ | nindent 8 }}
