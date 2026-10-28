@@ -66,6 +66,17 @@ tests:
           path: spec.rules[0].http.paths[0].backend.service.port.number
           value: 9999
 
+  - it: routes to the http port, so TLS can end at the ingress, when both listeners are enabled
+    capabilities:
+      majorVersion: 1
+      minorVersion: 19
+    values:
+      - ../ci/nodeport-values.yaml
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 8080
+
   - it: routes to the https port when only the https listener is enabled
     capabilities:
       majorVersion: 1

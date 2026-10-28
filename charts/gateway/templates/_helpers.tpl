@@ -83,3 +83,18 @@ set explicitly.
 {{- define "trino-gateway.httpsPort" -}}
 {{- index .Values.config.serverConfig "http-server.https.port" | default 8443 }}
 {{- end }}
+
+{{/*
+The port that the Ingress and the HTTPRoute send traffic to. The plain http
+listener wins when both are enabled, so that TLS can end at the ingress or
+gateway controller.
+*/}}
+{{- define "trino-gateway.routedPort" -}}
+{{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
+{{- include "trino-gateway.httpPort" . }}
+{{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
+{{- include "trino-gateway.httpsPort" . }}
+{{- else }}
+{{- fail "Error: Either https or http must be enabled in serverConfig!" }}
+{{- end }}
+{{- end }}

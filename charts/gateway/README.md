@@ -107,6 +107,63 @@ A Helm chart for Trino Gateway
      hosts:
        - chart-example.local
   ```
+* `httpRoute.enabled` - bool, default: `false`  
+
+  Set to true to create an HTTPRoute for the [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/). It can be used instead of, or together with, the Ingress.
+  > [!NOTE]
+  > - Requires the Gateway API CRDs to be installed in the cluster
+  > - Requires a Gateway resource to be configured separately
+  > - Like the Ingress, the route sends traffic to the http port when both
+  >   http and https are enabled, which then has to be added to `service.ports`
+* `httpRoute.annotations` - object, default: `{}`  
+
+  Annotations to add to the HTTPRoute resource.
+  Example:
+  ```yaml
+   gateway.networking.k8s.io/example: "value"
+  ```
+* `httpRoute.parentRefs` - list, default: `[]`  
+
+  References to the Gateway resources that this HTTPRoute should attach to.
+  Example:
+  ```yaml
+   - name: shared-gateway
+     namespace: gateway-system
+     sectionName: https
+  ```
+* `httpRoute.hostnames` - list, default: `[]`  
+
+  Hostnames to match for routing traffic.
+  Example:
+  ```yaml
+   - trino-gateway.example.com
+  ```
+* `httpRoute.rules` - list, default: `[{"path":{"type":"PathPrefix","value":"/"}}]`  
+
+  HTTPRoute rules for routing traffic to Trino Gateway. Each rule can use either the simplified `path` format for basic routing, or the full `matches` format for advanced use cases. A rule without either matches every path.
+  Simple path-based routing example:
+  ```yaml
+   - path:
+       type: PathPrefix
+       value: /
+     filters:
+       - type: RequestHeaderModifier
+         requestHeaderModifier:
+           set:
+             - name: X-Forwarded-Proto
+               value: https
+  ```
+  Advanced matching example with headers:
+  ```yaml
+   - matches:
+       - path:
+           type: PathPrefix
+           value: /v1
+         headers:
+           - name: X-Custom-Header
+             value: custom-value
+     weight: 1
+  ```
 * `resources.limits.cpu` - int, default: `2`
 * `resources.limits.memory` - string, default: `"4Gi"`
 * `resources.requests.cpu` - int, default: `2`

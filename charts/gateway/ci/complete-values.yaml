@@ -28,6 +28,15 @@ initContainers:
 ingress:
   enabled: true
 
+# exercises that the API server accepts the HTTPRoute next to the Ingress; the
+# parent Gateway does not need to exist for that
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: shared-gateway
+  hostnames:
+    - trino-gateway.example.com
+
 resources:
   limits:
     cpu: 500m

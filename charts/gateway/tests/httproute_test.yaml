@@ -1,0 +1,198 @@
+suite: The HTTPRoute routes to the gateway service and fills in the omitted match details
+templates:
+  - templates/httproute.yaml
+tests:
+  - it: renders nothing unless it is enabled
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders a parseable HTTPRoute named after the service
+    set:
+      httpRoute.enabled: true
+      serviceName: my-gw
+    asserts:
+      - isAPIVersion:
+          of: gateway.networking.k8s.io/v1
+      - isKind:
+          of: HTTPRoute
+      - equal:
+          path: metadata.name
+          value: my-gw
+
+  - it: routes every path to the service on the http port by default
+    set:
+      httpRoute.enabled: true
+      serviceName: my-gw
+    asserts:
+      - equal:
+          path: spec.rules
+          value:
+            - matches:
+                - path:
+                    type: PathPrefix
+                    value: /
+              backendRefs:
+                - name: my-gw
+                  port: 8080
+
+  - it: routes to the https port when only the https listener is enabled
+    set:
+      httpRoute.enabled: true
+      config:
+        serverConfig:
+          http-server.http.enabled: false
+          http-server.https.enabled: true
+          http-server.https.port: 8443
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 8443
+
+  - it: routes to the http port, like the ingress, when both listeners are enabled
+    values:
+      - ../ci/nodeport-values.yaml
+    set:
+      httpRoute.enabled: true
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 8080
+
+  - it: fails when neither listener is enabled
+    set:
+      httpRoute.enabled: true
+      config:
+        serverConfig:
+          http-server.http.enabled: false
+          http-server.https.enabled: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "Error: Either https or http must be enabled in serverConfig!"
+
+  - it: falls back to a prefix match on the root path when a rule omits the details
+    set:
+      httpRoute.enabled: true
+      httpRoute.rules:
+        - weight: 1
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: PathPrefix
+            value: /
+      - equal:
+          path: spec.rules[0].backendRefs[0].weight
+          value: 1
+
+  - it: honours an explicit path type and value
+    set:
+      httpRoute.enabled: true
+      httpRoute.rules:
+        - path:
+            type: Exact
+            value: /v1/statement
+    asserts:
+      - equal:
+          path: spec.rules[0].matches[0].path
+          value:
+            type: Exact
+            value: /v1/statement
+
+  - it: passes a full matches block through untouched
+    set:
+      httpRoute.enabled: true
+      httpRoute.rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /v1
+              headers:
+                - name: X-Custom-Header
+                  value: custom-value
+    asserts:
+      - equal:
+          path: spec.rules[0].matches
+          value:
+            - path:
+                type: PathPrefix
+                value: /v1
+              headers:
+                - name: X-Custom-Header
+                  value: custom-value
+
+  - it: omits the optional sections when their values are empty
+    set:
+      httpRoute.enabled: true
+    asserts:
+      - notExists:
+          path: spec.parentRefs
+      - notExists:
+          path: spec.hostnames
+      - notExists:
+          path: metadata.annotations
+      - notExists:
+          path: spec.rules[0].filters
+      - notExists:
+          path: spec.rules[0].backendRefs[0].weight
+
+  - it: carries the gateway attachment, hostnames, annotations and filters through verbatim
+    set:
+      httpRoute.enabled: true
+      httpRoute.annotations:
+        gateway.networking.k8s.io/example: value
+      httpRoute.parentRefs:
+        - name: shared-gateway
+          namespace: gateway-system
+          sectionName: https
+      httpRoute.hostnames:
+        - trino-gateway.example.com
+      httpRoute.rules:
+        - path: {}
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: X-Forwarded-Proto
+                    value: https
+    asserts:
+      - equal:
+          path: metadata.annotations["gateway.networking.k8s.io/example"]
+          value: value
+      - equal:
+          path: spec.parentRefs
+          value:
+            - name: shared-gateway
+              namespace: gateway-system
+              sectionName: https
+      - equal:
+          path: spec.hostnames
+          value:
+            - trino-gateway.example.com
+      - equal:
+          path: spec.rules[0].filters
+          value:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: X-Forwarded-Proto
+                    value: https
+
+  - it: renders one rule per entry, in order
+    set:
+      httpRoute.enabled: true
+      httpRoute.rules:
+        - path:
+            value: /v1
+        - path:
+            value: /ui
+    asserts:
+      - lengthEqual:
+          path: spec.rules
+          count: 2
+      - equal:
+          path: spec.rules[0].matches[0].path.value
+          value: /v1
+      - equal:
+          path: spec.rules[1].matches[0].path.value
+          value: /ui

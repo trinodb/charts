@@ -1,14 +1,7 @@
 
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := .Values.serviceName -}}
-{{- $svcPort := -1 }}
-{{- if index .Values "config" "serverConfig" "http-server.http.enabled" }}
-  {{- $svcPort = include "trino-gateway.httpPort" . | int }}
-{{- else if index .Values "config" "serverConfig" "http-server.https.enabled" }}
-  {{- $svcPort = include "trino-gateway.httpsPort" . | int }}
-{{- else }}
-  {{- fail "Error: Either https or http must be enabled in serverConfig!" }}
-{{- end }}
+{{- $svcPort := include "trino-gateway.routedPort" . | int }}
 {{- if and .Values.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set .Values.ingress.annotations "kubernetes.io/ingress.class" .Values.ingress.className}}

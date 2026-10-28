@@ -159,7 +159,7 @@ jobs:
       fail-fast: false
       matrix:
         group:
-          - { name: monitoring, cases: 'complete', fixtures: 'prometheus,postgres' }
+          - { name: monitoring, cases: 'complete', fixtures: 'prometheus,postgres,gateway-api' }
           - { name: database, cases: 'env-from,https,nodeport', fixtures: 'postgres' }
     steps:
       - uses: actions/checkout@v7
