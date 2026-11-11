@@ -120,7 +120,7 @@ jobs:
         with:
           version: v4.3.1
       - name: Create kind cluster
-        uses: helm/kind-action@v1.15.1
+        uses: helm/kind-action@v1.15.2
         with:
           version: v0.33.0
       - name: Run tests
@@ -142,7 +142,7 @@ jobs:
         with:
           version: v4.3.1
       - name: Create kind cluster
-        uses: helm/kind-action@v1.15.1
+        uses: helm/kind-action@v1.15.2
         with:
           version: v0.33.0
       # --retain keeps both releases installed at once, which is what this checks:
@@ -168,7 +168,7 @@ jobs:
         with:
           version: v4.3.1
       - name: Create kind cluster
-        uses: helm/kind-action@v1.15.1
+        uses: helm/kind-action@v1.15.2
         with:
           version: v0.33.0
       - name: Run gateway tests
