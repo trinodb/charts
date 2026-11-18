@@ -9,6 +9,6 @@ dependencies:
     repository: https://prometheus-community.github.io/helm-charts
     condition: kube-prometheus-stack.enabled
   - name: keda
-    version: 2.21.0
+    version: 2.21.1
     repository: https://kedacore.github.io/charts
     condition: keda.enabled
